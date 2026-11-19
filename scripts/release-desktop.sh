@@ -79,8 +79,10 @@ open(cargo_path, "w").write(re.sub(r'(?m)^version = ".*"$', f'version = "{versio
 PY
 (cd "$DESKTOP" && cargo update -p tetratop-desktop --offline >/dev/null 2>&1 || true)
 git -C "$ROOT" add desktop/src-tauri/tauri.conf.json desktop/package.json desktop/src-tauri/Cargo.toml desktop/Cargo.lock
-git -C "$ROOT" commit -q -m "Release desktop $VERSION"
-git -C "$ROOT" push -q origin HEAD:main
+if ! git -C "$ROOT" diff --cached --quiet; then
+  git -C "$ROOT" commit -q -m "Release desktop $VERSION"
+  git -C "$ROOT" push -q origin HEAD:main
+fi
 
 rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
 export APPLE_SIGNING_IDENTITY="$IDENTITY"
