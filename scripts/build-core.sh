@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Builds core/ for every consumer:
-#   macos   -> core/target/macos/libtetra_core.a (universal), linked by mac/
+# Builds core/ for the phone app (the desktop app links it as a Rust crate):
 #   ios     -> mobile/modules/remote/ios/TetraCore.xcframework
 #   android -> mobile/modules/remote/android/src/main/jniLibs/<abi>/libtetra_core.so
 #
-# Needs rustup targets aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios
-# aarch64-apple-ios-sim x86_64-apple-ios aarch64-linux-android x86_64-linux-android,
+# Needs rustup targets aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+# aarch64-linux-android x86_64-linux-android,
 # cargo-ndk, and an Android NDK under $ANDROID_HOME/ndk.
 set -euo pipefail
 
@@ -18,18 +17,6 @@ CORE="$ROOT/core"
 TARGET_DIR="$CORE/target"
 MODULE="$ROOT/mobile/modules/remote"
 cd "$CORE"
-
-build_macos() {
-  export MACOSX_DEPLOYMENT_TARGET=14.0
-  for target in aarch64-apple-darwin x86_64-apple-darwin; do
-    cargo build --release --locked --lib --target "$target"
-  done
-  mkdir -p "$TARGET_DIR/macos"
-  lipo -create \
-    "$TARGET_DIR/aarch64-apple-darwin/release/libtetra_core.a" \
-    "$TARGET_DIR/x86_64-apple-darwin/release/libtetra_core.a" \
-    -output "$TARGET_DIR/macos/libtetra_core.a"
-}
 
 build_ios() {
   export IPHONEOS_DEPLOYMENT_TARGET=17.0
@@ -64,9 +51,8 @@ build_android() {
 }
 
 case "${1:-all}" in
-  macos) build_macos ;;
   ios) build_ios ;;
   android) build_android ;;
-  all) build_macos; build_ios; build_android ;;
-  *) echo "usage: $0 [macos|ios|android|all]" >&2; exit 1 ;;
+  all) build_ios; build_android ;;
+  *) echo "usage: $0 [ios|android|all]" >&2; exit 1 ;;
 esac
