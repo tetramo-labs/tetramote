@@ -2,7 +2,7 @@ import {remote} from "@tetratop/remote"
 import * as Clipboard from "expo-clipboard"
 import * as Device from "expo-device"
 import {useEffect, useState} from "react"
-import {Alert, TextInput, View} from "react-native"
+import {Alert, TextInput, View, type ViewStyle} from "react-native"
 import Toast from "react-native-toast-message"
 
 import {Button} from "@/components/ignite/Button"
@@ -26,16 +26,18 @@ function FieldRow({
   onChangeText,
   placeholder,
   onSubmit,
+  style,
 }: {
   label: string
   value: string
   onChangeText: (v: string) => void
   placeholder?: string
   onSubmit?: () => void
+  style?: ViewStyle
 }) {
   const {theme} = useAppTheme()
   return (
-    <View className="px-4 py-3 gap-1" style={{backgroundColor: theme.colors.primary_foreground}}>
+    <View className="px-4 py-3 gap-1" style={[{backgroundColor: theme.colors.primary_foreground}, style]}>
       <Text text={label} size="xs" className="text-muted-foreground" />
       <TextInput
         value={value}
@@ -57,6 +59,7 @@ export default function SettingsScreen() {
   const [inputMode, setInputMode] = useSetting("default_input_mode")
   const [speed, setSpeed] = useSetting("trackpad_speed")
   const [playAudio, setPlayAudio] = useSetting("play_audio")
+  const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
   const [deviceName, setDeviceName] = useSetting("device_name")
   const forgetAll = useHostsStore((s) => s.forgetAll)
   const [relayDraft, setRelayDraft] = useState(relay)
@@ -128,6 +131,12 @@ export default function SettingsScreen() {
               ]}
             />
           }
+        />
+        <ToggleRow
+          labelTx="settings:autoHide"
+          subtitleTx="settings:autoHideHint"
+          value={autoHide}
+          onValueChange={setAutoHide}
         />
         <ToggleRow labelTx="settings:playAudio" value={playAudio} onValueChange={setPlayAudio} />
       </Group>

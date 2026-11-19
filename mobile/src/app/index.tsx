@@ -40,7 +40,15 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen header={<Header titleTx="home:title" rightIcon={Settings} onRightPress={() => push("/settings")} />}>
+    <Screen
+      header={
+        <Header
+          titleTx="home:title"
+          rightIcon={Settings}
+          rightLabel={translate("settings:title")}
+          onRightPress={() => push("/settings")}
+        />
+      }>
       {hosts.length === 0 ? (
         <View className="flex-1 items-center justify-center gap-4 px-4">
           <View className="w-20 h-20 rounded-full items-center justify-center bg-primary-foreground">

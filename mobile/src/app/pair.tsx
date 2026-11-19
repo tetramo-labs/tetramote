@@ -9,10 +9,12 @@ import {Button} from "@/components/ignite/Button"
 import {PressableIcon} from "@/components/ignite/Icon"
 import {Text} from "@/components/ignite/Text"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
+import {useLayout} from "@/hooks/useLayout"
 import {translate} from "@/i18n"
 import {pairingFromParams, parsePairingUrl, type PairingCode} from "@/services/pairingUrl"
 import {pair} from "@/services/remote"
 import {useNavigationStore} from "@/stores/navigation"
+import {useRailActions} from "@/stores/railToolbar"
 
 const FRAME = 260
 
@@ -22,6 +24,8 @@ export default function PairScreen() {
   const insets = useSaferAreaInsets()
   const {replace, goBack} = useNavigationStore.getState()
   const handled = useRef(false)
+  const {rail, insetLeft} = useLayout()
+  useRailActions(rail ? [{key: "close", icon: X, label: translate("common:close"), onPress: goBack}] : null)
 
   const start = (code: PairingCode) => {
     if (handled.current) return
@@ -76,9 +80,11 @@ export default function PairScreen() {
           )}
         </View>
       </View>
-      <View className="absolute left-6" style={{top: insets.top + 8}}>
-        <PressableIcon icon={X} glass onPress={goBack} accessibilityLabel={translate("common:close")} />
-      </View>
+      {!rail && (
+        <View className="absolute" style={{top: insets.top + 8, left: insetLeft + 24}}>
+          <PressableIcon icon={X} glass onPress={goBack} accessibilityLabel={translate("common:close")} />
+        </View>
+      )}
     </View>
   )
 }

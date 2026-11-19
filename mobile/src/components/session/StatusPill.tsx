@@ -2,12 +2,10 @@ import {View} from "react-native"
 
 import {Text} from "@/components/ignite/Text"
 import GlassView from "@/components/ui/GlassView"
-import {useAppTheme} from "@/contexts/ThemeContext"
 import {translate} from "@/i18n"
 import {useSessionStore} from "@/stores/session"
 
 export function StatusPill() {
-  const {theme} = useAppTheme()
   const path = useSessionStore((s) => s.path)
   const rttMs = useSessionStore((s) => s.rttMs)
   const fps = useSessionStore((s) => s.stats?.fps)
@@ -18,13 +16,10 @@ export function StatusPill() {
     fps !== undefined ? translate("session:fps", {fps: Math.round(fps)}) : null,
   ].filter(Boolean)
   return (
-    <GlassView className="rounded-full" style={{backgroundColor: theme.colors.primary_foreground + "CC"}}>
+    <GlassView className="rounded-full" style={{backgroundColor: "rgba(46,46,46,0.85)"}}>
       <View className="flex-row items-center gap-2 px-3 py-1.5">
-        <View
-          className="w-2 h-2 rounded-full"
-          style={{backgroundColor: path === "direct" ? theme.colors.success : theme.colors.warning}}
-        />
-        <Text text={parts.join(" · ")} size="xs" weight="medium" className="text-foreground" />
+        <View className="w-2 h-2 rounded-full" style={{backgroundColor: path === "direct" ? "#4ade80" : "#fbbf24"}} />
+        <Text text={parts.join(" · ")} size="xs" weight="medium" style={{color: "#fafafa"}} />
       </View>
     </GlassView>
   )

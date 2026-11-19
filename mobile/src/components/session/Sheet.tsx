@@ -23,7 +23,14 @@ export const Sheet = forwardRef<BottomSheetModal, {children: ReactNode}>(functio
       backdropComponent={Backdrop}
       backgroundStyle={{backgroundColor: theme.colors.background, borderRadius: 24}}
       handleIndicatorStyle={{backgroundColor: theme.colors.muted_foreground + "40", width: 64, height: 6}}>
-      <BottomSheetView style={{paddingHorizontal: 24, paddingTop: 8, paddingBottom: insets.bottom + 16, gap: 12}}>
+      <BottomSheetView
+        style={{
+          paddingLeft: insets.left + 24,
+          paddingRight: insets.right + 24,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 16,
+          gap: 12,
+        }}>
         {children}
       </BottomSheetView>
     </BottomSheetModal>

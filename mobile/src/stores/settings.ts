@@ -12,6 +12,7 @@ export interface Settings {
   default_input_mode: InputMode
   trackpad_speed: TrackpadSpeed
   play_audio: boolean
+  auto_hide_controls: boolean
   device_name: string
 }
 
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   default_input_mode: "trackpad",
   trackpad_speed: "normal",
   play_audio: true,
+  auto_hide_controls: false,
   device_name: "",
 }
 

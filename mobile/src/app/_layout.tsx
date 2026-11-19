@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen"
 import {useEffect} from "react"
 import Toast from "react-native-toast-message"
 
+import {RailToolbarHost} from "@/components/ui/RailToolbar"
 import {AllProviders} from "@/contexts/AllProviders"
 import {useAppTheme} from "@/contexts/ThemeContext"
 import {ensureStarted} from "@/services/remote"
@@ -24,7 +25,7 @@ function AppStack() {
         contentStyle: {backgroundColor: theme.colors.background},
       }}>
       <Stack.Screen name="session" options={{animation: "fade", gestureEnabled: false}} />
-      <Stack.Screen name="pair" options={{presentation: "fullScreenModal", animation: "slide_from_bottom"}} />
+      <Stack.Screen name="pair" options={{animation: "slide_from_bottom"}} />
     </Stack>
   )
 }
@@ -45,6 +46,7 @@ export default function RootLayout() {
   return (
     <AllProviders>
       <AppStack />
+      <RailToolbarHost />
       <Toast topOffset={60} />
     </AllProviders>
   )

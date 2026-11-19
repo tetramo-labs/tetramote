@@ -4,9 +4,12 @@ import {existsSync} from "node:fs"
 
 import {$, argv, cd, path} from "zx"
 
+import {selectNewestXcode} from "./xcode.mjs"
+
 $.verbose = true
 const app = path.resolve(import.meta.dirname, "..")
 cd(app)
+await selectNewestXcode()
 
 if (argv["build-core"] || !existsSync("modules/remote/ios/TetraCore.xcframework")) {
   await $`../scripts/build-core.sh ios`

@@ -1,5 +1,6 @@
 import {
   ClipboardList,
+  Ellipsis,
   Hand,
   Keyboard,
   Monitor,
@@ -8,20 +9,22 @@ import {
   VolumeX,
   X,
   ZoomOut,
-  type LucideIcon,
 } from "lucide-react-native"
 import {View} from "react-native"
 
 import {PressableIcon} from "@/components/ignite/Icon"
 import GlassView from "@/components/ui/GlassView"
-import {useAppTheme} from "@/contexts/ThemeContext"
-import {translate, type TxKeyPath} from "@/i18n"
+import {translate} from "@/i18n"
 import {setAudio} from "@/services/remote"
+import type {RailAction} from "@/stores/railToolbar"
 import {useSessionStore} from "@/stores/session"
 
-interface ToolbarProps {
-  vertical: boolean
+const BAR = "rgba(46,46,46,0.85)"
+const ICON = "#fafafa"
+
+interface SessionActionHandlers {
   zoomed: boolean
+  onUse: () => void
   onDisconnect: () => void
   onKeyboard: () => void
   onDisplays: () => void
@@ -29,64 +32,81 @@ interface ToolbarProps {
   onResetZoom: () => void
 }
 
-interface Action {
-  key: string
-  icon: LucideIcon
-  label: TxKeyPath
-  onPress: () => void
-  active?: boolean
-}
-
-export function SessionToolbar({
-  vertical,
+/** The session's controls in the order a Duo rail lists them: Close, then the main actions, then the rest. */
+export function useSessionActions({
   zoomed,
+  onUse,
   onDisconnect,
   onKeyboard,
   onDisplays,
   onClipboard,
   onResetZoom,
-}: ToolbarProps) {
-  const {theme} = useAppTheme()
+}: SessionActionHandlers): RailAction[] {
   const inputMode = useSessionStore((s) => s.inputMode)
   const setInputMode = useSessionStore((s) => s.setInputMode)
   const audio = useSessionStore((s) => s.audio)
   const displays = useSessionStore((s) => s.displays.length)
+  const used = (fn: () => void) => () => {
+    onUse()
+    fn()
+  }
 
-  const actions: Action[] = [
-    {key: "disconnect", icon: X, label: "session:disconnect", onPress: onDisconnect},
+  return [
+    {key: "disconnect", icon: X, label: translate("session:disconnect"), onPress: onDisconnect},
     {
       key: "mode",
       icon: inputMode === "trackpad" ? MousePointer2 : Hand,
-      label: inputMode === "trackpad" ? "session:trackpad" : "session:direct_touch",
-      onPress: () => setInputMode(inputMode === "trackpad" ? "direct" : "trackpad"),
+      label: translate(inputMode === "trackpad" ? "session:trackpad" : "session:direct_touch"),
+      onPress: used(() => setInputMode(inputMode === "trackpad" ? "direct" : "trackpad")),
     },
-    {key: "keyboard", icon: Keyboard, label: "session:keyboard", onPress: onKeyboard},
+    {key: "keyboard", icon: Keyboard, label: translate("session:keyboard"), onPress: used(onKeyboard)},
     ...(displays > 1
-      ? [{key: "displays", icon: Monitor, label: "session:displays" as TxKeyPath, onPress: onDisplays}]
+      ? [{key: "displays", icon: Monitor, label: translate("session:displays"), onPress: used(onDisplays)}]
       : []),
-    {key: "clipboard", icon: ClipboardList, label: "session:clipboard", onPress: onClipboard},
+    {key: "clipboard", icon: ClipboardList, label: translate("session:clipboard"), onPress: used(onClipboard)},
     {
       key: "audio",
       icon: audio ? Volume2 : VolumeX,
-      label: audio ? "session:audioOn" : "session:audioOff",
-      onPress: () => setAudio(!audio),
+      label: translate(audio ? "session:audioOn" : "session:audioOff"),
+      onPress: used(() => setAudio(!audio)),
     },
-    ...(zoomed ? [{key: "zoom", icon: ZoomOut, label: "session:resetZoom" as TxKeyPath, onPress: onResetZoom}] : []),
+    ...(zoomed
+      ? [{key: "zoom", icon: ZoomOut, label: translate("session:resetZoom"), onPress: used(onResetZoom)}]
+      : []),
   ]
+}
 
+export function SessionToolbar({actions, vertical}: {actions: RailAction[]; vertical: boolean}) {
   return (
-    <GlassView className="rounded-full" style={{backgroundColor: theme.colors.primary_foreground + "CC"}}>
+    <GlassView className="rounded-full" style={{backgroundColor: BAR}}>
       <View className={vertical ? "py-2 px-1 gap-1" : "flex-row px-2 py-1 gap-1"}>
         {actions.map((a) => (
           <PressableIcon
             key={a.key}
             icon={a.icon}
+            color={ICON}
             onPress={a.onPress}
-            accessibilityLabel={translate(a.label)}
+            accessibilityLabel={a.label}
             diameter={42}
           />
         ))}
       </View>
+    </GlassView>
+  )
+}
+
+/** What stays on screen while auto-hide has hidden the controls. */
+export function ControlsHandle({onPress}: {onPress: () => void}) {
+  return (
+    <GlassView className="rounded-full" style={{backgroundColor: BAR, opacity: 0.6}}>
+      <PressableIcon
+        icon={Ellipsis}
+        color={ICON}
+        onPress={onPress}
+        accessibilityLabel={translate("session:showControls")}
+        diameter={34}
+        size={18}
+      />
     </GlassView>
   )
 }

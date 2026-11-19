@@ -30,6 +30,10 @@ Rules for coding agents working in Tetratop. The phone app follows the Glassly A
   otherwise break. Never narrate code or explain a fix (that goes in the commit message).
 - Format TypeScript with the checked-in `.prettierrc` (double quotes, no semicolons, width 120), Swift with
   `swiftformat` (2-space indent, `mac/.swiftformat`), Rust with `cargo fmt`, Kotlin with 4 spaces.
+- iPhone Duo: build iOS with Xcode 27.1 or later (`bun ios` picks the newest; an older SDK puts the app in
+  a compatibility window beside the rail). Session geometry comes from `sessionLayout()` and rail buttons
+  from `useRailActions()`, both decided from window sizes, never the device or orientation. Check folded,
+  open and sideways with `duoctl` before calling Duo work done.
 - Mobile UI: Uniwind `className` with semantic tokens (`bg-primary-foreground`, `text-muted-foreground`),
   `useAppTheme()` for values passed through `style` or props, no `StyleSheet.create`, navigation through
   `useNavigationStore`, copy in `src/i18n/en.ts` via `tx`/`translate()`, sizes from the window via

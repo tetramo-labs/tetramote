@@ -14,7 +14,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   ios: {
     bundleIdentifier: "com.tetramo.tetratop",
     appleTeamId: process.env.EXPO_PUBLIC_APPLE_TEAM_ID || "B8446S9493",
-    supportsTablet: true,
+    supportsTablet: false,
     requireFullScreen: false,
     infoPlist: {
       NSCameraUsageDescription: "Tetratop uses the camera to scan the pairing code your Mac shows.",

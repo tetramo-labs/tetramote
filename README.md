@@ -28,7 +28,9 @@ iPhone (Expo app)                                        Mac (menu bar app)
 ## Build
 
 Requirements: Rust with the Apple and Android targets listed in `scripts/build-core.sh`, cargo-ndk, Xcode
-27, XcodeGen, bun 1.4, and Java 17 plus the Android SDK for Android builds.
+27.1 or later, XcodeGen, bun 1.4, and Java 17 plus the Android SDK for Android builds. iOS gives an app the
+iPhone Duo's full window, status rail included, only when it is linked against the 27.1 SDK or later; `bun ios`
+builds with the newest Xcode in `/Applications` for that reason.
 
 ```bash
 scripts/build-core.sh            # macos | ios | android | all
@@ -39,6 +41,20 @@ cd mobile && bun install && bun ios        # connected iPhone; --simulator, --re
 cd mobile && bun android                   # connected Android phone; --emulator
 cd mobile && bun run test && bun compile && bun run lint:check
 ```
+
+## iPhone Duo
+
+The phone app is designed for the iPhone Duo first and widens rather than switching designs:
+
+- Whenever the window has room under the Mac's screen, the session becomes a laptop: screen on top, a
+  trackpad below. On the open display it splits at the fold when iOS reports one (reserved regions).
+- On the folded display and the open display held sideways, the session controls, Back, Close and Settings
+  move into the status rail, Close first; what doesn't fit goes behind More. Elsewhere they sit under the
+  trackpad or beside the screen.
+- Settings › Hide controls automatically fades the controls after a few seconds; a three-finger tap or the
+  handle that stays behind brings them back.
+
+`duoctl` (`brew install skarol/tap/duoctl`) folds, rotates, taps and screenshots the Duo simulator.
 
 ## Pairing and trust
 
