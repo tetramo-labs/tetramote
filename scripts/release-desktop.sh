@@ -142,7 +142,7 @@ for _ in $(seq 1 30); do
 done
 [[ -n "$RUN" ]] || { echo "The Windows/Linux build didn't start. Run release-desktop.yml by hand with commit=$COMMIT release_id=$RELEASE_ID." >&2; exit 1; }
 gh run watch "$RUN" --repo "$REPO" --exit-status || {
-  echo "The Windows/Linux build failed; the draft release stays. Fix it, run release-desktop.yml with commit=$COMMIT release_id=$RELEASE_ID, then: gh release edit $TAG --repo $REPO --draft=false --latest" >&2
+  echo "The Windows/Linux build failed; the draft release stays. Fix it, run release-desktop.yml with commit=$COMMIT release_id=$RELEASE_ID (platforms=<the failed one> redoes just that build), then: gh release edit $TAG --repo $REPO --draft=false --latest" >&2
   exit 1
 }
 

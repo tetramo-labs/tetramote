@@ -12,6 +12,11 @@ on:
       release_id:
         description: Id of the draft release to upload to
         required: true
+      platforms:
+        description: Which builds to run (one, to redo just that one)
+        type: choice
+        default: all
+        options: [all, windows-latest, ubuntu-24.04]
 
 permissions:
   contents: write
@@ -21,7 +26,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-22.04]
+        # 24.04 because the PipeWire crate needs newer headers than 22.04 ships
+        # (so the Linux builds need glibc 2.39+).
+        platform: ${{ inputs.platforms == 'all' && fromJSON('["windows-latest", "ubuntu-24.04"]') || fromJSON(format('["{0}"]', inputs.platforms)) }}
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4

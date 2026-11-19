@@ -41,7 +41,8 @@ Requirements: Windows 10 or later, the MSVC Rust toolchain with the Visual Studi
 
 Requirements: a running PipeWire, and xdg-desktop-portal with a backend that implements both ScreenCast and
 RemoteDesktop. GNOME (`xdg-desktop-portal-gnome`) and KDE Plasma (`xdg-desktop-portal-kde`) do, on Wayland or
-X11. wlroots compositors don't implement RemoteDesktop yet. Building needs
+X11. wlroots compositors don't implement RemoteDesktop yet. The released `.deb` and AppImage are built on Ubuntu
+24.04, so they need glibc 2.39 or newer (Ubuntu 24.04, Debian 13, Fedora 40 and later). Building needs
 `libpipewire-0.3-dev libspa-0.2-dev libclang-dev libasound2-dev pkg-config cmake`.
 
 - Sharing starts one portal session for both capture and input. The portal asks the user which screen to
