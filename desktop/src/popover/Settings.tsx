@@ -1,0 +1,98 @@
+import {disable, enable, isEnabled} from "@tauri-apps/plugin-autostart"
+import {useEffect, useState} from "react"
+
+import {api} from "@/ipc"
+import {useAppStore} from "@/store"
+import {Button, Group, GroupTitle, Row, Toggle} from "@/ui/Kit"
+import {useUpdates} from "@/updates"
+
+export function Settings() {
+  const settings = useAppStore((s) => s.settings)
+  const [draft, setRelay] = useState<string | null>(null)
+  const relay = draft ?? settings?.relayUrl ?? ""
+  const [relayError, setRelayError] = useState<string | null>(null)
+  const [login, setLogin] = useState(false)
+  const updates = useUpdates()
+
+  useEffect(() => {
+    isEnabled()
+      .then(setLogin)
+      .catch(() => setLogin(false))
+  }, [])
+
+  const applyRelay = async () => {
+    setRelayError(null)
+    try {
+      await api.setRelay(relay)
+    } catch (e) {
+      setRelayError(String(e))
+    }
+  }
+
+  const toggleLogin = async (on: boolean) => {
+    await (on ? enable() : disable())
+    setLogin(await isEnabled())
+  }
+
+  const updateText =
+    updates.phase === "checking"
+      ? "Checking…"
+      : updates.phase === "upToDate"
+        ? "Up to date"
+        : updates.phase === "available"
+          ? `Version ${updates.version} is ready`
+          : updates.phase === "installing"
+            ? "Installing…"
+            : null
+
+  return (
+    <div>
+      <GroupTitle>Settings</GroupTitle>
+      <Group>
+        <Row className="flex-col !items-stretch gap-1.5">
+          <div className="text-[13px]">Relay</div>
+          <div className="flex gap-2">
+            <input
+              value={relay}
+              onChange={(e) => setRelay(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && void applyRelay()}
+              placeholder="Public n0 relays"
+              className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2 py-1 text-[12px] outline-none focus:border-brand-secondary"
+            />
+            <Button kind="secondary" disabled={relay === settings?.relayUrl} onClick={() => void applyRelay()}>
+              Apply
+            </Button>
+          </div>
+          <div className="text-[11px] text-muted">
+            Used when devices can't reach each other directly. Leave empty for n0's public relays.
+          </div>
+          {relayError && <div className="text-[11px] text-destructive">{relayError}</div>}
+        </Row>
+        <Row>
+          <div className="flex-1 text-[13px]">Open at login</div>
+          <Toggle label="Open at login" checked={login} onChange={(v) => void toggleLogin(v)} />
+        </Row>
+        <Row className="flex-col !items-stretch gap-2">
+          <div className="flex items-center">
+            <div className="flex-1 text-[13px]">Install updates automatically</div>
+            <Toggle label="Install updates automatically" checked={updates.auto} onChange={updates.setAuto} />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 text-[11px] text-muted">
+              Version {settings?.version}
+              {updateText ? ` · ${updateText}` : ""}
+            </div>
+            {updates.phase === "available" ? (
+              <Button onClick={() => void updates.install()}>Install</Button>
+            ) : (
+              <Button kind="secondary" disabled={updates.phase === "checking"} onClick={() => void updates.check()}>
+                Check for updates
+              </Button>
+            )}
+          </div>
+          {updates.error && <div className="text-[11px] text-destructive">{updates.error}</div>}
+        </Row>
+      </Group>
+    </div>
+  )
+}

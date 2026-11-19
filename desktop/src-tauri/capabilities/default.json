@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "What the popover and viewer windows may call",
+  "windows": ["main", "viewer"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-size",
+    "core:window:allow-hide",
+    "core:window:allow-close",
+    "core:window:allow-set-title",
+    "autostart:default",
+    "process:allow-restart",
+    "updater:default"
+  ]
+}

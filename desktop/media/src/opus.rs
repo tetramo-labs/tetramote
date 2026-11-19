@@ -24,11 +24,15 @@ pub struct OpusEncoder {
 impl OpusEncoder {
     pub fn new(bitrate_bps: i32) -> Result<Self> {
         let mut encoder =
-            Encoder::new(SampleRate::Hz48000, Channels::Stereo, Application::LowDelay).map_err(|e| failed("encoder", e))?;
+            Encoder::new(SampleRate::Hz48000, Channels::Stereo, Application::LowDelay)
+                .map_err(|e| failed("encoder", e))?;
         encoder
             .set_bitrate(Bitrate::BitsPerSecond(bitrate_bps))
             .map_err(|e| failed("bitrate", e))?;
-        Ok(Self { encoder, pending: Vec::with_capacity(OPUS_FRAME_SAMPLES * OPUS_CHANNELS * 2) })
+        Ok(Self {
+            encoder,
+            pending: Vec::with_capacity(OPUS_FRAME_SAMPLES * OPUS_CHANNELS * 2),
+        })
     }
 
     /// Buffers `samples` and returns every whole packet they complete.
@@ -57,7 +61,8 @@ pub struct OpusDecoder {
 impl OpusDecoder {
     pub fn new() -> Result<Self> {
         Ok(Self {
-            decoder: Decoder::new(SampleRate::Hz48000, Channels::Stereo).map_err(|e| failed("decoder", e))?,
+            decoder: Decoder::new(SampleRate::Hz48000, Channels::Stereo)
+                .map_err(|e| failed("decoder", e))?,
         })
     }
 
@@ -98,6 +103,9 @@ mod tests {
         let mut decoder = OpusDecoder::new().unwrap();
         let pcm = decoder.decode(Some(&packets[0])).unwrap();
         assert_eq!(pcm.len(), OPUS_FRAME_SAMPLES * OPUS_CHANNELS);
-        assert_eq!(decoder.decode(None).unwrap().len(), OPUS_FRAME_SAMPLES * OPUS_CHANNELS);
+        assert_eq!(
+            decoder.decode(None).unwrap().len(),
+            OPUS_FRAME_SAMPLES * OPUS_CHANNELS
+        );
     }
 }

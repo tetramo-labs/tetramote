@@ -10,7 +10,12 @@ struct Key {
 }
 
 const fn k(dom: &'static str, mac: u16, windows: u16, linux: u16) -> Key {
-    Key { dom, mac, windows, linux }
+    Key {
+        dom,
+        mac,
+        windows,
+        linux,
+    }
 }
 
 const KEYS: &[Key] = &[
@@ -146,7 +151,19 @@ pub fn linux_evdev(mac: u16) -> Option<u16> {
 pub fn windows_extended(mac: u16) -> bool {
     matches!(
         mac,
-        0x36 | 0x37 | 0x3d | 0x3e | 0x4b | 0x4c | 0x6e | 0x72 | 0x73 | 0x74 | 0x75 | 0x77 | 0x79 | 0x7b..=0x7e
+        0x36 | 0x37
+            | 0x3d
+            | 0x3e
+            | 0x4b
+            | 0x4c
+            | 0x6e
+            | 0x72
+            | 0x73
+            | 0x74
+            | 0x75
+            | 0x77
+            | 0x79
+            | 0x7b..=0x7e
     )
 }
 

@@ -14,9 +14,10 @@ pub mod playback;
 mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
+pub mod software;
+pub mod test_pattern;
 #[cfg(target_os = "windows")]
 mod windows;
-pub mod software;
 
 #[cfg(target_os = "linux")]
 use linux as platform;
@@ -115,7 +116,10 @@ pub fn displays() -> Result<Vec<DisplayInfo>> {
     platform::displays()
 }
 
-pub fn start_stream(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn ScreenStream>> {
+pub fn start_stream(
+    config: StreamConfig,
+    sink: Arc<dyn StreamSink>,
+) -> Result<Box<dyn ScreenStream>> {
     platform::start_stream(config, sink)
 }
 

@@ -91,7 +91,11 @@ type Opened = (cpal::Stream, Arc<Mutex<VecDeque<f32>>>, u32);
 fn open() -> Result<Opened> {
     let device = cpal::default_host()
         .default_output_device()
-        .ok_or_else(|| MediaError::Unsupported("No audio output device. Connect speakers or headphones.".into()))?;
+        .ok_or_else(|| {
+            MediaError::Unsupported(
+                "No audio output device. Connect speakers or headphones.".into(),
+            )
+        })?;
     let default = device
         .default_output_config()
         .map_err(|e| MediaError::Failed(format!("reading the audio output format failed: {e}")))?;
