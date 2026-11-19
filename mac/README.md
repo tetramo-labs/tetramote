@@ -58,3 +58,9 @@ later runs reconnect as a trusted phone. To forget the test runs:
 defaults delete com.tetramo.tetratop.host.test
 security delete-generic-password -s com.tetramo.tetratop.host -a endpoint-secret-key.test
 ```
+
+## Updates
+
+Sparkle 2 (Swift package, pinned in `project.yml`) checks `SUFeedURL`, the `appcast.xml` on the newest
+GitHub release, once a day. Publish a release with `../scripts/release-mac.sh <version>`; see the root
+README. Test-pattern runs (`-TetratopTestPattern YES`) never start the updater.

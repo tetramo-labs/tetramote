@@ -42,6 +42,16 @@ cd mobile && bun android                   # connected Android phone; --emulator
 cd mobile && bun run test && bun compile && bun run lint:check
 ```
 
+## Updates
+
+The Mac host updates itself with [Sparkle](https://sparkle-project.org). `scripts/release-mac.sh <version>`
+builds it from a clean, pushed `main`, zips it, writes a signed `appcast.xml`, and publishes both as the
+GitHub release `v<version>`. Installed copies read the appcast from the newest release once a day and
+install updates in the background unless "Install updates automatically" is off in the menu. Updates are
+signed with the Apple Development certificate and not notarized for now, so they install on Macs that
+already run a Tetratop signed that way. The EdDSA key that signs the appcast is in the login Keychain
+(account `tetratop`); back it up with `generate_keys --account tetratop -x <file>`.
+
 ## iPhone Duo
 
 The phone app is designed for the iPhone Duo first and widens rather than switching designs:

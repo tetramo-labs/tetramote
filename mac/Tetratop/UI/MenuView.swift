@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuView: View {
   @EnvironmentObject private var controller: HostController
+  @EnvironmentObject private var updates: Updates
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -197,7 +198,7 @@ struct MenuView: View {
             .fixedSize(horizontal: false, vertical: true)
         }
       }
-      GroupedRow(isFirst: false, isLast: true) {
+      GroupedRow(isFirst: false, isLast: false) {
         Toggle(isOn: Binding(get: { controller.launchAtLogin }, set: { controller.setLaunchAtLogin($0) })) {
           Text("Open at login")
             .font(.system(size: 13))
@@ -206,6 +207,27 @@ struct MenuView: View {
         .toggleStyle(.switch)
         .controlSize(.small)
         .tint(Theme.primary)
+      }
+      GroupedRow(isFirst: false, isLast: true) {
+        VStack(alignment: .leading, spacing: 8) {
+          Toggle(isOn: $updates.installsAutomatically) {
+            Text("Install updates automatically")
+              .font(.system(size: 13))
+              .foregroundStyle(Theme.foreground)
+          }
+          .toggleStyle(.switch)
+          .controlSize(.small)
+          .tint(Theme.primary)
+          HStack {
+            Text("Version \(updates.version)")
+              .font(.system(size: 11))
+              .foregroundStyle(Theme.muted)
+            Spacer()
+            Button("Check for updates") { updates.check() }
+              .buttonStyle(PillButtonStyle())
+              .disabled(!updates.canCheck)
+          }
+        }
       }
     }
   }
