@@ -1,6 +1,19 @@
+import {execSync} from "node:child_process"
+
 import type {ConfigContext, ExpoConfig} from "expo/config"
 
 const version = require("./package.json").version as string
+
+/** The commit count, so every build from a newer commit has a higher build number. */
+function buildNumber(): number {
+  try {
+    return Number(execSync("git rev-list --count HEAD", {cwd: __dirname}).toString().trim()) || 1
+  } catch {
+    return 1
+  }
+}
+
+const build = buildNumber()
 
 module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   ...config,
@@ -13,6 +26,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   icon: "./assets/app-icons/icon.png",
   ios: {
     bundleIdentifier: "com.tetramo.tetratop",
+    buildNumber: String(build),
     appleTeamId: process.env.EXPO_PUBLIC_APPLE_TEAM_ID || "B8446S9493",
     supportsTablet: false,
     requireFullScreen: false,
@@ -25,6 +39,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   },
   android: {
     package: "com.tetramo.tetratop",
+    versionCode: build,
     adaptiveIcon: {
       foregroundImage: "./assets/app-icons/icon-foreground.png",
       backgroundColor: "#004dfc",
