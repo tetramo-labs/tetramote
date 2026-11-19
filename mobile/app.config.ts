@@ -31,8 +31,8 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
     supportsTablet: false,
     requireFullScreen: false,
     infoPlist: {
-      NSCameraUsageDescription: "Tetratop uses the camera to scan the pairing code your Mac shows.",
-      NSLocalNetworkUsageDescription: "Tetratop connects straight to your Mac when it is on the same network.",
+      NSCameraUsageDescription: "Tetratop uses the camera to scan the pairing code your computer shows.",
+      NSLocalNetworkUsageDescription: "Tetratop connects straight to your computer when it is on the same network.",
       UIBackgroundModes: ["audio"],
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -50,7 +50,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   plugins: [
     "expo-router",
     "expo-secure-store",
-    ["expo-camera", {cameraPermission: "Tetratop uses the camera to scan the pairing code your Mac shows."}],
+    ["expo-camera", {cameraPermission: "Tetratop uses the camera to scan the pairing code your computer shows."}],
     [
       "expo-splash-screen",
       {

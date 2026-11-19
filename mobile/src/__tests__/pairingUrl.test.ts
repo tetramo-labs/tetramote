@@ -13,8 +13,8 @@ describe("parsePairingUrl", () => {
     })
   })
 
-  it("defaults the name to Mac", () => {
-    expect(parsePairingUrl(`tetratop://pair?ticket=t&secret=${SECRET}`)?.name).toBe("Mac")
+  it("defaults the name to Computer", () => {
+    expect(parsePairingUrl(`tetratop://pair?ticket=t&secret=${SECRET}`)?.name).toBe("Computer")
   })
 
   it("rejects other URLs, missing tickets and malformed secrets", () => {

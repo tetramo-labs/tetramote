@@ -27,7 +27,7 @@ export function parsePairingUrl(raw: string): PairingCode | null {
 export function pairingFromParams(params: {ticket?: unknown; secret?: unknown; name?: unknown}): PairingCode | null {
   const ticket = typeof params.ticket === "string" ? params.ticket.trim() : ""
   const secret = typeof params.secret === "string" ? params.secret.trim().toLowerCase() : ""
-  const name = typeof params.name === "string" && params.name.trim() ? params.name.trim() : "Mac"
+  const name = typeof params.name === "string" && params.name.trim() ? params.name.trim() : "Computer"
   if (!ticket || !SECRET.test(secret)) return null
   return {ticket, secret, name}
 }
