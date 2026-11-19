@@ -257,8 +257,16 @@ impl HostService {
         }
     }
 
+    /// `TETRATOP_PAIRING_FILE` receives the current pairing link, for tests that pair without a camera.
     fn emit(&self) {
-        let _ = self.app.emit("host-state", self.state());
+        let state = self.state();
+        if let (Ok(path), Some(url)) = (
+            std::env::var("TETRATOP_PAIRING_FILE"),
+            state.pairing_url.as_ref(),
+        ) {
+            let _ = std::fs::write(path, url);
+        }
+        let _ = self.app.emit("host-state", state);
     }
 
     fn run(self: Arc<Self>) {

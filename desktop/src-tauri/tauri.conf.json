@@ -33,14 +33,25 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app", "dmg", "nsis", "deb", "appimage"],
+    "targets": [
+      "app",
+      "dmg",
+      "nsis",
+      "deb",
+      "appimage"
+    ],
     "createUpdaterArtifacts": true,
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
     "category": "Utility",
     "shortDescription": "Control your computers from anywhere over iroh",
     "macOS": {
       "minimumSystemVersion": "14.0",
-      "signingIdentity": "Apple Development",
       "entitlements": null,
       "infoPlist": "Info.plist"
     }
@@ -48,12 +59,16 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["tetratop"]
+        "schemes": [
+          "tetratop"
+        ]
       }
     },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlCODc0NDNFNTU3NENCRDAKUldUUXkzUlZQa1NIbTFjZnF4UXRXMzdqaW15TkFQb1M3cXkrMjVvK3lTYnRGV2VrOXlYMGU2OVEK",
-      "endpoints": ["https://github.com/tetramo-labs/tetratop/releases/latest/download/latest.json"]
+      "endpoints": [
+        "https://github.com/tetramo-labs/tetratop/releases/latest/download/latest.json"
+      ]
     }
   }
 }
