@@ -35,7 +35,10 @@ const BAR_KEYS: BarKey[] = [
  * as text records, and with a modifier held a character becomes a shortcut.
  * Modifiers are one-shot, like sticky keys.
  */
-export const KeyboardInput = forwardRef<KeyboardHandle>(function KeyboardInput(_props, ref) {
+export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null}>(function KeyboardInput(
+  {dockTop},
+  ref,
+) {
   const {theme, themeContext} = useAppTheme()
   const input = useRef<ComponentRef<typeof TextInput>>(null)
   const [visible, setVisible] = useState(false)
@@ -70,6 +73,40 @@ export const KeyboardInput = forwardRef<KeyboardHandle>(function KeyboardInput(_
     sendInput(keyPress(key.keyCode, consumeModifiers()))
   }
 
+  const bar = (
+    <GlassView className="mx-2 mb-2 rounded-2xl" style={{backgroundColor: theme.colors.primary_foreground + "E6"}}>
+      <View className="flex-row items-center">
+        <ScrollView
+          horizontal
+          keyboardShouldPersistTaps="always"
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-1 px-2 py-2">
+          {BAR_KEYS.map((key) => {
+            const active = "modifier" in key && modifiers.includes(key.modifier)
+            return (
+              <Pressable
+                key={key.label}
+                onPress={() => pressBarKey(key)}
+                className="rounded-xl px-3 py-2 min-w-11 items-center"
+                style={({pressed}) => ({
+                  backgroundColor: active ? theme.colors.secondary_foreground : theme.colors.background,
+                  opacity: pressed ? 0.75 : 1,
+                })}>
+                <Text
+                  text={key.label}
+                  size="sm"
+                  weight="medium"
+                  style={{color: active ? theme.colors.background : theme.colors.foreground}}
+                />
+              </Pressable>
+            )
+          })}
+        </ScrollView>
+        <PressableIcon icon={ChevronDown} onPress={() => input.current?.blur()} diameter={40} />
+      </View>
+    </GlassView>
+  )
+
   return (
     <>
       <TextInput
@@ -90,43 +127,14 @@ export const KeyboardInput = forwardRef<KeyboardHandle>(function KeyboardInput(_
         onBlur={() => setVisible(false)}
         style={{position: "absolute", width: 1, height: 1, opacity: 0, left: -10}}
       />
-      {visible && (
-        <KeyboardStickyView style={{position: "absolute", left: 0, right: 0, bottom: 0}}>
-          <GlassView
-            className="mx-2 mb-2 rounded-2xl"
-            style={{backgroundColor: theme.colors.primary_foreground + "E6"}}>
-            <View className="flex-row items-center">
-              <ScrollView
-                horizontal
-                keyboardShouldPersistTaps="always"
-                showsHorizontalScrollIndicator={false}
-                contentContainerClassName="gap-1 px-2 py-2">
-                {BAR_KEYS.map((key) => {
-                  const active = "modifier" in key && modifiers.includes(key.modifier)
-                  return (
-                    <Pressable
-                      key={key.label}
-                      onPress={() => pressBarKey(key)}
-                      className="rounded-xl px-3 py-2 min-w-11 items-center"
-                      style={({pressed}) => ({
-                        backgroundColor: active ? theme.colors.secondary_foreground : theme.colors.background,
-                        opacity: pressed ? 0.75 : 1,
-                      })}>
-                      <Text
-                        text={key.label}
-                        size="sm"
-                        weight="medium"
-                        style={{color: active ? theme.colors.background : theme.colors.foreground}}
-                      />
-                    </Pressable>
-                  )
-                })}
-              </ScrollView>
-              <PressableIcon icon={ChevronDown} onPress={() => input.current?.blur()} diameter={40} />
-            </View>
-          </GlassView>
-        </KeyboardStickyView>
-      )}
+      {visible &&
+        (dockTop != null ? (
+          <View className="absolute left-0 right-0" style={{top: dockTop}}>
+            {bar}
+          </View>
+        ) : (
+          <KeyboardStickyView style={{position: "absolute", left: 0, right: 0, bottom: 0}}>{bar}</KeyboardStickyView>
+        ))}
     </>
   )
 })

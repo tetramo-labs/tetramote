@@ -216,7 +216,7 @@ function SessionBody() {
 
       <HingeObserver onHalfOpenChange={setHalfOpen} />
       <SessionOverlay onBack={leave} />
-      <KeyboardInput ref={keyboard} />
+      <KeyboardInput ref={keyboard} dockTop={laptop ? plan.panel.y : null} />
       <DisplaySheet ref={displaySheet} />
       <ClipboardSheet ref={clipboardSheet} />
     </View>
