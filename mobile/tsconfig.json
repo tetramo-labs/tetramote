@@ -10,7 +10,7 @@
       "@/*": ["./src/*"],
       "@assets/*": ["./assets/*"]
     },
-    "types": ["react", "jest", "expo/types"]
+    "types": ["node", "react", "jest", "expo/types"]
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
   "exclude": ["node_modules", "ios", "android"]
