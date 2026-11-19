@@ -7,6 +7,8 @@ use std::sync::Arc;
 
 pub use tetra_core::input::InputRecord;
 
+#[cfg(any(target_os = "windows", target_os = "linux", test))]
+mod host;
 mod opus;
 pub mod playback;
 
