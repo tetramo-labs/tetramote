@@ -10,6 +10,7 @@ import {Icon} from "@/components/ignite/Icon"
 import {Screen} from "@/components/ignite/Screen"
 import {Text} from "@/components/ignite/Text"
 import {useAppTheme} from "@/contexts/ThemeContext"
+import {usePageGutters} from "@/hooks/useLayout"
 import {translate} from "@/i18n"
 import {parsePairingUrl} from "@/services/pairingUrl"
 import {connectTo} from "@/services/remote"
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const hosts = useHostsStore((s) => s.hosts)
   const forget = useHostsStore((s) => s.forget)
   const push = useNavigationStore((s) => s.push)
+  const gutters = usePageGutters()
 
   useEffect(() => {
     const code = parsePairingUrl(remote.launchPairingUrl() ?? "")
@@ -61,7 +63,10 @@ export default function HomeScreen() {
         <FlatList
           data={hosts}
           keyExtractor={(h) => h.id}
+          automaticallyAdjustsScrollIndicatorInsets={false}
+          style={{marginLeft: -gutters.left, marginRight: -gutters.right}}
           contentContainerClassName="gap-3 pt-2 pb-6"
+          contentContainerStyle={{paddingLeft: gutters.left, paddingRight: gutters.right}}
           renderItem={({item}) => (
             <HostCard host={item} onPress={() => open(item)} onLongPress={() => confirmForget(item)} />
           )}
