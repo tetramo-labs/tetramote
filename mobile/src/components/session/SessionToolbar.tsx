@@ -17,6 +17,7 @@ import {View} from "react-native"
 import {PressableIcon} from "@/components/ignite/Icon"
 import GlassView from "@/components/ui/GlassView"
 import {translate} from "@/i18n"
+import {RAIL_BUTTON, RAIL_GAP} from "@/services/railLayout"
 import {setAudio} from "@/services/remote"
 import type {RailAction} from "@/stores/railToolbar"
 import {useSessionStore} from "@/stores/session"
@@ -102,6 +103,24 @@ export function SessionToolbar({actions, vertical}: {actions: RailAction[]; vert
         ))}
       </View>
     </GlassView>
+  )
+}
+
+export function BottomRail({actions}: {actions: RailAction[]}) {
+  return (
+    <View className="flex-row justify-center" style={{gap: RAIL_GAP}}>
+      {actions.map((a) => (
+        <PressableIcon
+          key={a.key}
+          icon={a.icon}
+          glass
+          active={a.active}
+          diameter={RAIL_BUTTON}
+          onPress={a.onPress}
+          accessibilityLabel={a.label}
+        />
+      ))}
+    </View>
   )
 }
 

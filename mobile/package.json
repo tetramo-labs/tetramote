@@ -21,6 +21,7 @@
     "@babel/runtime": "^7.29.13",
     "@expo-google-fonts/red-hat-display": "^0.4.1",
     "@expo/metro-runtime": "~58.0.17",
+    "@expo/ui": "~58.0.27",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@tetratop/remote": "workspace:*",
     "babel-plugin-module-resolver": "5.0.3",

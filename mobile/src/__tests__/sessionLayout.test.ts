@@ -109,4 +109,54 @@ describe("sessionLayout", () => {
     })
     expect(phone.toolbar).toBe("side")
   })
+
+  it("splits a half-open Duo in portrait at the middle with a bottom rail when no fold is reported", () => {
+    const layout = sessionLayout({
+      width: 669,
+      height: 951,
+      insets: {top: 0, bottom: 34, left: 0, right: 0},
+      rail: null,
+      aspect: 1.6,
+      fold: null,
+      halfOpen: true,
+    })
+    expect(layout).toEqual({
+      kind: "stacked",
+      video: near({x: 0, y: 28.6875, width: 669, height: 418.125}),
+      panel: {x: 0, y: 475.5, width: 669, height: 441.5},
+      toolbar: "bottomRail",
+    })
+  })
+
+  it("splits a half-open Duo in portrait at the reported fold", () => {
+    const layout = sessionLayout({
+      width: 669,
+      height: 951,
+      insets: {top: 0, bottom: 34, left: 0, right: 0},
+      rail: null,
+      aspect: 1.6,
+      fold: {x: 0, y: 470, width: 669, height: 12},
+      halfOpen: true,
+    })
+    expect(layout).toEqual({
+      kind: "stacked",
+      video: near({x: 0, y: 25.9375, width: 669, height: 418.125}),
+      panel: {x: 0, y: 482, width: 669, height: 435},
+      toolbar: "bottomRail",
+    })
+  })
+
+  it("leaves a half-open Duo in landscape as it is fully open", () => {
+    const input = {
+      width: 951,
+      height: 669,
+      insets: {top: 0, bottom: 34, left: 0, right: 84},
+      rail: "right" as const,
+      aspect: 1.6,
+      fold: null,
+    }
+    const expected = {kind: "overlay", video: near({x: 0, y: 46.5625, width: 867, height: 541.875}), toolbar: "rail"}
+    expect(sessionLayout({...input, halfOpen: true})).toEqual(expected)
+    expect(sessionLayout(input)).toEqual(expected)
+  })
 })

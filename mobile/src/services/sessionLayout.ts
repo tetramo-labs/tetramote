@@ -12,10 +12,10 @@ export interface Insets {
   right: number
 }
 
-export type ToolbarPlacement = "rail" | "panel" | "side" | "floating"
+export type ToolbarPlacement = "rail" | "panel" | "bottomRail" | "side" | "floating"
 
 export type SessionLayout =
-  | {kind: "stacked"; video: Rect; panel: Rect; toolbar: "rail" | "panel"}
+  | {kind: "stacked"; video: Rect; panel: Rect; toolbar: "rail" | "panel" | "bottomRail"}
   | {kind: "overlay"; video: Rect; toolbar: "rail" | "side" | "floating"}
 
 export const MIN_PANEL_HEIGHT = 180
@@ -29,6 +29,7 @@ export interface SessionLayoutInput {
   rail: "left" | "right" | null
   aspect: number
   fold: Rect | null
+  halfOpen?: boolean
   fullScreen?: boolean
 }
 
@@ -47,6 +48,13 @@ function horizontalFold(fold: Rect | null, content: Rect): Rect | null {
   return spans && thin && inside ? fold : null
 }
 
+function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; panel: Rect} {
+  const top: Rect = {x: content.x, y: content.y, width: content.width, height: crease.y - content.y}
+  const panelTop = crease.y + crease.height
+  const panel: Rect = {x: content.x, y: panelTop, width: content.width, height: content.y + content.height - panelTop}
+  return {video: fitInside(top, aspect), panel}
+}
+
 /**
  * Where the Mac's screen, the trackpad panel and the controls go. Whenever the
  * window has room under the screen it becomes a laptop: screen on top, trackpad
@@ -63,6 +71,7 @@ export function sessionLayout({
   rail,
   aspect,
   fold,
+  halfOpen,
   fullScreen,
 }: SessionLayoutInput): SessionLayout {
   if (fullScreen) {
@@ -75,14 +84,15 @@ export function sessionLayout({
     width: Math.max(0, width - insets.left - insets.right),
     height: Math.max(0, height - insets.top - insets.bottom),
   }
+  if (halfOpen && height > width) {
+    const hinge = horizontalFold(fold, content) ?? {x: 0, y: height / 2, width, height: 0}
+    return {kind: "stacked", ...splitAt(content, hinge, aspect), toolbar: "bottomRail"}
+  }
   const stackedToolbar = rail ? "rail" : "panel"
   const crease = horizontalFold(fold, content)
   if (crease) {
-    const top: Rect = {x: content.x, y: content.y, width: content.width, height: crease.y - content.y}
-    const panelTop = crease.y + crease.height
-    const panel: Rect = {x: content.x, y: panelTop, width: content.width, height: content.y + content.height - panelTop}
-    if (panel.height >= MIN_PANEL_HEIGHT)
-      return {kind: "stacked", video: fitInside(top, aspect), panel, toolbar: stackedToolbar}
+    const split = splitAt(content, crease, aspect)
+    if (split.panel.height >= MIN_PANEL_HEIGHT) return {kind: "stacked", ...split, toolbar: stackedToolbar}
   }
 
   const videoHeight = content.width / aspect

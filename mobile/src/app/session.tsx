@@ -13,7 +13,8 @@ import {DisplaySheet} from "@/components/session/DisplaySheet"
 import {KeyboardInput, type KeyboardHandle} from "@/components/session/KeyboardInput"
 import {DEFAULT_ASPECT, RemoteSurface, useZoomControls} from "@/components/session/RemoteSurface"
 import {SessionOverlay} from "@/components/session/SessionOverlay"
-import {ControlsHandle, SessionToolbar, useSessionActions} from "@/components/session/SessionToolbar"
+import {HingeObserver} from "@/components/session/HingeObserver"
+import {BottomRail, ControlsHandle, SessionToolbar, useSessionActions} from "@/components/session/SessionToolbar"
 import {StatusPill} from "@/components/session/StatusPill"
 import {TrackpadPanel} from "@/components/session/TrackpadPanel"
 import GlassView from "@/components/ui/GlassView"
@@ -84,6 +85,7 @@ function SessionBody() {
   const displaySheet = useRef<BottomSheetModal>(null)
   const clipboardSheet = useRef<BottomSheetModal>(null)
   const [zoomed, setZoomed] = useState(false)
+  const [halfOpen, setHalfOpen] = useState(false)
 
   useDerivedValue(() => {
     scheduleOnRN(setZoomed, zoomControls.zoom.value > 1.01)
@@ -126,8 +128,10 @@ function SessionBody() {
     rail: layout.rail,
     aspect: video ? video.width / video.height : DEFAULT_ASPECT,
     fold,
+    halfOpen,
     fullScreen,
   })
+  const laptop = plan.toolbar === "bottomRail"
 
   const actions = useSessionActions({
     zoomed,
@@ -160,8 +164,8 @@ function SessionBody() {
     <View className="flex-1 bg-black">
       <StatusBar
         style="light"
-        hidden={fullScreen || !layout.rail}
-        verticalBarBehaviorIOS={fullScreen ? "disabled" : "automatic"}
+        hidden={fullScreen || laptop || !layout.rail}
+        verticalBarBehaviorIOS={fullScreen || laptop ? "disabled" : "automatic"}
       />
       <View style={rectStyle(plan.video)}>
         <RemoteSurface zoomControls={zoomControls} onThreeFingerTap={controls.toggle} />
@@ -174,7 +178,13 @@ function SessionBody() {
             zoomControls={zoomControls}
             onThreeFingerTap={controls.toggle}
             header={status}
-            footer={plan.toolbar === "panel" ? <View className="items-center">{inlineToolbar(false)}</View> : null}
+            footer={
+              laptop && controls.visible ? (
+                <BottomRail actions={actions} />
+              ) : plan.toolbar !== "rail" ? (
+                <View className="items-center">{inlineToolbar(false)}</View>
+              ) : null
+            }
           />
         </View>
       ) : (
@@ -204,6 +214,7 @@ function SessionBody() {
         </>
       )}
 
+      <HingeObserver onHalfOpenChange={setHalfOpen} />
       <SessionOverlay onBack={leave} />
       <KeyboardInput ref={keyboard} />
       <DisplaySheet ref={displaySheet} />
