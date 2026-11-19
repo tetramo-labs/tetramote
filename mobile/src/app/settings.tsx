@@ -91,20 +91,6 @@ export default function SettingsScreen() {
 
   return (
     <Screen preset="scroll" header={<Header titleTx="settings:title" back />}>
-      <Group titleTx="settings:connection">
-        <FieldRow
-          label={translate("settings:relay")}
-          value={relayDraft}
-          onChangeText={setRelayDraft}
-          placeholder={translate("settings:relayPlaceholder")}
-          onSubmit={saveRelay}
-        />
-      </Group>
-      <Text tx="settings:relayHint" size="xs" className="text-muted-foreground px-4 mt-2" />
-      {relayDraft.trim() !== relay && (
-        <Button tx="common:save" compact style={{alignSelf: "flex-start", marginTop: 8}} onPress={saveRelay} />
-      )}
-
       <Group titleTx="settings:control">
         <Row
           labelTx="settings:defaultInput"
@@ -183,6 +169,20 @@ export default function SettingsScreen() {
         />
         <Row labelTx="settings:forgetAll" destructive onPress={confirmForgetAll} />
       </Group>
+
+      <Group titleTx="settings:connection">
+        <FieldRow
+          label={translate("settings:relay")}
+          value={relayDraft}
+          onChangeText={setRelayDraft}
+          placeholder={translate("settings:relayPlaceholder")}
+          onSubmit={saveRelay}
+        />
+      </Group>
+      <Text tx="settings:relayHint" size="xs" className="text-muted-foreground px-4 mt-2" />
+      {relayDraft.trim() !== relay && (
+        <Button tx="common:save" compact style={{alignSelf: "flex-start", marginTop: 8}} onPress={saveRelay} />
+      )}
     </Screen>
   )
 }

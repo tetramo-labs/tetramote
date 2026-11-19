@@ -12,7 +12,7 @@ const en = {
     more: "More",
   },
   home: {
-    title: "Your Macs",
+    title: "Connections",
     empty: "No Macs paired yet",
     emptyHint: "Install Tetratop on your Mac, click its menu bar icon, then scan the code it shows.",
     pair: "Pair a Mac",
