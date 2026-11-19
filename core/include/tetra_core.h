@@ -7,6 +7,7 @@
 
 char *tetra_generate_secret_key(void);
 char *tetra_endpoint_id(const char *secret_key_hex);
+char *tetra_ticket_endpoint_id(const char *ticket);
 
 uint64_t tetra_host_start(const char *config_json, char **error_out);
 char *tetra_host_ticket(uint64_t host);

@@ -3,6 +3,7 @@
 
 pub mod client;
 pub mod host;
+pub mod input;
 pub mod net;
 pub mod protocol;
 

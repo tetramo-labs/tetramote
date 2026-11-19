@@ -188,6 +188,19 @@ pub unsafe extern "C" fn tetra_endpoint_id(secret_key_hex: *const c_char) -> *mu
     }
 }
 
+/// The endpoint id an iroh ticket dials, or null when it isn't a ticket or id.
+///
+/// # Safety
+/// `ticket` must be null or a valid NUL-terminated string.
+#[no_mangle]
+pub unsafe extern "C" fn tetra_ticket_endpoint_id(ticket: *const c_char) -> *mut c_char {
+    let ticket = read(ticket).unwrap_or_default();
+    match net::parse_addr(Some(&ticket), &ticket) {
+        Ok(addr) => into_raw(addr.id.to_string()),
+        Err(_) => std::ptr::null_mut(),
+    }
+}
+
 /// Blocks until the endpoint is bound. Returns 0 and sets `error_out` on failure.
 ///
 /// # Safety
