@@ -53,7 +53,8 @@
     "macOS": {
       "minimumSystemVersion": "14.0",
       "entitlements": null,
-      "infoPlist": "Info.plist"
+      "infoPlist": "Info.plist",
+      "bundleVersion": "23"
     }
   },
   "plugins": {
