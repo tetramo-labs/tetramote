@@ -14,13 +14,17 @@ function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
 }
 
-export const Sheet = forwardRef<BottomSheetModal, {children: ReactNode}>(function Sheet({children}, ref) {
+export const Sheet = forwardRef<BottomSheetModal, {children: ReactNode; onDismiss?: () => void}>(function Sheet(
+  {children, onDismiss},
+  ref,
+) {
   const {theme} = useAppTheme()
   const insets = useSaferAreaInsets()
   const {insetLeft, insetRight} = useLayout()
   return (
     <BottomSheetModal
       ref={ref}
+      onDismiss={onDismiss}
       enableDynamicSizing
       style={{marginLeft: insetLeft, marginRight: insetRight}}
       backdropComponent={Backdrop}

@@ -1,9 +1,11 @@
 import {remote} from "@tetratop/remote"
-import {MonitorSmartphone, QrCode, Settings} from "lucide-react-native"
-import {useEffect} from "react"
+import type {BottomSheetModal} from "@gorhom/bottom-sheet"
+import {MonitorSmartphone, Plus, Settings} from "lucide-react-native"
+import {useEffect, useRef} from "react"
 import {Alert, FlatList, View} from "react-native"
 
 import {HostCard} from "@/components/hosts/HostCard"
+import {PairSheet} from "@/components/hosts/PairSheet"
 import {Button} from "@/components/ignite/Button"
 import {Header} from "@/components/ignite/Header"
 import {Icon} from "@/components/ignite/Icon"
@@ -23,6 +25,7 @@ export default function HomeScreen() {
   const forget = useHostsStore((s) => s.forget)
   const push = useNavigationStore((s) => s.push)
   const gutters = usePageGutters()
+  const pairSheet = useRef<BottomSheetModal>(null)
 
   useEffect(() => {
     const code = parsePairingUrl(remote.launchPairingUrl() ?? "")
@@ -74,10 +77,11 @@ export default function HomeScreen() {
       )}
       <Button
         tx="home:pair"
-        onPress={() => push("/pair")}
-        LeftAccessory={() => <Icon icon={QrCode} size={18} color={theme.colors.primary_foreground} />}
+        onPress={() => pairSheet.current?.present()}
+        LeftAccessory={() => <Icon icon={Plus} size={18} color={theme.colors.primary_foreground} />}
         style={{marginBottom: 8}}
       />
+      <PairSheet sheet={pairSheet} />
     </Screen>
   )
 }
