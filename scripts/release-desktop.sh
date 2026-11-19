@@ -5,24 +5,22 @@
 #
 # 1. Stamps the version into the desktop app, commits and pushes it.
 # 2. Builds the universal macOS app here, signed with an Apple Development
-#    certificate of team B8446S9493 (the same team as the SwiftUI app, so
-#    Sparkle and macOS permissions carry over), and its updater bundle.
-# 3. Creates a draft GitHub release with the macOS build, latest.json (Tauri's
-#    updater feed) and appcast.xml (Sparkle's, for SwiftUI installs that
-#    haven't moved to this app yet).
+#    certificate of team B8446S9493 (always the same one, so macOS keeps the
+#    screen recording and accessibility grants across updates), and its
+#    updater bundle.
+# 3. Creates a draft GitHub release with the macOS build and latest.json (the
+#    updater feed).
 # 4. Runs .github/workflows/release-desktop.yml to add Windows and Linux,
 #    then publishes the release.
 #
-# Needs a clean, pushed main, gh signed in, the updater key at
-# ~/.tauri/tetratop.key, and the Sparkle EdDSA key in the login Keychain
-# (account "tetratop").
+# Needs a clean, pushed main, gh signed in, and the updater key at
+# ~/.tauri/tetratop.key.
 set -euo pipefail
 
 VERSION="${1:?usage: scripts/release-desktop.sh <version, e.g. 0.3.0>}"
 REPO="tetramo-labs/tetratop"
 TAG="v$VERSION"
 TEAM="B8446S9493"
-SPARKLE_VERSION="2.10.1"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DESKTOP="$ROOT/desktop"
 OUT="$DESKTOP/target/release-upload/$VERSION"
@@ -60,14 +58,12 @@ sys.exit(1)
 PY
 )" || { echo "No valid Apple Development certificate for team $TEAM in the keychain. Add one in Xcode > Settings > Accounts." >&2; exit 1; }
 
-BUILD="$(git -C "$ROOT" rev-list --count HEAD)"
-python3 - "$DESKTOP" "$VERSION" "$((BUILD + 1))" <<'PY'
+python3 - "$DESKTOP" "$VERSION" <<'PY'
 import json, re, sys
-desktop, version, build = sys.argv[1], sys.argv[2], sys.argv[3]
+desktop, version = sys.argv[1], sys.argv[2]
 conf_path = f"{desktop}/src-tauri/tauri.conf.json"
 conf = json.load(open(conf_path))
 conf["version"] = version
-conf["bundle"]["macOS"]["bundleVersion"] = build
 open(conf_path, "w").write(json.dumps(conf, indent=2) + "\n")
 pkg_path = f"{desktop}/package.json"
 pkg = json.load(open(pkg_path))
@@ -97,40 +93,6 @@ rm -rf "$OUT" && mkdir -p "$OUT"
 cp "$BUNDLE/macos/Tetratop.app.tar.gz" "$OUT/Tetratop_universal.app.tar.gz"
 cp "$BUNDLE/macos/Tetratop.app.tar.gz.sig" "$OUT/Tetratop_universal.app.tar.gz.sig"
 cp "$BUNDLE"/dmg/*.dmg "$OUT/Tetratop_${VERSION}_universal.dmg"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/Tetratop-$VERSION-mac.zip"
-
-# The appcast is written here rather than by generate_appcast, which leaves the
-# enclosure unsigned because this app has no SUPublicEDKey; SwiftUI installs
-# reject an update without the signature.
-SPARKLE="${XDG_CACHE_HOME:-$HOME/.cache}/tetratop/sparkle-$SPARKLE_VERSION"
-if [[ ! -x "$SPARKLE/bin/sign_update" ]]; then
-  mkdir -p "$SPARKLE"
-  curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz" | tar -xJ -C "$SPARKLE"
-fi
-SPARKLE_SIGNATURE="$("$SPARKLE/bin/sign_update" --account tetratop "$OUT/Tetratop-$VERSION-mac.zip")"
-[[ "$SPARKLE_SIGNATURE" == *'sparkle:edSignature="'* ]] || { echo "sign_update didn't sign the Sparkle zip: $SPARKLE_SIGNATURE" >&2; exit 1; }
-BUILD="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Contents/Info.plist")"
-python3 - "$OUT/appcast.xml" "$VERSION" "$BUILD" "https://github.com/$REPO" \
-  "https://github.com/$REPO/releases/download/$TAG/Tetratop-$VERSION-mac.zip" "$SPARKLE_SIGNATURE" <<'PY'
-import email.utils, sys
-path, version, build, link, url, signature = sys.argv[1:]
-open(path, "w").write(f"""<?xml version="1.0" standalone="yes"?>
-<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-    <channel>
-        <title>Tetratop</title>
-        <item>
-            <title>{version}</title>
-            <pubDate>{email.utils.formatdate(localtime=True)}</pubDate>
-            <link>{link}</link>
-            <sparkle:version>{build}</sparkle:version>
-            <sparkle:shortVersionString>{version}</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="{url}" type="application/octet-stream" {signature}/>
-        </item>
-    </channel>
-</rss>
-""")
-PY
 
 URL="https://github.com/$REPO/releases/download/$TAG/Tetratop_universal.app.tar.gz"
 python3 - "$OUT" "$VERSION" "$URL" <<'PY'
@@ -151,8 +113,7 @@ COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
 gh release create "$TAG" --repo "$REPO" --draft --target "$COMMIT" \
   --title "Tetratop $VERSION" --generate-notes \
   "$OUT/Tetratop_universal.app.tar.gz" "$OUT/Tetratop_universal.app.tar.gz.sig" \
-  "$OUT/Tetratop_${VERSION}_universal.dmg" "$OUT/Tetratop-$VERSION-mac.zip" \
-  "$OUT/appcast.xml" "$OUT/latest.json"
+  "$OUT/Tetratop_${VERSION}_universal.dmg" "$OUT/latest.json"
 RELEASE_ID="$(gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
 
 DISPATCHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

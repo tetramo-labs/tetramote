@@ -57,10 +57,9 @@ cd mobile && bun run test && bun compile && bun run lint:check
 builds and signs the universal macOS app on this Mac, then `.github/workflows/release-desktop.yml` adds the
 Windows and Linux builds. Installed copies check `latest.json` on the newest release every few hours and,
 unless "Install updates automatically" is off, install while nothing is connected. Updates are signed with
-the updater key (`~/.tauri/tetratop.key`, also the `TAURI_SIGNING_PRIVATE_KEY` Actions secret); the macOS app
-is signed with an Apple Development certificate and not notarized for now. Each release also carries a
-Sparkle `appcast.xml`, which moves the retired SwiftUI Mac app (0.2.x) onto the desktop app; its EdDSA key
-is in the login Keychain (account `tetratop`). Back both keys up: losing either stops updates.
+the updater key (`~/.tauri/tetratop.key`, also the `TAURI_SIGNING_PRIVATE_KEY` Actions secret); back it up,
+since installed copies only accept updates signed with it. The macOS app is signed with an Apple Development
+certificate and not notarized for now.
 
 ## iPhone Duo
 

@@ -4,9 +4,8 @@ use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
-/// The SwiftUI host kept its iroh key under this service and account; the
-/// desktop app reads the same Keychain item so phones it paired still trust
-/// this computer after the switch.
+/// Renaming these gives this computer a new iroh identity, and every device
+/// paired with it would have to pair again.
 const KEY_SERVICE: &str = "com.tetramo.tetratop.host";
 const HOST_KEY_ACCOUNT: &str = "endpoint-secret-key";
 const CLIENT_KEY_ACCOUNT: &str = "client-secret-key";
