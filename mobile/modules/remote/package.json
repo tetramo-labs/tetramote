@@ -1,0 +1,9 @@
+{
+  "name": "@tetratop/remote",
+  "version": "0.1.0",
+  "private": true,
+  "description": "iroh session, H.264 view and AAC playback for the Tetratop phone app",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+dist/
+ios/
+android/
+expo-env.d.ts
+*.log
+modules/remote/ios/TetraCore.xcframework/
+modules/remote/ios/include/
+modules/remote/android/src/main/jniLibs/
+modules/remote/android/build/

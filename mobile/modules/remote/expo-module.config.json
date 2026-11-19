@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["TetraRemoteModule"]
+  },
+  "android": {
+    "modules": ["com.tetratop.remote.TetraRemoteModule"]
+  }
+}

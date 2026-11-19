@@ -1,0 +1,4 @@
+--indent 2
+--swiftversion 5.9
+--maxwidth 130
+--disable andOperator

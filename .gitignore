@@ -1,0 +1,7 @@
+.DS_Store
+core/target/
+mac/build/
+mac/Tetratop.xcodeproj/
+*.xcuserstate
+xcuserdata/
+.claude/worktrees/

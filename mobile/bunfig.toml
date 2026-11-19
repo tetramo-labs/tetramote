@@ -1,0 +1,7 @@
+[install]
+# Hoisted like the Glassly App's mobile/ install; Metro and CocoaPods autolinking expect it.
+linker = "hoisted"
+# A dependency version published less than 7 days ago is not installed.
+# A deliberate same-day upgrade: bun install --minimum-release-age 0
+minimumReleaseAge = 604800
+minimumReleaseAgeExcludes = ["@tetratop/remote"]

@@ -1,0 +1,70 @@
+import {remote} from "@tetratop/remote"
+import {MonitorSmartphone, QrCode, Settings} from "lucide-react-native"
+import {useEffect} from "react"
+import {Alert, FlatList, View} from "react-native"
+
+import {HostCard} from "@/components/hosts/HostCard"
+import {Button} from "@/components/ignite/Button"
+import {Header} from "@/components/ignite/Header"
+import {Icon} from "@/components/ignite/Icon"
+import {Screen} from "@/components/ignite/Screen"
+import {Text} from "@/components/ignite/Text"
+import {useAppTheme} from "@/contexts/ThemeContext"
+import {translate} from "@/i18n"
+import {parsePairingUrl} from "@/services/pairingUrl"
+import {connectTo} from "@/services/remote"
+import {useHostsStore, type PairedMac} from "@/stores/hosts"
+import {useNavigationStore} from "@/stores/navigation"
+
+export default function HomeScreen() {
+  const {theme} = useAppTheme()
+  const hosts = useHostsStore((s) => s.hosts)
+  const forget = useHostsStore((s) => s.forget)
+  const push = useNavigationStore((s) => s.push)
+
+  useEffect(() => {
+    const code = parsePairingUrl(remote.launchPairingUrl() ?? "")
+    if (code) push({pathname: "/pair", params: {...code}})
+  }, [push])
+
+  const open = (host: PairedMac) => {
+    connectTo(host)
+    push("/session")
+  }
+
+  const confirmForget = (host: PairedMac) => {
+    Alert.alert(translate("home:forgetTitle", {name: host.name}), translate("home:forgetMessage"), [
+      {text: translate("common:cancel"), style: "cancel"},
+      {text: translate("common:remove"), style: "destructive", onPress: () => forget(host.id)},
+    ])
+  }
+
+  return (
+    <Screen header={<Header titleTx="home:title" rightIcon={Settings} onRightPress={() => push("/settings")} />}>
+      {hosts.length === 0 ? (
+        <View className="flex-1 items-center justify-center gap-4 px-4">
+          <View className="w-20 h-20 rounded-full items-center justify-center bg-primary-foreground">
+            <Icon icon={MonitorSmartphone} size={36} color={theme.colors.brand_primary} />
+          </View>
+          <Text tx="home:empty" preset="subheading" className="text-foreground text-center" />
+          <Text tx="home:emptyHint" size="sm" className="text-muted-foreground text-center" />
+        </View>
+      ) : (
+        <FlatList
+          data={hosts}
+          keyExtractor={(h) => h.id}
+          contentContainerClassName="gap-3 pt-2 pb-6"
+          renderItem={({item}) => (
+            <HostCard host={item} onPress={() => open(item)} onLongPress={() => confirmForget(item)} />
+          )}
+        />
+      )}
+      <Button
+        tx="home:pair"
+        onPress={() => push("/pair")}
+        LeftAccessory={() => <Icon icon={QrCode} size={18} color={theme.colors.primary_foreground} />}
+        style={{marginBottom: 8}}
+      />
+    </Screen>
+  )
+}

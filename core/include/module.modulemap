@@ -1,0 +1,4 @@
+module TetraCoreFFI {
+    header "tetra_core.h"
+    export *
+}
