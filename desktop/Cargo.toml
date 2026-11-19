@@ -6,3 +6,9 @@ members = ["media", "src-tauri"]
 opt-level = 3
 lto = true
 codegen-units = 1
+
+# macOS 27's strip corrupts the dylibs of proc-macros and build scripts
+# ("mis-aligned LINKEDIT string pool"), and release builds strip debug info by
+# default, so host-side artifacts stay unstripped.
+[profile.release.build-override]
+strip = "none"
