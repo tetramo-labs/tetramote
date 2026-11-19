@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 pub const ALPN: &[u8] = b"tetratop/1";
-pub const PROTOCOL_VERSION: u32 = 1;
+pub const PROTOCOL_VERSION: u32 = 2;
 
 pub const STREAM_VIDEO: u8 = 0x01;
 pub const STREAM_INPUT: u8 = 0x10;
@@ -282,7 +282,7 @@ mod tests {
     fn hello(secret: Option<&str>) -> Hello {
         Hello {
             t: "hello".into(),
-            v: 1,
+            v: 2,
             name: "Duo".into(),
             secret: secret.map(Into::into),
         }
@@ -364,7 +364,7 @@ mod tests {
             Auth::Rejected("notPaired")
         );
         let mut old = hello(None);
-        old.v = 0;
+        old.v = 1;
         assert_eq!(
             authorize("known", &old, &trusted, None),
             Auth::Rejected("version")

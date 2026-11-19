@@ -1,8 +1,8 @@
 node_modules/
 .expo/
 dist/
-ios/
-android/
+/ios/
+/android/
 expo-env.d.ts
 *.log
 modules/remote/ios/TetraCore.xcframework/

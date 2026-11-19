@@ -1,9 +1,10 @@
-# Tetratop wire protocol, version 1
+# Tetratop wire protocol, version 2
 
-The phone dials the Mac over [iroh](https://iroh.computer) with ALPN `tetratop/1`. iroh authenticates both
-ends by their endpoint keys, so a QR code only needs to carry the Mac's address and a one-time pairing
-secret. Everything below is big-endian. `core/src/protocol.rs` implements the framing; a change to either
-changes both in the same commit.
+The phone dials the Mac over [iroh](https://iroh.computer) with ALPN `tetratop/1`. The ALPN stays the same
+across protocol versions, so a phone and a Mac on different versions still get as far as `rejected` with
+reason `version`. iroh authenticates both ends by their endpoint keys, so a QR code only needs to carry the
+Mac's address and a one-time pairing secret. Everything below is big-endian. `core/src/protocol.rs`
+implements the framing; a change to either changes both in the same commit.
 
 ## Pairing
 
@@ -36,13 +37,13 @@ the connection after `rejected`.
 
 | `t` | Direction | Fields |
 | --- | --- | --- |
-| `hello` | phone → Mac | `v` (1), `name` (phone name), `secret` (pairing secret, first time only) |
+| `hello` | phone → Mac | `v` (2), `name` (phone name), `secret` (pairing secret, first time only) |
 | `welcome` | Mac → phone | `v`, `hostName`, `paired` (true when this hello paired the phone) |
 | `rejected` | Mac → phone | `reason`: `notPaired`, `badSecret`, `version` or `badHello` |
 | `status` | Mac → phone | `screenRecording`, `accessibility` (Mac permissions granted) |
 | `displays` | Mac → phone | `displays` (`[{id, name, width, height, main}]`), `active` (display id) |
 | `video` | Mac → phone | `codec` (`h264`), `width`, `height` (stream pixels), `pointWidth`, `pointHeight` (display size in Mac points), `displayId`; sent whenever the stream changes |
-| `audio` | Mac → phone | `codec` (`aac`), `sampleRate`, `channels`, `config` (base64 AudioSpecificConfig) |
+| `audio` | Mac → phone | `codec` (`opus`), `sampleRate` (48000), `channels` (2), `frameMs` (20) |
 | `clipboard` | both | `text` |
 | `getClipboard` | phone → Mac | (none); the Mac answers with `clipboard` |
 | `selectDisplay` | phone → Mac | `id` |
@@ -71,16 +72,17 @@ sequence numbers, so the phone sees the gap.
 
 ### Audio
 
-AAC-LC raw frames (no ADTS), one per datagram, decoded with the `audio` message's `config`:
+Opus at 48 kHz in stereo, one 20 ms packet (960 samples per channel) per datagram. The `audio` message
+announces the stream; the format is fixed, so the Mac sends no Opus header and the phone builds its own.
 
 ```
 u8  0x02
 u32 seq
 u64 pts_us
-..  payload   one AAC frame
+..  payload   one Opus packet
 ```
 
-Audio is best effort; a lost datagram is a 21 ms gap.
+Audio is best effort; a lost datagram is a 20 ms gap.
 
 ### Input records
 
@@ -109,4 +111,4 @@ A record longer than 1024 bytes, or one of length 0, ends the input stream.
 | 2 | a control message from the other side, raw JSON |
 | 3 | one input record without its length (Mac only) |
 | 4 | the 13-byte video header, then the access unit (phone only, already gated to decodable frames) |
-| 5 | `u32 seq`, `u64 pts_us`, AAC frame (phone only) |
+| 5 | `u32 seq`, `u64 pts_us`, Opus packet (phone only) |

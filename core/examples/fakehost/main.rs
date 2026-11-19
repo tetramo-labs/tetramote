@@ -1,12 +1,15 @@
 //! A stand-in Mac for testing the phone app: streams an Annex B H.264 file
-//! (encoded with access unit delimiters) and optionally an ADTS AAC file over
-//! the real protocol, logs every event it receives as JSON lines, and answers
-//! clipboard and display requests.
+//! (encoded with access unit delimiters) and optionally an Ogg Opus file of
+//! 20 ms packets over the real protocol, logs every event it receives as JSON
+//! lines, and answers clipboard and display requests.
 //!
 //! ffmpeg -f lavfi -i testsrc2=size=1280x800:rate=30 -t 10 -c:v libx264 -bf 0 -g 30 \
 //!   -x264-params aud=1:repeat-headers=1 -pix_fmt yuv420p -f h264 test.h264
-//! ffmpeg -f lavfi -i sine=frequency=440:sample_rate=48000 -ac 2 -t 10 -c:a aac -b:a 128k -f adts test.aac
-//! cargo run --release --example fakehost -- --h264 test.h264 --aac test.aac --pairing-file /tmp/pair.txt
+//! ffmpeg -f lavfi -i sine=frequency=440:sample_rate=48000 -ac 2 -t 10 -c:a libopus -b:a 128k \
+//!   -frame_duration 20 -application lowdelay test.ogg
+//! cargo run --release --example fakehost -- --h264 test.h264 --opus test.ogg --pairing-file /tmp/pair.txt
+
+mod ogg;
 
 use std::fs;
 use std::io::Write;
@@ -19,7 +22,7 @@ use tetra_core::{EndpointConfig, Events, Host, HostConfig};
 
 struct Args {
     h264: String,
-    aac: Option<String>,
+    opus: Option<String>,
     fps: u32,
     pairing_file: Option<String>,
     log: Option<String>,
@@ -29,7 +32,7 @@ struct Args {
 fn parse_args() -> Args {
     let mut args = Args {
         h264: String::new(),
-        aac: None,
+        opus: None,
         fps: 30,
         pairing_file: None,
         log: None,
@@ -39,7 +42,7 @@ fn parse_args() -> Args {
     while let Some(flag) = it.next() {
         match flag.as_str() {
             "--h264" => args.h264 = it.next().expect("--h264 <file>"),
-            "--aac" => args.aac = it.next(),
+            "--opus" => args.opus = it.next(),
             "--fps" => args.fps = it.next().and_then(|v| v.parse().ok()).expect("--fps <n>"),
             "--pairing-file" => args.pairing_file = it.next(),
             "--log" => args.log = it.next(),
@@ -103,58 +106,6 @@ fn split_access_units(data: &[u8]) -> Vec<AccessUnit> {
     units
 }
 
-fn adts_frames(data: &[u8]) -> (Vec<Vec<u8>>, [u8; 2]) {
-    let mut frames = Vec::new();
-    let mut asc = [0x11, 0x90];
-    let mut i = 0;
-    while i + 7 <= data.len() {
-        if data[i] != 0xff || data[i + 1] & 0xf0 != 0xf0 {
-            i += 1;
-            continue;
-        }
-        let protection_absent = data[i + 1] & 1 == 1;
-        let len = (((data[i + 3] & 0x03) as usize) << 11)
-            | ((data[i + 4] as usize) << 3)
-            | ((data[i + 5] as usize) >> 5);
-        let header = if protection_absent { 7 } else { 9 };
-        if len < header || i + len > data.len() {
-            break;
-        }
-        if frames.is_empty() {
-            let object = ((data[i + 2] >> 6) & 0x3) + 1;
-            let rate = (data[i + 2] >> 2) & 0xf;
-            let channels = ((data[i + 2] & 1) << 2) | (data[i + 3] >> 6);
-            let bits: u16 =
-                ((object as u16) << 11) | ((rate as u16) << 7) | ((channels as u16) << 3);
-            asc = bits.to_be_bytes();
-        }
-        frames.push(data[i + header..i + len].to_vec());
-        i += len;
-    }
-    (frames, asc)
-}
-
-fn base64(bytes: &[u8]) -> String {
-    const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut out = String::new();
-    for chunk in bytes.chunks(3) {
-        let b = [
-            chunk[0],
-            *chunk.get(1).unwrap_or(&0),
-            *chunk.get(2).unwrap_or(&0),
-        ];
-        let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
-        for k in 0..4 {
-            if k <= chunk.len() {
-                out.push(T[((n >> (18 - 6 * k)) & 63) as usize] as char);
-            } else {
-                out.push('=');
-            }
-        }
-    }
-    out
-}
-
 fn percent_encode(s: &str) -> String {
     s.bytes()
         .map(|b| match b {
@@ -206,15 +157,15 @@ fn main() {
         video.iter().any(|u| u.key),
         "the H.264 file has no IDR frames"
     );
-    let audio = args
-        .aac
-        .as_ref()
-        .map(|p| adts_frames(&fs::read(p).expect("read --aac")));
+    let audio = args.opus.as_ref().map(|p| {
+        ogg::opus_packets(&fs::read(p).expect("read --opus"))
+            .unwrap_or_else(|e| panic!("--opus {p}: {e}"))
+    });
     eprintln!(
-        "fakehost: {} video frames ({} keyframes), {} audio frames",
+        "fakehost: {} video frames ({} keyframes), {} audio packets",
         video.len(),
         video.iter().filter(|u| u.key).count(),
-        audio.as_ref().map_or(0, |a| a.0.len())
+        audio.as_ref().map_or(0, Vec::len)
     );
 
     let key_path = "/tmp/tetratop-fakehost.key";
@@ -301,16 +252,16 @@ fn main() {
                     std::thread::sleep(due.saturating_duration_since(Instant::now()));
                 }
             });
-            if let Some((frames, _)) = audio.clone() {
+            if let Some(packets) = audio.clone() {
                 let host_a = host.clone();
                 let streaming_a = streaming.clone();
                 std::thread::spawn(move || {
                     let started = Instant::now();
-                    let interval = Duration::from_micros(21_333);
+                    let interval = Duration::from_millis(20);
                     let mut n = 0u32;
                     while streaming_a.load(Ordering::SeqCst) {
-                        let frame = &frames[n as usize % frames.len()];
-                        host_a.send_audio(started.elapsed().as_micros() as u64, frame);
+                        let packet = &packets[n as usize % packets.len()];
+                        host_a.send_audio(started.elapsed().as_micros() as u64, packet);
                         n += 1;
                         std::thread::sleep(
                             (started + interval * n).saturating_duration_since(Instant::now()),
@@ -369,11 +320,9 @@ fn main() {
                             .as_bytes(),
                         );
                         host.send_control(video_message(1).as_bytes());
-                        if let Some((_, asc)) = &audio {
+                        if audio.is_some() {
                             host.send_control(
-                                serde_json::json!({"t": "audio", "codec": "aac", "sampleRate": 48000, "channels": 2, "config": base64(asc)})
-                                    .to_string()
-                                    .as_bytes(),
+                                br#"{"t":"audio","codec":"opus","sampleRate":48000,"channels":2,"frameMs":20}"#,
                             );
                         }
                         start_stream();

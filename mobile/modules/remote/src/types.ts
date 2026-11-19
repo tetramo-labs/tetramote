@@ -37,7 +37,7 @@ export type HostMessage =
       pointHeight: number
       displayId: number
     }
-  | {t: "audio"; codec: "aac"; sampleRate: number; channels: number; config: string}
+  | {t: "audio"; codec: "opus"; sampleRate: number; channels: number; frameMs: number}
   | {t: "clipboard"; text: string}
 
 export type PhoneMessage =

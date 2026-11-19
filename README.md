@@ -9,7 +9,7 @@ when they can, and fall back to n0's public relays, or a relay you run yourself,
 iPhone (Expo app)                                        Mac (menu bar app)
   RemoteSurface gestures ─ input records ─┐           ┌─ CGEvent injection
   AVSampleBufferDisplayLayer ◄─ H.264 ────┤  iroh     ├── VideoToolbox ◄─ ScreenCaptureKit
-  AudioQueue ◄─ AAC ──────────────────────┤  QUIC     ├── AVAudioConverter ◄─ system audio
+  AudioQueue ◄─ Opus ─────────────────────┤  QUIC     ├── AVAudioConverter ◄─ system audio
   clipboard / displays ◄─ control JSON ───┘           └─ NSPasteboard / SCShareableContent
         └── core/ (Rust, iroh 1.4) ─────────── same crate ───────────┘
 ```
@@ -83,7 +83,7 @@ and encrypted packets only.
 
 ## Testing without hardware
 
-- `cargo run --release --example fakehost -- --h264 test.h264 --aac test.aac --pairing-file /tmp/pair.txt`
+- `cargo run --release --example fakehost -- --h264 test.h264 --opus test.ogg --pairing-file /tmp/pair.txt`
   streams a recorded clip to the phone and logs the input it receives. The example's header shows how to
   make the clip with ffmpeg. To pair a simulator without scanning, launch the app with the URL:
   `xcrun simctl launch <udid> com.tetramo.tetratop -TetratopPairURL "$(cat /tmp/pair.txt)"` (on Android, a

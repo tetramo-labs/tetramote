@@ -1,0 +1,32 @@
+apply plugin: 'com.android.library'
+
+group = 'com.tetratop.remote'
+version = '0.1.0'
+
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+apply from: expoModulesCorePlugin
+applyKotlinExpoModulesCorePlugin()
+useCoreDependencies()
+useExpoPublishing()
+
+buildscript {
+    ext.safeExtGet = { prop, fallback ->
+        rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    }
+}
+
+android {
+    namespace "com.tetratop.remote"
+    compileSdkVersion safeExtGet("compileSdkVersion", 36)
+    defaultConfig {
+        minSdkVersion safeExtGet("minSdkVersion", 28)
+        targetSdkVersion safeExtGet("targetSdkVersion", 36)
+        versionCode 1
+        versionName "0.1.0"
+    }
+    // src/main/jniLibs holds the Rust core build (scripts/build-core.sh android).
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
