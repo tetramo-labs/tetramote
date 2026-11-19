@@ -8,6 +8,7 @@ import {forwardRef, type ReactNode} from "react"
 
 import {useAppTheme} from "@/contexts/ThemeContext"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
+import {useLayout} from "@/hooks/useLayout"
 
 function Backdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
@@ -16,17 +17,19 @@ function Backdrop(props: BottomSheetBackdropProps) {
 export const Sheet = forwardRef<BottomSheetModal, {children: ReactNode}>(function Sheet({children}, ref) {
   const {theme} = useAppTheme()
   const insets = useSaferAreaInsets()
+  const {insetLeft, insetRight} = useLayout()
   return (
     <BottomSheetModal
       ref={ref}
       enableDynamicSizing
+      style={{marginLeft: insetLeft, marginRight: insetRight}}
       backdropComponent={Backdrop}
       backgroundStyle={{backgroundColor: theme.colors.background, borderRadius: 24}}
       handleIndicatorStyle={{backgroundColor: theme.colors.muted_foreground + "40", width: 64, height: 6}}>
       <BottomSheetView
         style={{
-          paddingLeft: insets.left + 24,
-          paddingRight: insets.right + 24,
+          paddingLeft: 24,
+          paddingRight: 24,
           paddingTop: 8,
           paddingBottom: insets.bottom + 16,
           gap: 12,

@@ -5,9 +5,9 @@ import {useFonts} from "expo-font"
 import {Stack} from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import {useEffect} from "react"
-import Toast from "react-native-toast-message"
 
 import {RailToolbarHost} from "@/components/ui/RailToolbar"
+import {SafeToast} from "@/components/ui/SafeToast"
 import {AllProviders} from "@/contexts/AllProviders"
 import {useAppTheme} from "@/contexts/ThemeContext"
 import {ensureStarted} from "@/services/remote"
@@ -47,7 +47,7 @@ export default function RootLayout() {
     <AllProviders>
       <AppStack />
       <RailToolbarHost />
-      <Toast topOffset={60} />
+      <SafeToast />
     </AllProviders>
   )
 }

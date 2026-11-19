@@ -4,11 +4,13 @@ import {Button} from "@/components/ignite/Button"
 import {Text} from "@/components/ignite/Text"
 import GlassView from "@/components/ui/GlassView"
 import {useAppTheme} from "@/contexts/ThemeContext"
+import {useLayout} from "@/hooks/useLayout"
 import {retry} from "@/services/remote"
 import {useSessionStore} from "@/stores/session"
 
 export function SessionOverlay({onBack}: {onBack: () => void}) {
   const {theme} = useAppTheme()
+  const {insetLeft, insetRight} = useLayout()
   const phase = useSessionStore((s) => s.phase)
   const error = useSessionStore((s) => s.error)
   const name = useSessionStore((s) => s.target?.name ?? "")
@@ -25,7 +27,10 @@ export function SessionOverlay({onBack}: {onBack: () => void}) {
         : "session:connecting"
 
   return (
-    <View pointerEvents="box-none" className="absolute inset-0 items-center justify-center px-8">
+    <View
+      pointerEvents="box-none"
+      className="absolute inset-0 items-center justify-center"
+      style={{paddingLeft: insetLeft + 32, paddingRight: insetRight + 32}}>
       <GlassView
         className="rounded-3xl w-full"
         style={{maxWidth: 380, backgroundColor: theme.colors.primary_foreground}}>
