@@ -29,6 +29,7 @@ export interface SessionLayoutInput {
   rail: "left" | "right" | null
   aspect: number
   fold: Rect | null
+  fullScreen?: boolean
 }
 
 function fitInside(area: Rect, aspect: number): Rect {
@@ -51,9 +52,23 @@ function horizontalFold(fold: Rect | null, content: Rect): Rect | null {
  * window has room under the screen it becomes a laptop: screen on top, trackpad
  * below, split at a horizontal fold when there is one so nothing sits in it.
  * Otherwise the screen fills the window. Controls go in the iPhone Duo's rail
- * when there is one. Decided from sizes alone, never the device or orientation.
+ * when there is one. Full screen fits the screen to the whole window, edge to
+ * edge, with floating controls. Decided from sizes alone, never the device or
+ * orientation.
  */
-export function sessionLayout({width, height, insets, rail, aspect, fold}: SessionLayoutInput): SessionLayout {
+export function sessionLayout({
+  width,
+  height,
+  insets,
+  rail,
+  aspect,
+  fold,
+  fullScreen,
+}: SessionLayoutInput): SessionLayout {
+  if (fullScreen) {
+    const video = fitInside({x: 0, y: 0, width, height}, aspect)
+    return {kind: "overlay", video, toolbar: (width - video.width) / 2 >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"}
+  }
   const content: Rect = {
     x: insets.left,
     y: insets.top,

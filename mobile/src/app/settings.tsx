@@ -60,6 +60,7 @@ export default function SettingsScreen() {
   const [speed, setSpeed] = useSetting("trackpad_speed")
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
+  const [startFullScreen, setStartFullScreen] = useSetting("start_full_screen")
   const [deviceName, setDeviceName] = useSetting("device_name")
   const forgetAll = useHostsStore((s) => s.forgetAll)
   const [relayDraft, setRelayDraft] = useState(relay)
@@ -131,6 +132,12 @@ export default function SettingsScreen() {
               ]}
             />
           }
+        />
+        <ToggleRow
+          labelTx="settings:startFullScreen"
+          subtitleTx="settings:startFullScreenHint"
+          value={startFullScreen}
+          onValueChange={setStartFullScreen}
         />
         <ToggleRow
           labelTx="settings:autoHide"

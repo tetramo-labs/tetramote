@@ -150,7 +150,7 @@ async function startSession(target: {id: string | null; name: string; ticket: st
   reconnectAttempt = 0
   if (reconnectTimer) clearTimeout(reconnectTimer)
   const session = useSessionStore.getState()
-  session.begin(target, getSetting("default_input_mode"))
+  session.begin(target, getSetting("default_input_mode"), getSetting("start_full_screen"))
   session.setAudio(getSetting("play_audio"))
   remote.setAudioEnabled(getSetting("play_audio"))
   try {

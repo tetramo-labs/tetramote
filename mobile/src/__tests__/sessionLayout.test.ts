@@ -68,4 +68,45 @@ describe("sessionLayout", () => {
     const layout = sessionLayout({width: 800, height: 500, insets: none, rail: null, aspect: 1.6, fold: null})
     expect(layout).toEqual({kind: "overlay", video: {x: 0, y: 0, width: 800, height: 500}, toolbar: "floating"})
   })
+
+  it("fills the whole window in full screen, ignoring insets and the rail", () => {
+    const folded = sessionLayout({
+      width: 466,
+      height: 678,
+      insets: {top: 0, bottom: 20, left: 0, right: 84},
+      rail: "right",
+      aspect: 1.6,
+      fold: null,
+      fullScreen: true,
+    })
+    expect(folded).toEqual({
+      kind: "overlay",
+      video: near({x: 0, y: 193.375, width: 466, height: 291.25}),
+      toolbar: "floating",
+    })
+    const sideways = sessionLayout({
+      width: 951,
+      height: 669,
+      insets: none,
+      rail: null,
+      aspect: 1.6,
+      fold: null,
+      fullScreen: true,
+    })
+    expect(sideways).toEqual({
+      kind: "overlay",
+      video: near({x: 0, y: 37.3125, width: 951, height: 594.375}),
+      toolbar: "floating",
+    })
+    const phone = sessionLayout({
+      width: 852,
+      height: 393,
+      insets: none,
+      rail: null,
+      aspect: 1.6,
+      fold: null,
+      fullScreen: true,
+    })
+    expect(phone.toolbar).toBe("side")
+  })
 })

@@ -35,12 +35,14 @@ interface SessionState {
   macClipboard: string | null
   stats: StreamStats | null
   inputMode: InputMode
+  fullScreen: boolean
   setPhase: (phase: SessionPhase, error?: string | null) => void
-  begin: (target: SessionTarget, inputMode: InputMode) => void
+  begin: (target: SessionTarget, inputMode: InputMode, fullScreen: boolean) => void
   setPath: (path: PathKind | null, rttMs: number | null) => void
   applyHostMessage: (message: HostMessage) => void
   setStats: (stats: StreamStats) => void
   setInputMode: (mode: InputMode) => void
+  setFullScreen: (fullScreen: boolean) => void
   setAudio: (enabled: boolean) => void
   end: () => void
 }
@@ -64,8 +66,9 @@ export const useSessionStore = create<SessionState>()((set) => ({
   ...empty,
   audio: true,
   inputMode: "trackpad",
+  fullScreen: false,
   setPhase: (phase, error = null) => set({phase, error}),
-  begin: (target, inputMode) => set({...empty, phase: "connecting", target, inputMode}),
+  begin: (target, inputMode, fullScreen) => set({...empty, phase: "connecting", target, inputMode, fullScreen}),
   setPath: (path, rttMs) => set({path, rttMs}),
   applyHostMessage: (message) => {
     switch (message.t) {
@@ -97,6 +100,7 @@ export const useSessionStore = create<SessionState>()((set) => ({
   },
   setStats: (stats) => set({stats}),
   setInputMode: (inputMode) => set({inputMode}),
+  setFullScreen: (fullScreen) => set({fullScreen}),
   setAudio: (audio) => set({audio}),
   end: () => set({...empty}),
 }))

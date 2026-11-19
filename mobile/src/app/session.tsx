@@ -1,7 +1,8 @@
 import type {BottomSheetModal} from "@gorhom/bottom-sheet"
+import * as NavigationBar from "expo-navigation-bar"
 import {StatusBar} from "expo-status-bar"
 import {useEffect, useRef, useState, type ReactNode} from "react"
-import {BackHandler, useWindowDimensions, View, type ViewStyle} from "react-native"
+import {BackHandler, Platform, useWindowDimensions, View, type ViewStyle} from "react-native"
 import Animated, {useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated"
 import {ReservedRegionsProvider, useReservedRegions} from "react-native-reserved-regions"
 import {scheduleOnRN} from "react-native-worklets"
@@ -64,7 +65,8 @@ function Fade({visible, children, style}: {visible: boolean; children: ReactNode
  * The remote session. Built for the iPhone Duo first: a laptop layout (Mac
  * screen over a trackpad, split at the fold when open) whenever the window has
  * room, controls down the status rail when there is one, and the same design
- * widened rather than swapped when the Duo folds or opens.
+ * widened rather than swapped when the Duo folds or opens. Full screen turns
+ * the rail and status bar off, like a video player, and floats the controls.
  */
 function SessionBody() {
   const {width, height} = useWindowDimensions()
@@ -74,8 +76,9 @@ function SessionBody() {
   const goHome = useNavigationStore((s) => s.goHome)
   const video = useSessionStore((s) => s.video)
   const phase = useSessionStore((s) => s.phase)
+  const fullScreen = useSessionStore((s) => s.fullScreen)
   const [autoHide] = useSetting("auto_hide_controls")
-  const controls = useAutoHide(autoHide && phase === "connected")
+  const controls = useAutoHide((autoHide || fullScreen) && phase === "connected")
   const zoomControls = useZoomControls()
   const keyboard = useRef<KeyboardHandle>(null)
   const displaySheet = useRef<BottomSheetModal>(null)
@@ -101,6 +104,14 @@ function SessionBody() {
 
   useEffect(() => () => disconnect(), [])
 
+  useEffect(() => {
+    if (Platform.OS !== "android") return
+    NavigationBar.setVisibilityAsync(fullScreen ? "hidden" : "visible")
+    return () => {
+      NavigationBar.setVisibilityAsync("visible")
+    }
+  }, [fullScreen])
+
   const resetZoom = () => {
     zoomControls.zoom.value = withTiming(1)
     zoomControls.offsetX.value = withTiming(0)
@@ -115,6 +126,7 @@ function SessionBody() {
     rail: layout.rail,
     aspect: video ? video.width / video.height : DEFAULT_ASPECT,
     fold,
+    fullScreen,
   })
 
   const actions = useSessionActions({
@@ -129,7 +141,7 @@ function SessionBody() {
     },
     onResetZoom: resetZoom,
   })
-  useRailActions(plan.toolbar === "rail" ? actions : null, {hidden: !controls.visible, reveal: controls.show})
+  useRailActions(plan.toolbar === "rail" ? actions : [], {hidden: !controls.visible, reveal: controls.show})
 
   const status = (
     <Fade visible={controls.visible} style={{gap: 8, alignItems: "flex-start"}}>
@@ -146,7 +158,11 @@ function SessionBody() {
 
   return (
     <View className="flex-1 bg-black">
-      <StatusBar style="light" hidden={!layout.rail} />
+      <StatusBar
+        style="light"
+        hidden={fullScreen || !layout.rail}
+        verticalBarBehaviorIOS={fullScreen ? "disabled" : "automatic"}
+      />
       <View style={rectStyle(plan.video)}>
         <RemoteSurface zoomControls={zoomControls} onThreeFingerTap={controls.toggle} />
       </View>

@@ -13,6 +13,7 @@ export interface Settings {
   trackpad_speed: TrackpadSpeed
   play_audio: boolean
   auto_hide_controls: boolean
+  start_full_screen: boolean
   device_name: string
 }
 
@@ -23,6 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   trackpad_speed: "normal",
   play_audio: true,
   auto_hide_controls: false,
+  start_full_screen: false,
   device_name: "",
 }
 

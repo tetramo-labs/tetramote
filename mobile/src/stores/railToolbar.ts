@@ -1,5 +1,5 @@
 import type {LucideIcon} from "lucide-react-native"
-import {useEffect, useId} from "react"
+import {useEffect, useId, useState} from "react"
 import {create} from "zustand"
 
 export interface RailAction {
@@ -12,6 +12,7 @@ export interface RailAction {
 
 export interface RailEntry {
   key: string
+  order: number
   actions: RailAction[]
   hidden: boolean
   reveal?: () => void
@@ -25,29 +26,33 @@ interface RailToolbarState {
 
 /**
  * Screens register the buttons they want in the iPhone Duo's rail; the rail
- * shows the most recently mounted screen's. An update keeps its place, so a
- * screen under the top one re-rendering never takes the rail back.
+ * shows the most recently mounted screen's. Entries are ordered by when their
+ * screen mounted, so a screen underneath that drops out of the rail and comes
+ * back (a fold, a rotation) never lands on top.
  */
 export const useRailToolbarStore = create<RailToolbarState>()((set) => ({
   entries: [],
   set: (entry) =>
-    set((s) => {
-      const index = s.entries.findIndex((e) => e.key === entry.key)
-      if (index === -1) return {entries: [...s.entries, entry]}
-      const entries = s.entries.slice()
-      entries[index] = entry
-      return {entries}
-    }),
+    set((s) => ({
+      entries: [...s.entries.filter((e) => e.key !== entry.key), entry].sort((a, b) => a.order - b.order),
+    })),
   remove: (key) => set((s) => ({entries: s.entries.filter((e) => e.key !== key)})),
 }))
 
-/** Shows `actions` in the rail while mounted; null takes nothing. `hidden` leaves only a handle that calls `reveal`. */
+/**
+ * Shows `actions` in the rail while mounted. An empty list still claims the
+ * rail, keeping screens underneath out of it; null takes no part. `hidden`
+ * leaves only a handle that calls `reveal`.
+ */
+let nextOrder = 0
+
 export function useRailActions(actions: RailAction[] | null, options: {hidden?: boolean; reveal?: () => void} = {}) {
   const key = useId()
+  const [order] = useState(() => nextOrder++)
   const setEntry = useRailToolbarStore((s) => s.set)
   const remove = useRailToolbarStore((s) => s.remove)
   useEffect(() => {
-    if (actions) setEntry({key, actions, hidden: options.hidden ?? false, reveal: options.reveal})
+    if (actions) setEntry({key, order, actions, hidden: options.hidden ?? false, reveal: options.reveal})
     else remove(key)
   })
   useEffect(() => () => remove(key), [key, remove])

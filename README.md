@@ -51,8 +51,11 @@ The phone app is designed for the iPhone Duo first and widens rather than switch
 - On the folded display and the open display held sideways, the session controls, Back, Close and Settings
   move into the status rail, Close first; what doesn't fit goes behind More. Elsewhere they sit under the
   trackpad or beside the screen.
-- Settings › Hide controls automatically fades the controls after a few seconds; a three-finger tap or the
-  handle that stays behind brings them back.
+- Full screen (toolbar button, or Settings › Open sessions in full screen) works like a video player: the
+  Mac fills the display, the status bar and rail turn off, and the controls float over it and hide on their
+  own.
+- Settings › Hide controls automatically fades the controls after a few seconds outside full screen too; a
+  three-finger tap or the handle that stays behind brings them back.
 
 `duoctl` (`brew install skarol/tap/duoctl`) folds, rotates, taps and screenshots the Duo simulator.
 

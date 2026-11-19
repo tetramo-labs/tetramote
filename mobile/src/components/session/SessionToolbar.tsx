@@ -3,6 +3,8 @@ import {
   Ellipsis,
   Hand,
   Keyboard,
+  Maximize2,
+  Minimize2,
   Monitor,
   MousePointer2,
   Volume2,
@@ -44,6 +46,8 @@ export function useSessionActions({
 }: SessionActionHandlers): RailAction[] {
   const inputMode = useSessionStore((s) => s.inputMode)
   const setInputMode = useSessionStore((s) => s.setInputMode)
+  const fullScreen = useSessionStore((s) => s.fullScreen)
+  const setFullScreen = useSessionStore((s) => s.setFullScreen)
   const audio = useSessionStore((s) => s.audio)
   const displays = useSessionStore((s) => s.displays.length)
   const used = (fn: () => void) => () => {
@@ -60,6 +64,12 @@ export function useSessionActions({
       onPress: used(() => setInputMode(inputMode === "trackpad" ? "direct" : "trackpad")),
     },
     {key: "keyboard", icon: Keyboard, label: translate("session:keyboard"), onPress: used(onKeyboard)},
+    {
+      key: "fullScreen",
+      icon: fullScreen ? Minimize2 : Maximize2,
+      label: translate(fullScreen ? "session:exitFullScreen" : "session:fullScreen"),
+      onPress: used(() => setFullScreen(!fullScreen)),
+    },
     ...(displays > 1
       ? [{key: "displays", icon: Monitor, label: translate("session:displays"), onPress: used(onDisplays)}]
       : []),
