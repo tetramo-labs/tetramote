@@ -86,7 +86,7 @@ rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
 export APPLE_SIGNING_IDENTITY="$IDENTITY"
 export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tetratop.key)"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
-(cd "$DESKTOP" && bun install --frozen-lockfile >/dev/null && bunx tauri build --target universal-apple-darwin)
+(cd "$DESKTOP" && bun install --frozen-lockfile >/dev/null && CI=true bunx tauri build --target universal-apple-darwin)
 
 BUNDLE="$DESKTOP/target/universal-apple-darwin/release/bundle"
 APP="$BUNDLE/macos/Tetratop.app"
@@ -128,9 +128,16 @@ gh release create "$TAG" --repo "$REPO" --draft --target "$(git -C "$ROOT" rev-p
   "$OUT/appcast.xml" "$OUT/latest.json"
 RELEASE_ID="$(gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
 
+DISPATCHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 gh workflow run release-desktop.yml --repo "$REPO" --ref main -f tag="$TAG" -f release_id="$RELEASE_ID"
-sleep 5
-RUN="$(gh run list --repo "$REPO" --workflow release-desktop.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
+RUN=""
+for _ in $(seq 1 30); do
+  RUN="$(gh run list --repo "$REPO" --workflow release-desktop.yml --limit 5 --json databaseId,createdAt \
+    --jq "[.[] | select(.createdAt >= \"$DISPATCHED\")][0].databaseId // empty")"
+  [[ -n "$RUN" ]] && break
+  sleep 2
+done
+[[ -n "$RUN" ]] || { echo "The Windows/Linux build didn't start. Run release-desktop.yml by hand with tag=$TAG release_id=$RELEASE_ID." >&2; exit 1; }
 gh run watch "$RUN" --repo "$REPO" --exit-status
 
 gh release edit "$TAG" --repo "$REPO" --draft=false --latest
