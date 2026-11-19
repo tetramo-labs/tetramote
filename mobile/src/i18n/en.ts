@@ -71,13 +71,13 @@ const en = {
     needsScreenRecording:
       "Allow Screen Recording for Tetratop in System Settings › Privacy & Security on the computer.",
     needsAccessibility:
-      "Allow Accessibility for Tetratop in System Settings › Privacy & Security on the computer to control it.",
+      "Allow Accessibility for Tetratop in System Settings › Privacy & Security on the computer so this iPhone can control it.",
   },
   errors: {
-    notPaired: "This computer doesn't know this iPhone. Click New code in Tetratop on the computer and pair again.",
-    badSecret: "That code was already used or expired. Click New code in Tetratop on the computer and pair again.",
+    notPaired: "This iPhone isn't paired with the computer. Click New code in Tetratop on the computer and pair again.",
+    badSecret: "That code is no longer valid. Click New code in Tetratop on the computer and pair again.",
     version: "This computer runs a different Tetratop version. Update both apps.",
-    badHello: "The computer didn't understand this iPhone. Update both apps.",
+    badHello: "The computer rejected this iPhone's first message. Update both apps.",
     timedOut: "Couldn't reach the computer. Check that Tetratop is running on it and that both have internet.",
     startFailed: "Tetratop couldn't start its network engine: {{message}}",
     generic: "Connection lost: {{message}}",
@@ -100,7 +100,7 @@ const en = {
     playAudio: "Play the computer's sound",
     startFullScreen: "Open sessions in full screen",
     startFullScreenHint:
-      "The computer's screen fills the display and the controls float over it, hiding after a few seconds.",
+      "The computer's screen fills the display. The controls sit on top of it and hide after a few seconds.",
     autoHide: "Hide controls automatically",
     autoHideHint: "They fade after a few seconds. Tap with three fingers to bring them back.",
     appearance: "Appearance",
