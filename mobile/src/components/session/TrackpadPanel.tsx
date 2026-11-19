@@ -4,7 +4,6 @@ import {View, type LayoutChangeEvent} from "react-native"
 import {GestureDetector} from "react-native-gesture-handler"
 
 import {Icon} from "@/components/ignite/Icon"
-import {Text} from "@/components/ignite/Text"
 import {useInputGesture, type ZoomControls} from "@/components/session/useInputGesture"
 import {useSessionStore} from "@/stores/session"
 import {useSetting} from "@/stores/settings"
@@ -53,10 +52,9 @@ export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, head
         <View
           onLayout={onLayout}
           collapsable={false}
-          className="flex-1 rounded-3xl items-center justify-center gap-2"
+          className="flex-1 rounded-3xl items-center justify-center"
           style={{backgroundColor: SURFACE, borderWidth: 1, borderColor: EDGE}}>
           <Icon icon={MousePointer2} size={22} color={HINT} />
-          <Text tx="session:trackpadHint" size="xs" className="text-center px-6" style={{color: HINT}} />
         </View>
       </GestureDetector>
       {footer}

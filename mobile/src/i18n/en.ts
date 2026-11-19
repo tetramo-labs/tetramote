@@ -59,7 +59,6 @@ const en = {
     showControls: "Show controls",
     fullScreen: "Full screen",
     exitFullScreen: "Exit full screen",
-    trackpadHint: "Drag to move, tap to click, two fingers to scroll or right-click",
     displaysTitle: "Show display",
     mainDisplay: "Main display",
     clipboardTitle: "Clipboard",
