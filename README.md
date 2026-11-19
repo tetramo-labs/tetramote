@@ -90,3 +90,7 @@ and encrypted packets only.
   `TetratopPairURL` string extra on the launch intent). `simctl openurl` works too, but iOS asks to confirm.
 - `cargo run --release --example probe -- --pair "<url>" --out /tmp/probe.h264` acts as a phone against the
   Mac app. Run the app with `-TetratopTestPattern YES` so no Screen Recording grant is needed.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
