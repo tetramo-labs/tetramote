@@ -11,7 +11,7 @@ import {flagsFor, KEY, keyPress, shortcutFor, type Modifier} from "@/services/ke
 import {sendInput} from "@/services/remote"
 
 export interface KeyboardHandle {
-  open: () => void
+  toggle: () => void
 }
 
 type BarKey = {label: string; modifier: Modifier} | {label: string; keyCode: number}
@@ -41,7 +41,9 @@ export const KeyboardInput = forwardRef<KeyboardHandle>(function KeyboardInput(_
   const [visible, setVisible] = useState(false)
   const [modifiers, setModifiers] = useState<Modifier[]>([])
 
-  useImperativeHandle(ref, () => ({open: () => input.current?.focus()}))
+  useImperativeHandle(ref, () => ({
+    toggle: () => (input.current?.isFocused() ? input.current.blur() : input.current?.focus()),
+  }))
 
   const consumeModifiers = () => {
     const flags = flagsFor(modifiers)

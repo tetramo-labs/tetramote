@@ -133,7 +133,7 @@ function SessionBody() {
     zoomed,
     onUse: controls.show,
     onDisconnect: leave,
-    onKeyboard: () => keyboard.current?.open(),
+    onKeyboard: () => keyboard.current?.toggle(),
     onDisplays: () => displaySheet.current?.present(),
     onClipboard: () => {
       send({t: "getClipboard"})
