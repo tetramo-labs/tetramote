@@ -5,7 +5,7 @@ import {Gesture} from "react-native-gesture-handler"
 import type {SharedValue} from "react-native-reanimated"
 
 import {sendInput} from "@/services/remote"
-import {acceleration, ClickCounter, momentumSteps, normalize, pointerGain} from "@/services/trackpad"
+import {acceleration, ClickCounter, momentumSteps, normalize, pointerGain, startsTapDrag} from "@/services/trackpad"
 import type {InputMode, TrackpadSpeed} from "@/stores/settings"
 
 const MAX_ZOOM = 4
@@ -57,6 +57,8 @@ export function useInputGesture({
 }: InputGestureOptions) {
   const clicks = useRef(new ClickCounter()).current
   const dragging = useRef(false)
+  const lastTap = useRef<number | null>(null)
+  const tapDrag = useRef(false)
   const twoFinger = useRef<{mode: "undecided" | "scroll" | "zoom"; travel: number}>({mode: "undecided", travel: 0})
   const pinchStart = useRef({zoom: 1, x: 0, y: 0})
   const momentum = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -105,6 +107,7 @@ export function useInputGesture({
         if (!success) return
         stopMomentum()
         const count = clicks.register(Date.now(), e.x, e.y)
+        lastTap.current = Date.now()
         if (direct) {
           const p = toVideo(e.x, e.y)
           sendInput([{kind: "moveTo", x: p.x, y: p.y}])
@@ -116,9 +119,19 @@ export function useInputGesture({
       .maxPointers(1)
       .minDistance(direct ? 4 : 3)
       .runOnJS(true)
+      .onBegin(() => {
+        tapDrag.current = !direct && startsTapDrag(lastTap.current, Date.now())
+        lastTap.current = null
+      })
       .onStart((e) => {
         stopMomentum()
-        if (!direct) return
+        if (!direct) {
+          if (!tapDrag.current) return
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+          sendInput([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
+          dragging.current = true
+          return
+        }
         const p = toVideo(e.x, e.y)
         sendInput([
           {kind: "moveTo", x: p.x, y: p.y},
@@ -136,37 +149,21 @@ export function useInputGesture({
         sendInput([{kind: "move", dx: e.changeX * k, dy: e.changeY * k}])
       })
       .onFinalize(() => {
-        if (direct && dragging.current) {
-          sendInput([{kind: "button", button: MOUSE_LEFT, down: false, clicks: 1}])
-          dragging.current = false
-        }
+        tapDrag.current = false
+        if (!dragging.current) return
+        sendInput([{kind: "button", button: MOUSE_LEFT, down: false, clicks: 1}])
+        dragging.current = false
       })
 
-    const dragPan = Gesture.Pan()
+    const longPress = Gesture.Pan()
       .maxPointers(1)
       .activateAfterLongPress(350)
       .runOnJS(true)
       .onStart((e) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-        if (direct) {
-          const p = toVideo(e.x, e.y)
-          sendInput([{kind: "moveTo", x: p.x, y: p.y}])
-          click(MOUSE_RIGHT, 1)
-          return
-        }
-        sendInput([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
-        dragging.current = true
-      })
-      .onChange((e) => {
-        if (direct) return
-        const k = gain()
-        sendInput([{kind: "move", dx: e.changeX * k, dy: e.changeY * k}])
-      })
-      .onFinalize(() => {
-        if (!direct && dragging.current) {
-          sendInput([{kind: "button", button: MOUSE_LEFT, down: false, clicks: 1}])
-          dragging.current = false
-        }
+        const p = toVideo(e.x, e.y)
+        sendInput([{kind: "moveTo", x: p.x, y: p.y}])
+        click(MOUSE_RIGHT, 1)
       })
 
     const scrollPan = Gesture.Pan()
@@ -207,7 +204,7 @@ export function useInputGesture({
       })
 
     const taps = Gesture.Exclusive(threeFingerTap, twoFingerTap, tap)
-    const pointer = Gesture.Race(dragPan, pointerPan)
+    const pointer = direct ? Gesture.Race(longPress, pointerPan) : pointerPan
     if (surface === "trackpad") return Gesture.Race(scrollPan, pointer, taps)
 
     const pinch = Gesture.Pinch()
