@@ -1,0 +1,6 @@
+[env]
+# Link libopus statically from source so the app never depends on a system copy.
+LIBOPUS_STATIC = "1"
+LIBOPUS_NO_PKG = "1"
+# libopus's bundled CMakeLists predates CMake 4, which refuses it without this.
+CMAKE_POLICY_VERSION_MINIMUM = "3.5"
