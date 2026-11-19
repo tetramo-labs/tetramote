@@ -6,8 +6,8 @@ name: Release desktop
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: Release tag, e.g. v0.3.0
+      commit:
+        description: Commit the draft release targets (its tag only exists once it's published)
         required: true
       release_id:
         description: Id of the draft release to upload to
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.commit }}
       - name: Linux packages
         if: runner.os == 'Linux'
         run: |

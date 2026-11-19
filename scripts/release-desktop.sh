@@ -123,7 +123,8 @@ manifest = {
 open(f"{out}/latest.json", "w").write(json.dumps(manifest, indent=2) + "\n")
 PY
 
-gh release create "$TAG" --repo "$REPO" --draft --target "$(git -C "$ROOT" rev-parse HEAD)" \
+COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
+gh release create "$TAG" --repo "$REPO" --draft --target "$COMMIT" \
   --title "Tetratop $VERSION" --generate-notes \
   "$OUT/Tetratop_universal.app.tar.gz" "$OUT/Tetratop_universal.app.tar.gz.sig" \
   "$OUT/Tetratop_${VERSION}_universal.dmg" "$OUT/sparkle/Tetratop-$VERSION-mac.zip" \
@@ -131,7 +132,7 @@ gh release create "$TAG" --repo "$REPO" --draft --target "$(git -C "$ROOT" rev-p
 RELEASE_ID="$(gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
 
 DISPATCHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-gh workflow run release-desktop.yml --repo "$REPO" --ref main -f tag="$TAG" -f release_id="$RELEASE_ID"
+gh workflow run release-desktop.yml --repo "$REPO" --ref main -f commit="$COMMIT" -f release_id="$RELEASE_ID"
 RUN=""
 for _ in $(seq 1 30); do
   RUN="$(gh run list --repo "$REPO" --workflow release-desktop.yml --limit 5 --json databaseId,createdAt \
@@ -139,8 +140,11 @@ for _ in $(seq 1 30); do
   [[ -n "$RUN" ]] && break
   sleep 2
 done
-[[ -n "$RUN" ]] || { echo "The Windows/Linux build didn't start. Run release-desktop.yml by hand with tag=$TAG release_id=$RELEASE_ID." >&2; exit 1; }
-gh run watch "$RUN" --repo "$REPO" --exit-status
+[[ -n "$RUN" ]] || { echo "The Windows/Linux build didn't start. Run release-desktop.yml by hand with commit=$COMMIT release_id=$RELEASE_ID." >&2; exit 1; }
+gh run watch "$RUN" --repo "$REPO" --exit-status || {
+  echo "The Windows/Linux build failed; the draft release stays. Fix it, run release-desktop.yml with commit=$COMMIT release_id=$RELEASE_ID, then: gh release edit $TAG --repo $REPO --draft=false --latest" >&2
+  exit 1
+}
 
 gh release edit "$TAG" --repo "$REPO" --draft=false --latest
 echo "Published $TAG. Updater feed: https://github.com/$REPO/releases/latest/download/latest.json"
