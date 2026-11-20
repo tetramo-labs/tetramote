@@ -1,5 +1,6 @@
 import {create} from "zustand"
 
+import type {PairingCode} from "@/services/pairingUrl"
 import {load, save} from "@/utils/storage"
 
 export interface PairedMac {
@@ -18,6 +19,7 @@ interface HostsState {
   upsert: (host: Omit<PairedMac, "pairedAt" | "lastConnectedAt">) => void
   markConnected: (id: string, name: string) => void
   forget: (id: string) => void
+  importCodes: (codes: PairingCode[]) => void
   forgetAll: () => void
 }
 
@@ -37,5 +39,8 @@ export const useHostsStore = create<HostsState>()((set, get) => ({
     set(persist(get().hosts.map((h) => (h.id === id ? {...h, name, lastConnectedAt: Date.now()} : h))))
   },
   forget: (id) => set(persist(get().hosts.filter((h) => h.id !== id))),
+  importCodes: (codes) => {
+    for (const code of codes) get().upsert({id: code.endpointId, name: code.name, ticket: "", secret: code.secret})
+  },
   forgetAll: () => set(persist([])),
 }))

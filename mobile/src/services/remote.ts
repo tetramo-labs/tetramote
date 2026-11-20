@@ -141,8 +141,9 @@ export async function restart(): Promise<void> {
   await ensureStarted()
 }
 
+/** Offers the saved secret too, so an imported computer pairs on first connect; one that trusts this phone ignores it. */
 export async function connectTo(host: PairedMac): Promise<void> {
-  await startSession({id: host.id, name: host.name, ticket: host.ticket, pairingSecret: null})
+  await startSession({id: host.id, name: host.name, ticket: host.ticket, pairingSecret: host.secret ?? null})
 }
 
 export async function pair(code: PairingCode): Promise<void> {

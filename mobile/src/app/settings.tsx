@@ -16,6 +16,7 @@ import {useAppTheme} from "@/contexts/ThemeContext"
 import {translate} from "@/i18n"
 import {loadSecretKey} from "@/services/identity"
 import {isRelayUrl} from "@/services/relay"
+import {pickLinks, shareLinks} from "@/services/linkTransfer"
 import {restart} from "@/services/remote"
 import {useHostsStore} from "@/stores/hosts"
 import {useSetting} from "@/stores/settings"
@@ -64,6 +65,37 @@ export default function SettingsScreen() {
   const [connectionDetails, setConnectionDetails] = useSetting("show_connection_details")
   const [deviceName, setDeviceName] = useSetting("device_name")
   const forgetAll = useHostsStore((s) => s.forgetAll)
+  const importCodes = useHostsStore((s) => s.importCodes)
+
+  const exportLinks = async () => {
+    try {
+      const shared = await shareLinks(useHostsStore.getState().hosts, translate("settings:exportLinksTitle"))
+      if (!shared) Toast.show({type: "info", text1: translate("settings:exportNone")})
+    } catch {
+      Toast.show({type: "error", text1: translate("settings:linksFailed")})
+    }
+  }
+
+  const importLinks = async () => {
+    try {
+      const codes = await pickLinks()
+      if (!codes) return
+      if (codes.length === 0) {
+        Toast.show({type: "error", text1: translate("settings:importNone")})
+        return
+      }
+      importCodes(codes)
+      Toast.show({
+        type: "success",
+        text1:
+          codes.length === 1
+            ? translate("settings:importedOne")
+            : translate("settings:imported", {count: codes.length}),
+      })
+    } catch {
+      Toast.show({type: "error", text1: translate("settings:linksFailed")})
+    }
+  }
   const [relayDraft, setRelayDraft] = useState(relay)
   const [endpointId, setEndpointId] = useState<string | null>(null)
 
@@ -174,6 +206,8 @@ export default function SettingsScreen() {
             Toast.show({type: "success", text1: translate("common:copied"), visibilityTime: 1200})
           }}
         />
+        <Row labelTx="settings:exportLinks" onPress={exportLinks} />
+        <Row labelTx="settings:importLinks" onPress={importLinks} />
         <Row labelTx="settings:forgetAll" destructive onPress={confirmForgetAll} />
       </Group>
 
