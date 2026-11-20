@@ -172,8 +172,7 @@ export function Landing() {
         </div>
       </main>
       <footer className="mx-auto w-full max-w-[560px] px-6 pb-10 text-[14px] text-muted">
-        Your browser reaches the computer through an encrypted iroh relay, which can't read the session. This page saves
-        nothing on a server.{" "}
+        Your session is end to end encrypted.{" "}
         <a href="https://tetramote.com" className="text-link underline underline-offset-2">
           About Tetramote
         </a>
