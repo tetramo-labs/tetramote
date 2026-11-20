@@ -79,7 +79,7 @@ function BarButton({
       aria-label={label}
       aria-pressed={active}
       onClick={onClick}
-      className={`grid size-10 shrink-0 place-items-center rounded-full hover:bg-white/10 ${active ? "bg-white/15" : ""}`}>
+      className={`grid size-10 shrink-0 place-items-center rounded-full hover:bg-surface ${active ? "bg-surface" : ""}`}>
       <Icon size={19} aria-hidden="true" />
     </button>
   )
@@ -517,16 +517,16 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
   const connected = phase === "connected"
 
   return (
-    <div className="flex h-full flex-col bg-black text-ink">
-      <div className="flex shrink-0 items-center gap-1 bg-bar px-2 pt-[env(safe-area-inset-top)] sm:px-3">
+    <div className="flex h-full flex-col bg-black text-foreground">
+      <div className="flex shrink-0 items-center gap-1 border-b border-border bg-background px-2 pt-[env(safe-area-inset-top)] sm:px-3">
         <div className="flex h-12 min-w-0 flex-1 items-center gap-2.5 pl-1">
           <span
             aria-hidden="true"
-            className={`size-2 shrink-0 rounded-full ${connected ? "bg-[#4ade80]" : phase === "failed" ? "bg-danger" : "bg-accent"}`}
+            className={`size-2 shrink-0 rounded-full ${connected ? "bg-success" : phase === "failed" ? "bg-destructive" : "bg-brand-secondary"}`}
           />
           <span className="truncate text-[14px] font-medium">{hostName}</span>
           {connected && (
-            <span className="hidden truncate text-[13px] text-faint sm:inline">
+            <span className="hidden truncate text-[13px] text-muted sm:inline">
               {["Relay", rttMs !== null ? `${rttMs} ms` : null, `${fps} fps`].filter(Boolean).join(" · ")}
             </span>
           )}
@@ -534,7 +534,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
         {connected && displays.length > 1 && (
           <label
             title="Display"
-            className="relative grid size-10 shrink-0 place-items-center rounded-full focus-within:outline-2 focus-within:outline-accent hover:bg-white/10">
+            className="relative grid size-10 shrink-0 place-items-center rounded-full focus-within:outline-2 focus-within:outline-link hover:bg-surface">
             <Monitor size={19} aria-hidden="true" />
             <select
               aria-label="Display"
@@ -584,7 +584,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
         <BarButton icon={X} label="Disconnect" onClick={leave} />
       </div>
       {connected && keyboardOpen && (
-        <div className="flex shrink-0 gap-1 overflow-x-auto bg-bar px-2 pb-2">
+        <div className="flex shrink-0 gap-1 overflow-x-auto bg-background px-2 pb-2">
           {KEY_BAR.map((k) => (
             <button
               key={k.title}
@@ -602,7 +602,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
                 setLatched(latch.current)
               }}
               className={`h-10 min-w-11 shrink-0 rounded-lg px-2 text-[15px] ${
-                k.flag && latched & k.flag ? "bg-accent text-midnight" : "bg-white/10"
+                k.flag && latched & k.flag ? "bg-brand-secondary text-[#0a0a0a]" : "bg-surface"
               }`}>
               {k.label}
             </button>
@@ -620,7 +620,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
         />
         {notice && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-            <div className="pointer-events-auto flex max-w-[440px] flex-col items-center gap-4 rounded-3xl bg-panel px-6 py-5 text-center">
+            <div className="pointer-events-auto flex max-w-[440px] flex-col items-center gap-4 rounded-3xl bg-surface px-6 py-5 text-center">
               <p className="text-[15px] leading-normal" role="status">
                 {notice}
               </p>
@@ -629,13 +629,13 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
                   <button
                     type="button"
                     onClick={retry}
-                    className="min-h-11 flex-1 rounded-full bg-accent px-5 font-medium text-midnight hover:bg-accent-hover">
+                    className="min-h-11 flex-1 rounded-full bg-button px-5 font-semibold text-button-text hover:opacity-85">
                     Try again
                   </button>
                   <button
                     type="button"
                     onClick={leave}
-                    className="min-h-11 flex-1 rounded-full border border-line px-5 font-medium hover:bg-white/5">
+                    className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 font-semibold hover:opacity-85 dark:border-0">
                     Open another link
                   </button>
                 </div>
@@ -645,7 +645,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
         )}
         {toast && (
           <div className="pointer-events-none absolute inset-x-0 bottom-[max(24px,env(safe-area-inset-bottom))] flex justify-center px-6">
-            <p role="status" className="max-w-[440px] rounded-2xl bg-panel px-4 py-2.5 text-center text-[14px]">
+            <p role="status" className="max-w-[440px] rounded-2xl bg-surface px-4 py-2.5 text-center text-[14px]">
               {toast}
             </p>
           </div>

@@ -156,22 +156,48 @@ function useRelease() {
   return {...release, platform}
 }
 
+const wrap = "mx-auto w-full max-w-[1120px] px-6"
+const section = `${wrap} pt-24 pb-8 max-sm:pt-18`
+const h2 = "text-[clamp(32px,4.2vw,46px)] leading-[1.08] tracking-[-0.03em]"
+const h3 = "text-xl leading-snug tracking-[-0.01em]"
+const buttonBase =
+  "inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 text-[15px] font-semibold no-underline transition-opacity hover:opacity-85 motion-reduce:transition-none forced-colors:border forced-colors:border-[CanvasText]"
+const buttonPrimary = `${buttonBase} bg-button text-button-text`
+const buttonSecondary = `${buttonBase} border border-border bg-surface text-foreground dark:border-0`
+const buttonOnSurface = `${buttonBase} border border-border bg-background text-foreground dark:border-0`
+const actions = "flex flex-wrap gap-3 max-sm:*:flex-auto"
+const group = "flex flex-col gap-1"
+const groupItem =
+  "rounded-[4px] bg-surface first:rounded-t-2xl last:rounded-b-2xl forced-colors:border forced-colors:border-[CanvasText]"
+
 function Header() {
   return (
-    <header className="masthead">
-      <div className="wrap masthead-row">
-        <a className="brand" href="/" aria-label="Tetramote home">
+    <header className="sticky top-0 z-10 border-b border-border bg-background">
+      <div className={`${wrap} flex h-16 items-center gap-8`}>
+        <a
+          className="inline-flex items-center gap-2.5 text-lg font-semibold tracking-[-0.01em] text-foreground no-underline hover:opacity-100"
+          href="/"
+          aria-label="Tetramote home">
           <Mark />
           <span>Tetramote</span>
         </a>
-        <nav aria-label="Sections">
-          <a href="#pairing">How it works</a>
-          <a href="#features">Features</a>
-          <a href="#privacy">Privacy</a>
-          <a href="#faq">FAQ</a>
-          <a href={REPO}>GitHub</a>
+        <nav aria-label="Sections" className="ml-auto flex gap-1 max-lg:hidden">
+          {[
+            ["#pairing", "How it works"],
+            ["#features", "Features"],
+            ["#privacy", "Privacy"],
+            ["#faq", "FAQ"],
+            [REPO, "GitHub"],
+          ].map(([href, label]) => (
+            <a
+              key={href}
+              href={href}
+              className="px-3 py-2.5 text-[15px] text-muted no-underline hover:text-foreground hover:opacity-100">
+              {label}
+            </a>
+          ))}
         </nav>
-        <a className="button button-small button-primary" href="#download">
+        <a className={`${buttonPrimary} min-h-[38px] px-4 text-sm max-lg:ml-auto`} href="#download">
           Download
         </a>
       </div>
@@ -188,25 +214,28 @@ function Hero({links, platform, version}) {
   }[desktop]
   const others = Object.keys(PLATFORM_NAMES).filter((id) => id !== desktop)
   return (
-    <section className="hero wrap">
-      <div className="hero-copy">
-        <h1>Control your computer from your phone.</h1>
-        <p className="lede">{lede}</p>
-        <div className="actions">
+    <section
+      className={`${wrap} grid items-center gap-16 pt-22 pb-24 max-lg:gap-14 max-lg:pt-14 max-lg:pb-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]`}>
+      <div>
+        <h1 className="text-[clamp(44px,6.4vw,72px)] leading-[1.02] tracking-[-0.035em]">
+          Control your computer from your phone.
+        </h1>
+        <p className="mt-7 max-w-[34em] text-[19px] text-muted max-sm:text-lg">{lede}</p>
+        <div className={`${actions} mt-9`}>
           {platform === "phone" ? (
-            <a className="button button-primary" href="#download">
+            <a className={buttonPrimary} href="#download">
               Get it for your computer
             </a>
           ) : (
-            <a className="button button-primary" href={primary.href}>
+            <a className={buttonPrimary} href={primary.href}>
               {primary.label}
             </a>
           )}
-          <a className="button" href="#download">
+          <a className={buttonSecondary} href="#download">
             All downloads <Arrow />
           </a>
         </div>
-        <p className="fineprint">
+        <p className="mt-5 text-sm text-muted">
           Free and open source{version ? ` · Version ${version}` : ""} · Also for{" "}
           {others.map((id, i) => (
             <span key={id}>
@@ -216,8 +245,9 @@ function Hero({links, platform, version}) {
           ))}
         </p>
       </div>
-      <figure className="hero-shot">
+      <figure className="m-0 w-full max-w-[380px] justify-self-center max-lg:max-w-[340px]">
         <img
+          className="rounded-[28px] border border-border bg-black"
           src="/screenshots/laptop.webp"
           width="760"
           height="1005"
@@ -230,14 +260,18 @@ function Hero({links, platform, version}) {
 
 function Pairing() {
   return (
-    <section id="pairing" className="section wrap" aria-labelledby="pairing-title">
-      <h2 id="pairing-title">Pair once, then connect from anywhere.</h2>
-      <ol className="steps">
+    <section id="pairing" className={section} aria-labelledby="pairing-title">
+      <h2 id="pairing-title" className={h2}>
+        Pair once, then connect from anywhere.
+      </h2>
+      <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {steps.map((step, i) => (
-          <li key={step.title}>
-            <span className="step-number">{i + 1}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
+          <li key={step.title} className="border-t border-border pt-6">
+            <span className="mb-4 grid size-8 place-items-center rounded-full bg-surface text-[15px] font-semibold text-link tabular-nums">
+              {i + 1}
+            </span>
+            <h3 className={h3}>{step.title}</h3>
+            <p className="mt-2 text-muted">{step.body}</p>
           </li>
         ))}
       </ol>
@@ -247,27 +281,30 @@ function Pairing() {
 
 function Features() {
   return (
-    <section id="features" className="section wrap" aria-labelledby="features-title">
-      <h2 id="features-title">What it does</h2>
-      <div className="feature-grid">
+    <section id="features" className={section} aria-labelledby="features-title">
+      <h2 id="features-title" className={h2}>
+        What it does
+      </h2>
+      <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
-          <article key={feature.title}>
-            <h3>{feature.title}</h3>
-            <p>{feature.body}</p>
+          <article key={feature.title} className="border-t border-border pt-6">
+            <h3 className={h3}>{feature.title}</h3>
+            <p className="mt-2 text-muted">{feature.body}</p>
           </article>
         ))}
       </div>
-      <div className="duo">
-        <div className="duo-copy">
-          <h3>Made for the iPhone Duo</h3>
-          <p>
+      <div className="mt-18 grid items-center gap-12 rounded-3xl bg-surface p-12 max-lg:px-8 max-lg:py-10 max-sm:px-6 max-sm:py-8 lg:grid-cols-2 forced-colors:border forced-colors:border-[CanvasText]">
+        <div className="max-w-[30em]">
+          <h3 className="text-[clamp(26px,3vw,32px)] tracking-[-0.025em]">Made for the iPhone Duo</h3>
+          <p className="mt-2 text-lg text-muted">
             Half open, the session works like a laptop, with the screen on the top half and a trackpad on the bottom.
             When the phone is folded, the Back and Close buttons and the session controls move into the status rail,
             which leaves the whole display for the screen. Other phones show the screen above the trackpad too.
           </p>
         </div>
-        <figure className="duo-shot">
+        <figure className="m-0 w-full max-w-[280px] justify-self-center">
           <img
+            className="rounded-[28px] border border-border bg-black"
             src="/screenshots/folded.webp"
             width="560"
             height="815"
@@ -281,22 +318,26 @@ function Features() {
 
 function Privacy() {
   return (
-    <section id="privacy" className="section wrap" aria-labelledby="privacy-title">
-      <div className="panel privacy">
+    <section id="privacy" className={section} aria-labelledby="privacy-title">
+      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div>
-          <h2 id="privacy-title">There's no account and no Tetramote server.</h2>
-          <p>
+          <h2 id="privacy-title" className={h2}>
+            There's no account and no Tetramote server.
+          </h2>
+          <p className="mt-5 mb-7 text-lg text-muted">
             Tetramote connects your devices with <a href="https://iroh.computer">iroh</a>. Every connection is
             end-to-end encrypted QUIC and goes direct whenever the networks allow it. When they don't, traffic passes
             through n0's public relays, or a relay you run yourself, which see only encrypted packets.
           </p>
-          <a className="button" href={`${REPO}/blob/main/PROTOCOL.md`}>
+          <a className={buttonSecondary} href={`${REPO}/blob/main/PROTOCOL.md`}>
             Read the protocol <Arrow />
           </a>
         </div>
-        <ul className="facts">
+        <ul className={group}>
           {privacy.map((fact) => (
-            <li key={fact}>{fact}</li>
+            <li key={fact} className={`${groupItem} px-5 py-4`}>
+              {fact}
+            </li>
           ))}
         </ul>
       </div>
@@ -305,36 +346,40 @@ function Privacy() {
 }
 
 function Downloads({links, version}) {
+  const row = `${groupItem} grid items-start gap-x-8 gap-y-2 p-6 lg:grid-cols-[170px_minmax(0,1fr)_auto]`
+  const rowActions = `${actions} max-lg:mt-3 lg:justify-end`
   return (
-    <section id="download" className="section wrap" aria-labelledby="download-title">
-      <div className="section-head">
-        <h2 id="download-title">Download</h2>
-        <a className="button" href={LATEST}>
+    <section id="download" className={section} aria-labelledby="download-title">
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <h2 id="download-title" className={h2}>
+          Download
+        </h2>
+        <a className={buttonSecondary} href={LATEST}>
           {version ? `Release notes for ${version}` : "Release notes"} <Arrow />
         </a>
       </div>
-      <ul className="downloads">
+      <ul className={`${group} mt-10`}>
         {downloads.map((platform) => (
-          <li key={platform.id}>
-            <h3>{platform.name}</h3>
-            <p>{platform.details}</p>
-            <div className="actions">
+          <li key={platform.id} className={row}>
+            <h3 className={`${h3} pt-0.5`}>{platform.name}</h3>
+            <p className="max-w-[36em] text-muted">{platform.details}</p>
+            <div className={rowActions}>
               {platform.files.map((file, i) => (
-                <a key={file.key} className={`button${i === 0 ? " button-primary" : ""}`} href={links[file.key]}>
+                <a key={file.key} className={i === 0 ? buttonPrimary : buttonOnSurface} href={links[file.key]}>
                   {file.label}
                 </a>
               ))}
             </div>
           </li>
         ))}
-        <li>
-          <h3>iPhone and Android</h3>
-          <p>{phoneNote}</p>
-          <div className="actions">
-            <a className="button button-primary" href="https://remote.tetramote.com">
+        <li className={row}>
+          <h3 className={`${h3} pt-0.5`}>iPhone and Android</h3>
+          <p className="max-w-[36em] text-muted">{phoneNote}</p>
+          <div className={rowActions}>
+            <a className={buttonPrimary} href="https://remote.tetramote.com">
               Open in a browser
             </a>
-            <a className="button" href={`${REPO}#build`}>
+            <a className={buttonOnSurface} href={`${REPO}#build`}>
               Build instructions <Arrow />
             </a>
           </div>
@@ -346,13 +391,17 @@ function Downloads({links, version}) {
 
 function Faq() {
   return (
-    <section id="faq" className="section wrap narrow" aria-labelledby="faq-title">
-      <h2 id="faq-title">Questions</h2>
-      <div className="faq">
+    <section id="faq" className={`${section} max-w-[808px]`} aria-labelledby="faq-title">
+      <h2 id="faq-title" className={h2}>
+        Questions
+      </h2>
+      <div className={`${group} mt-10`}>
         {faq.map((item) => (
-          <details key={item.q}>
-            <summary>{item.q}</summary>
-            <p>{item.a}</p>
+          <details key={item.q} className={`${groupItem} group`}>
+            <summary className="flex min-h-15 cursor-pointer list-none items-center justify-between gap-6 px-5 py-4 text-lg font-semibold after:text-2xl after:leading-none after:font-normal after:text-muted after:content-['+'] group-open:after:content-['−'] [&::-webkit-details-marker]:hidden">
+              {item.q}
+            </summary>
+            <p className="max-w-[40em] px-5 pb-5 text-muted">{item.a}</p>
           </details>
         ))}
       </div>
@@ -362,15 +411,22 @@ function Faq() {
 
 function Footer() {
   return (
-    <footer className="footer">
-      <div className="wrap footer-row">
+    <footer className="mt-28 border-t border-border">
+      <div
+        className={`${wrap} flex flex-wrap items-center justify-between gap-x-8 gap-y-4 pt-8 pb-12 text-sm text-muted`}>
         <p>© 2026 Tetramo, Inc.</p>
-        <nav aria-label="Footer">
-          <a href={REPO}>GitHub</a>
-          <a href={`${REPO}/releases`}>Releases</a>
-          <a href={`${REPO}/blob/main/PROTOCOL.md`}>Protocol</a>
-          <a href={`${REPO}/blob/main/LICENSE`}>License</a>
-          <a href="https://tetramo.com">Tetramo</a>
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-1">
+          {[
+            [REPO, "GitHub"],
+            [`${REPO}/releases`, "Releases"],
+            [`${REPO}/blob/main/PROTOCOL.md`, "Protocol"],
+            [`${REPO}/blob/main/LICENSE`, "License"],
+            ["https://tetramo.com", "Tetramo"],
+          ].map(([href, label]) => (
+            <a key={href} href={href} className="inline-block py-3 text-muted hover:text-foreground hover:opacity-100">
+              {label}
+            </a>
+          ))}
         </nav>
       </div>
     </footer>
@@ -381,7 +437,9 @@ export default function App() {
   const {links, platform, version} = useRelease()
   return (
     <>
-      <a className="skip" href="#main">
+      <a
+        className="absolute -top-16 left-4 z-20 rounded-full bg-button px-4 py-2.5 font-semibold text-button-text no-underline focus:top-3"
+        href="#main">
         Skip to content
       </a>
       <Header />

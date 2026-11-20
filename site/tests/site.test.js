@@ -62,7 +62,7 @@ test("latestRelease returns the version and links, or null when GitHub fails", a
 
 test("the build prerenders the page and writes its Markdown twin", async () => {
   const html = await read("index.html")
-  assert.match(html, /<h1>Control your computer from your phone\.<\/h1>/)
+  assert.match(html, /<h1[^>]*>Control your computer from your phone\.<\/h1>/)
   assert.match(html, /<link rel="canonical" href="https:\/\/tetramote\.com\/"/)
   assert.match(html, /href="https:\/\/github\.com\/tetramo-labs\/tetramote\/releases\/latest"/)
   for (const asset of ["og.png", "favicon.ico", "favicon.svg", "apple-touch-icon.png", "icon-512.png"]) {

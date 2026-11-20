@@ -95,7 +95,7 @@ function Scanner({onClose}: {onClose: () => void}) {
       <button
         type="button"
         onClick={onClose}
-        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-line px-5 font-medium hover:bg-white/5">
+        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 font-semibold hover:opacity-85 dark:border-0">
         <X size={18} aria-hidden="true" /> Cancel
       </button>
     </div>
@@ -116,10 +116,10 @@ export function Landing() {
     <div className="flex min-h-full flex-col">
       <header className="mx-auto flex w-full max-w-[560px] items-center gap-2.5 px-6 pt-8">
         <Mark />
-        <span className="text-[18px] font-medium tracking-[-0.02em]">Tetramote</span>
+        <span className="text-[18px] font-semibold tracking-[-0.02em]">Tetramote</span>
       </header>
       <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col justify-center px-6 py-12">
-        <h1 className="text-[clamp(34px,7vw,48px)] leading-[1.05] font-medium tracking-[-0.035em] text-balance">
+        <h1 className="text-[clamp(34px,7vw,48px)] leading-[1.05] font-semibold tracking-[-0.035em] text-balance">
           Open a Tetramote link
         </h1>
         <p className="mt-4 text-[17px] text-muted">
@@ -147,23 +147,23 @@ export function Landing() {
                 spellCheck={false}
                 aria-invalid={error !== null}
                 aria-describedby={error ? "link-error" : undefined}
-                className="min-h-12 rounded-2xl border border-line bg-panel px-4 text-[16px] text-ink placeholder:text-faint"
+                className="min-h-12 rounded-2xl border border-border bg-surface px-4 text-[16px] text-foreground placeholder:text-muted"
               />
               {error && (
-                <p id="link-error" className="text-[15px] text-danger">
+                <p id="link-error" className="text-[15px] text-destructive">
                   {error}
                 </p>
               )}
               <div className="mt-2 flex flex-wrap gap-3">
                 <button
                   type="submit"
-                  className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-accent px-6 font-medium text-midnight hover:bg-accent-hover">
+                  className="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-button px-6 font-semibold text-button-text hover:opacity-85">
                   Connect
                 </button>
                 <button
                   type="button"
                   onClick={() => setScanning(true)}
-                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-line px-6 font-medium hover:bg-white/5">
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-6 font-semibold hover:opacity-85 dark:border-0">
                   <QrCode size={18} aria-hidden="true" /> Scan a code
                 </button>
               </div>
@@ -171,10 +171,10 @@ export function Landing() {
           )}
         </div>
       </main>
-      <footer className="mx-auto w-full max-w-[560px] px-6 pb-10 text-[14px] text-faint">
+      <footer className="mx-auto w-full max-w-[560px] px-6 pb-10 text-[14px] text-muted">
         Your browser reaches the computer through an encrypted iroh relay, which can't read the session. This page saves
         nothing on a server.{" "}
-        <a href="https://tetramote.com" className="text-accent underline underline-offset-2">
+        <a href="https://tetramote.com" className="text-link underline underline-offset-2">
           About Tetramote
         </a>
       </footer>

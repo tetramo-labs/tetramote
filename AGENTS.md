@@ -16,7 +16,7 @@ Rules for coding agents working in Tetramote. The phone app follows the Glassly 
   `web/wasm` (`tetra_web`) runs the session in WebAssembly on `tetra_core` without its `native` feature (just
   `protocol`, `input` and `link`) and iroh through relays; its key table is `desktop/media/src/keymap.rs`.
   `web/src/core/` is its generated, committed output.
-- `site/`: tetramote.com, a static React 18 + Vite 6 page (`src/App.jsx`) prerendered into `dist/index.html`
+- `site/`: tetramote.com, a static React 18 + Vite 6 + Tailwind 4 page (`src/App.jsx`) prerendered into `dist/index.html`
   with a Markdown twin at `/index.md` (`scripts/prerender.mjs`), served by Cloudflare Pages.
 
 ## Commands

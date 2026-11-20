@@ -1,5 +1,6 @@
 import {readFileSync} from "node:fs"
 
+import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
 import {defineConfig} from "vite"
 
@@ -17,5 +18,5 @@ function notFound(server) {
 
 export default defineConfig({
   appType: "mpa",
-  plugins: [react(), {name: "not-found", configureServer: notFound, configurePreviewServer: notFound}],
+  plugins: [react(), tailwindcss(), {name: "not-found", configureServer: notFound, configurePreviewServer: notFound}],
 })
