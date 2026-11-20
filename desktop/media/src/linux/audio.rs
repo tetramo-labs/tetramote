@@ -74,7 +74,7 @@ fn run(
     let core = context.connect_rc(None).map_err(unavailable)?;
     let stream = StreamBox::new(
         &core,
-        "tetratop-system-audio",
+        "tetramote-system-audio",
         properties! {
             *pw::keys::MEDIA_TYPE => "Audio",
             *pw::keys::MEDIA_CATEGORY => "Capture",

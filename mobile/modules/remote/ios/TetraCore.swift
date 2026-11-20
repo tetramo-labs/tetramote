@@ -18,7 +18,7 @@ enum TetraCore {
     var error: UnsafeMutablePointer<CChar>?
     let handle = tetra_client_start(configJSON, &error)
     if handle == 0 {
-      throw TetraCoreError(errorDescription: take(error) ?? "The connection engine failed to start. Restart Tetratop.")
+      throw TetraCoreError(errorDescription: take(error) ?? "The connection engine failed to start. Restart Tetramote.")
     }
     return handle
   }

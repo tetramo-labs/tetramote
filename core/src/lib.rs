@@ -1,4 +1,4 @@
-//! Tetratop's transport: the Mac host and the phone each hold one handle and
+//! Tetramote's transport: the Mac host and the phone each hold one handle and
 //! drain its events with `tetra_next_event` from a thread of their own.
 
 pub mod client;

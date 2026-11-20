@@ -1,4 +1,4 @@
-import {RemoteScreen} from "@tetratop/remote"
+import {RemoteScreen} from "@tetramote/remote"
 import {useState} from "react"
 import {View, type LayoutChangeEvent} from "react-native"
 import {GestureDetector} from "react-native-gesture-handler"

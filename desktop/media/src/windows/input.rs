@@ -315,7 +315,7 @@ fn send(inputs: &[INPUT]) -> Result<()> {
         return Ok(());
     }
     Err(MediaError::PermissionDenied(
-        "Windows blocked the input, which happens while an app running as administrator or the lock screen has focus. Run Tetratop as administrator to control those, or switch to another window.".into(),
+        "Windows blocked the input, which happens while an app running as administrator or the lock screen has focus. Run Tetramote as administrator to control those, or switch to another window.".into(),
     ))
 }
 

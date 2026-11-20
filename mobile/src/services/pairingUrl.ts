@@ -6,10 +6,10 @@ export interface PairingCode {
 
 const SECRET = /^[0-9a-f]{32}$/
 
-/** Reads a `tetratop://pair?ticket=…&secret=…&name=…` code; null for anything else. */
+/** Reads a `tetramote://pair?ticket=…&secret=…&name=…` code; null for anything else. */
 export function parsePairingUrl(raw: string): PairingCode | null {
   const text = raw.trim()
-  const match = /^tetratop:\/\/pair\?(.*)$/i.exec(text)
+  const match = /^tetramote:\/\/pair\?(.*)$/i.exec(text)
   if (!match) return null
   const params = new Map<string, string>()
   for (const part of match[1].split("&")) {

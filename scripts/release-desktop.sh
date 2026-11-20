@@ -14,11 +14,11 @@
 #    then publishes the release.
 #
 # Needs a clean, pushed main, gh signed in, and the updater key at
-# ~/.tauri/tetratop.key.
+# ~/.tauri/tetramote.key.
 set -euo pipefail
 
 VERSION="${1:?usage: scripts/release-desktop.sh <version, e.g. 0.3.0>}"
-REPO="tetramo-labs/tetratop"
+REPO="tetramo-labs/tetramote"
 TAG="v$VERSION"
 TEAM="B8446S9493"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -73,7 +73,7 @@ cargo_path = f"{desktop}/src-tauri/Cargo.toml"
 cargo = open(cargo_path).read()
 open(cargo_path, "w").write(re.sub(r'(?m)^version = ".*"$', f'version = "{version}"', cargo, count=1))
 PY
-(cd "$DESKTOP" && cargo update -p tetratop-desktop --offline >/dev/null 2>&1 || true)
+(cd "$DESKTOP" && cargo update -p tetramote-desktop --offline >/dev/null 2>&1 || true)
 git -C "$ROOT" add desktop/src-tauri/tauri.conf.json desktop/package.json desktop/src-tauri/Cargo.toml desktop/Cargo.lock
 if ! git -C "$ROOT" diff --cached --quiet; then
   git -C "$ROOT" commit -q -m "Release desktop $VERSION"
@@ -82,27 +82,27 @@ fi
 
 rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
 export APPLE_SIGNING_IDENTITY="$IDENTITY"
-export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tetratop.key)"
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tetramote.key)"
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
 (cd "$DESKTOP" && bun install --frozen-lockfile >/dev/null && CI=true bunx tauri build --target universal-apple-darwin)
 
 BUNDLE="$DESKTOP/target/universal-apple-darwin/release/bundle"
-APP="$BUNDLE/macos/Tetratop.app"
+APP="$BUNDLE/macos/Tetramote.app"
 codesign --verify --deep --strict "$APP"
 rm -rf "$OUT" && mkdir -p "$OUT"
-cp "$BUNDLE/macos/Tetratop.app.tar.gz" "$OUT/Tetratop_universal.app.tar.gz"
-cp "$BUNDLE/macos/Tetratop.app.tar.gz.sig" "$OUT/Tetratop_universal.app.tar.gz.sig"
-cp "$BUNDLE"/dmg/*.dmg "$OUT/Tetratop_${VERSION}_universal.dmg"
+cp "$BUNDLE/macos/Tetramote.app.tar.gz" "$OUT/Tetramote_universal.app.tar.gz"
+cp "$BUNDLE/macos/Tetramote.app.tar.gz.sig" "$OUT/Tetramote_universal.app.tar.gz.sig"
+cp "$BUNDLE"/dmg/*.dmg "$OUT/Tetramote_${VERSION}_universal.dmg"
 
-URL="https://github.com/$REPO/releases/download/$TAG/Tetratop_universal.app.tar.gz"
+URL="https://github.com/$REPO/releases/download/$TAG/Tetramote_universal.app.tar.gz"
 python3 - "$OUT" "$VERSION" "$URL" <<'PY'
 import datetime, json, sys
 out, version, url = sys.argv[1:]
-sig = open(f"{out}/Tetratop_universal.app.tar.gz.sig").read().strip()
+sig = open(f"{out}/Tetramote_universal.app.tar.gz.sig").read().strip()
 entry = {"signature": sig, "url": url}
 manifest = {
     "version": version,
-    "notes": f"Tetratop {version}",
+    "notes": f"Tetramote {version}",
     "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "platforms": {"darwin-aarch64": entry, "darwin-x86_64": entry},
 }
@@ -111,9 +111,9 @@ PY
 
 COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
 gh release create "$TAG" --repo "$REPO" --draft --target "$COMMIT" \
-  --title "Tetratop $VERSION" --generate-notes \
-  "$OUT/Tetratop_universal.app.tar.gz" "$OUT/Tetratop_universal.app.tar.gz.sig" \
-  "$OUT/Tetratop_${VERSION}_universal.dmg" "$OUT/latest.json"
+  --title "Tetramote $VERSION" --generate-notes \
+  "$OUT/Tetramote_universal.app.tar.gz" "$OUT/Tetramote_universal.app.tar.gz.sig" \
+  "$OUT/Tetramote_${VERSION}_universal.dmg" "$OUT/latest.json"
 RELEASE_ID="$(gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
 
 DISPATCHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

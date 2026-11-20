@@ -1,13 +1,13 @@
 [package]
-name = "tetratop-desktop"
+name = "tetramote-desktop"
 version = "0.3.0"
 edition = "2021"
 publish = false
 license = "MIT"
-description = "Tetratop for desktops: share this computer or control another over iroh"
+description = "Tetramote for desktops: share this computer or control another over iroh"
 
 [lib]
-name = "tetratop_desktop_lib"
+name = "tetramote_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

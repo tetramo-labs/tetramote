@@ -6718,7 +6718,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tetratop-desktop"
+name = "tetramote-desktop"
 version = "0.3.0"
 dependencies = [
  "arboard",

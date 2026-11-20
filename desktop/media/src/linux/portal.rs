@@ -156,7 +156,7 @@ pub fn runtime() -> Result<&'static Runtime> {
         .as_ref()
         .map_err(|e| {
             MediaError::Failed(format!(
-                "The desktop portal runtime didn't start: {e}. Restart Tetratop."
+                "The desktop portal runtime didn't start: {e}. Restart Tetramote."
             ))
         })
 }
@@ -246,7 +246,7 @@ fn token_path() -> Option<PathBuf> {
         .or_else(|| {
             std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/state"))
         })?;
-    Some(state.join("tetratop").join("portal-restore-token"))
+    Some(state.join("tetramote").join("portal-restore-token"))
 }
 
 fn restore_token() -> Option<String> {

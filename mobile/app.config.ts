@@ -17,28 +17,28 @@ const build = buildNumber()
 
 module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   ...config,
-  name: "Tetratop",
-  slug: "tetratop",
+  name: "Tetramote",
+  slug: "tetramote",
   version,
-  scheme: "tetratop",
+  scheme: "tetramote",
   orientation: "default",
   userInterfaceStyle: "automatic",
   icon: "./assets/app-icons/icon.png",
   ios: {
-    bundleIdentifier: "com.tetramo.tetratop",
+    bundleIdentifier: "com.tetramo.tetramote",
     buildNumber: String(build),
     appleTeamId: process.env.EXPO_PUBLIC_APPLE_TEAM_ID || "B8446S9493",
     supportsTablet: false,
     requireFullScreen: false,
     infoPlist: {
-      NSCameraUsageDescription: "Tetratop uses the camera to scan the pairing code your computer shows.",
-      NSLocalNetworkUsageDescription: "Tetratop connects straight to your computer when it is on the same network.",
+      NSCameraUsageDescription: "Tetramote uses the camera to scan the pairing code your computer shows.",
+      NSLocalNetworkUsageDescription: "Tetramote connects straight to your computer when it is on the same network.",
       UIBackgroundModes: ["audio"],
       ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
-    package: "com.tetramo.tetratop",
+    package: "com.tetramo.tetramote",
     versionCode: build,
     adaptiveIcon: {
       foregroundImage: "./assets/app-icons/icon-foreground.png",
@@ -50,7 +50,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   plugins: [
     "expo-router",
     "expo-secure-store",
-    ["expo-camera", {cameraPermission: "Tetratop uses the camera to scan the pairing code your computer shows."}],
+    ["expo-camera", {cameraPermission: "Tetramote uses the camera to scan the pairing code your computer shows."}],
     [
       "expo-splash-screen",
       {

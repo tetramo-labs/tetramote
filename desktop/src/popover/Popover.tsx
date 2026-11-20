@@ -52,7 +52,7 @@ export function Popover() {
         <Settings />
         <div className="flex justify-end">
           <Button kind="secondary" onClick={() => void api.quit()}>
-            Quit Tetratop
+            Quit Tetramote
           </Button>
         </div>
       </div>

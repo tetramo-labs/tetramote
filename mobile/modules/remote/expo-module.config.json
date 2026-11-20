@@ -4,6 +4,6 @@
     "modules": ["TetraRemoteModule"]
   },
   "android": {
-    "modules": ["com.tetratop.remote.TetraRemoteModule"]
+    "modules": ["com.tetramote.remote.TetraRemoteModule"]
   }
 }

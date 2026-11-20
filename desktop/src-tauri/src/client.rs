@@ -183,7 +183,7 @@ impl ClientService {
 
     pub fn connect_link(self: &Arc<Self>, link: &str) -> Result<(), String> {
         let link = pairing::parse(link).ok_or(
-            "That isn't a Tetratop link. Copy it again from Tetratop on the other computer.",
+            "That isn't a Tetramote link. Copy it again from Tetramote on the other computer.",
         )?;
         let id = tetra_core::net::parse_addr(Some(&link.ticket), "")
             .map_err(|_| "That link's address is damaged. Copy it again from the other computer.")?
@@ -357,8 +357,8 @@ impl ClientService {
 
     fn open_viewer(&self) {
         let title = match &self.inner.lock().unwrap().target {
-            Some(t) => format!("{} — Tetratop", t.name),
-            None => "Tetratop".into(),
+            Some(t) => format!("{} — Tetramote", t.name),
+            None => "Tetramote".into(),
         };
         if let Some(window) = self.app.get_webview_window(VIEWER) {
             let _ = window.set_title(&title);
@@ -479,7 +479,7 @@ impl ClientService {
                 Some("disconnected") => {
                     if inner.target.is_some() && v["reason"] != "local" {
                         let message = format!(
-                            "The connection ended ({}). Check that Tetratop is running on the other computer, then try again.",
+                            "The connection ended ({}). Check that Tetramote is running on the other computer, then try again.",
                             v["reason"].as_str().unwrap_or("unknown reason")
                         );
                         inner.status = ClientStatus::Failed { name, message };
@@ -540,7 +540,7 @@ fn rejection(reason: Option<&str>) -> String {
             "That link was already used. Copy a new link from the other computer.".into()
         }
         Some("version") => {
-            "The other computer runs a different Tetratop version. Update both.".into()
+            "The other computer runs a different Tetramote version. Update both.".into()
         }
         _ => {
             "The other computer turned this one away. Copy a new link from it and try again.".into()

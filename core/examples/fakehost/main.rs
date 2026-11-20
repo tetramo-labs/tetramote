@@ -168,7 +168,7 @@ fn main() {
         audio.as_ref().map_or(0, Vec::len)
     );
 
-    let key_path = "/tmp/tetratop-fakehost.key";
+    let key_path = "/tmp/tetramote-fakehost.key";
     let secret_key = fs::read_to_string(key_path)
         .ok()
         .filter(|k| k.trim().len() == 64)
@@ -296,7 +296,7 @@ fn main() {
                 match v["type"].as_str() {
                     Some("ticket") => {
                         let url = format!(
-                            "tetratop://pair?ticket={}&secret={}&name={}",
+                            "tetramote://pair?ticket={}&secret={}&name={}",
                             v["ticket"].as_str().unwrap_or(""),
                             pairing_secret,
                             percent_encode("Fake Mac")

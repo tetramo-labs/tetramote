@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 /// Renaming these gives this computer a new iroh identity, and every device
 /// paired with it would have to pair again.
-const KEY_SERVICE: &str = "com.tetramo.tetratop.host";
+const KEY_SERVICE: &str = "com.tetramo.tetramote.host";
 const HOST_KEY_ACCOUNT: &str = "endpoint-secret-key";
 const CLIENT_KEY_ACCOUNT: &str = "client-secret-key";
 
@@ -54,10 +54,10 @@ pub struct Store {
 }
 
 impl Store {
-    /// `TETRATOP_PROFILE` gives test runs their own settings file and keys, so
+    /// `TETRAMOTE_PROFILE` gives test runs their own settings file and keys, so
     /// they never touch (or prompt for) the real ones.
     pub fn open(dir: PathBuf) -> Self {
-        let profile = std::env::var("TETRATOP_PROFILE")
+        let profile = std::env::var("TETRAMOTE_PROFILE")
             .ok()
             .filter(|p| !p.is_empty());
         let file = profile.as_ref().map_or("settings.json".to_string(), |p| {
@@ -108,7 +108,7 @@ impl Store {
 
 fn key(account: &str) -> Result<String, String> {
     let entry = keyring::Entry::new(KEY_SERVICE, account).map_err(|e| {
-        format!("The system keychain isn't available ({e}). Unlock it and restart Tetratop.")
+        format!("The system keychain isn't available ({e}). Unlock it and restart Tetramote.")
     })?;
     match entry.get_password() {
         Ok(existing) if existing.len() == 64 => Ok(existing),
@@ -116,7 +116,7 @@ fn key(account: &str) -> Result<String, String> {
             let created = tetra_core::net::generate_secret_key();
             entry
                 .set_password(&created)
-                .map_err(|e| format!("Saving this computer's key to the keychain failed ({e}). Unlock it and restart Tetratop."))?;
+                .map_err(|e| format!("Saving this computer's key to the keychain failed ({e}). Unlock it and restart Tetramote."))?;
             Ok(created)
         }
     }

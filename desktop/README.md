@@ -1,4 +1,4 @@
-# Tetratop desktop
+# Tetramote desktop
 
 The desktop app shares a Mac, Windows or Linux computer with the phone app, or controls one from another
 computer. `media/` (`tetra_media`) is its platform layer: list displays, capture one as H.264 plus system
@@ -35,7 +35,7 @@ Requirements: Windows 10 or later, the MSVC Rust toolchain with the Visual Studi
 - Input: `SendInput`. The wire's Mac modifiers map Command and Control to Ctrl, Option to Alt and Shift to
   Shift, and a missing double click is replayed, since Windows counts clicks by timing.
 - Windows blocks capture of the secure desktop (UAC prompts and the lock screen), so the stream pauses there.
-  It also blocks input into apps running as administrator unless Tetratop runs as administrator too.
+  It also blocks input into apps running as administrator unless Tetramote runs as administrator too.
 
 ## Linux
 
@@ -47,7 +47,7 @@ X11. wlroots compositors don't implement RemoteDesktop yet. The released `.deb` 
 
 - Sharing starts one portal session for both capture and input. The portal asks the user which screen to
   share and whether to allow control. Where it supports restore tokens, the grant is remembered in
-  `$XDG_STATE_HOME/tetratop/portal-restore-token`.
+  `$XDG_STATE_HOME/tetramote/portal-restore-token`.
 - Until a session exists, `displays()` returns a single "Entire screen" entry with no size, because the
   portal only names its screens once the user has picked one.
 - Capture: PipeWire frames in shared memory (BGRx, BGRA, RGBx or RGBA), scaled on the CPU.

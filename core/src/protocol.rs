@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
-pub const ALPN: &[u8] = b"tetratop/1";
+pub const ALPN: &[u8] = b"tetramote/1";
 pub const PROTOCOL_VERSION: u32 = 2;
 
 pub const STREAM_VIDEO: u8 = 0x01;

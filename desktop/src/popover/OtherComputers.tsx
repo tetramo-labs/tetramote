@@ -63,7 +63,7 @@ export function OtherComputers() {
             value={link}
             onChange={(e) => setLink(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && link && void connect(() => api.connectLink(link))}
-            placeholder="Paste a Tetratop link"
+            placeholder="Paste a Tetramote link"
             className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2 py-1 text-[12px] outline-none focus:border-brand-secondary"
           />
           <Button disabled={!link} onClick={() => void connect(() => api.connectLink(link))}>

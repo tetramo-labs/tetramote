@@ -1,7 +1,7 @@
-//! A headless phone for testing a Tetratop host:
-//! `cargo run --release --example probe -- --pair '<tetratop://pair?...>' [--seconds 8] [--out /tmp/probe.h264] [--local-only] [--secret]`
+//! A headless phone for testing a Tetramote host:
+//! `cargo run --release --example probe -- --pair '<tetramote://pair?...>' [--seconds 8] [--out /tmp/probe.h264] [--local-only] [--secret]`
 //!
-//! The phone key is kept at /tmp/tetratop-probe.key, so the first run pairs with
+//! The phone key is kept at /tmp/tetramote-probe.key, so the first run pairs with
 //! the URL's secret and later runs reconnect as a trusted phone without it.
 
 use std::collections::BTreeMap;
@@ -14,7 +14,7 @@ use tetra_core::protocol::{
 };
 use tetra_core::{net, Client, ConnectRequest, EndpointConfig, Events};
 
-const KEY_FILE: &str = "/tmp/tetratop-probe.key";
+const KEY_FILE: &str = "/tmp/tetramote-probe.key";
 
 struct Args {
     pair: String,
@@ -49,7 +49,7 @@ fn parse_args() -> Result<Args, String> {
         }
     }
     if args.pair.is_empty() {
-        return Err("--pair <tetratop://pair?...> is required".into());
+        return Err("--pair <tetramote://pair?...> is required".into());
     }
     Ok(args)
 }

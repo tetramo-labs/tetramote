@@ -1,4 +1,4 @@
-package com.tetratop.remote
+package com.tetramote.remote
 
 /** Splits an H.264 Annex B access unit into NAL units, each returned with a 4-byte start code. */
 object AnnexB {

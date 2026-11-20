@@ -88,7 +88,7 @@ fn open(sink: Arc<dyn StreamSink>) -> Result<cpal::Stream> {
         }
         other => {
             return Err(MediaError::Unsupported(format!(
-                "System audio plays as {other}, which Tetratop can't capture yet. Switch the output device to a 16-bit or 32-bit float format in Windows sound settings."
+                "System audio plays as {other}, which Tetramote can't capture yet. Switch the output device to a 16-bit or 32-bit float format in Windows sound settings."
             )))
         }
     }

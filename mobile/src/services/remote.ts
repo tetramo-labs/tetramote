@@ -5,7 +5,7 @@ import {
   type InputEvent,
   type PhoneMessage,
   type RemoteState,
-} from "@tetratop/remote"
+} from "@tetramote/remote"
 import * as Device from "expo-device"
 
 import {translate, type TxKeyPath} from "@/i18n"

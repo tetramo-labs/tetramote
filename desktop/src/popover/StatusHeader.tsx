@@ -24,7 +24,7 @@ export function StatusHeader() {
     <div className="flex items-center gap-2.5">
       <Dot tone={tone} />
       <div className="min-w-0">
-        <div className="text-[16px] font-semibold">Tetratop</div>
+        <div className="text-[16px] font-semibold">Tetramote</div>
         <div className="text-[12px] text-muted">{text}</div>
       </div>
     </div>

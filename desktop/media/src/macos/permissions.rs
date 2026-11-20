@@ -6,8 +6,8 @@ use objc2_core_foundation::{CFBoolean, CFDictionary, CFString, CFType};
 use objc2_core_graphics::{CGPreflightScreenCaptureAccess, CGRequestScreenCaptureAccess};
 use objc2_foundation::{NSString, NSURL};
 
-pub const SCREEN_RECORDING_OFF: &str = "Screen Recording is off for Tetratop. Turn it on in System Settings > Privacy & Security > Screen & System Audio Recording, then share again.";
-pub const ACCESSIBILITY_OFF: &str = "Accessibility is off for Tetratop, so it can't control this Mac. Turn it on in System Settings > Privacy & Security > Accessibility.";
+pub const SCREEN_RECORDING_OFF: &str = "Screen Recording is off for Tetramote. Turn it on in System Settings > Privacy & Security > Screen & System Audio Recording, then share again.";
+pub const ACCESSIBILITY_OFF: &str = "Accessibility is off for Tetramote, so it can't control this Mac. Turn it on in System Settings > Privacy & Security > Accessibility.";
 
 #[link(name = "ApplicationServices", kind = "framework")]
 extern "C" {

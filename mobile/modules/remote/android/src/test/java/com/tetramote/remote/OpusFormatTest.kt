@@ -1,4 +1,4 @@
-package com.tetratop.remote
+package com.tetramote.remote
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test

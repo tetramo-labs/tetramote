@@ -1,6 +1,6 @@
 apply plugin: 'com.android.library'
 
-group = 'com.tetratop.remote'
+group = 'com.tetramote.remote'
 version = '0.1.0'
 
 def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
@@ -16,7 +16,7 @@ buildscript {
 }
 
 android {
-    namespace "com.tetratop.remote"
+    namespace "com.tetramote.remote"
     compileSdkVersion safeExtGet("compileSdkVersion", 36)
     defaultConfig {
         minSdkVersion safeExtGet("minSdkVersion", 28)

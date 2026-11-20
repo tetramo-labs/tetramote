@@ -1,8 +1,8 @@
 {
-  "name": "@tetratop/remote",
+  "name": "@tetramote/remote",
   "version": "0.1.0",
   "private": true,
-  "description": "iroh session, H.264 view and Opus playback for the Tetratop phone app",
+  "description": "iroh session, H.264 view and Opus playback for the Tetramote phone app",
   "license": "MIT",
   "main": "src/index.ts",
   "types": "src/index.ts"

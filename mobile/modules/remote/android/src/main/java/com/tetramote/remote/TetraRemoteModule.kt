@@ -1,4 +1,4 @@
-package com.tetratop.remote
+package com.tetramote.remote
 
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Coroutine
@@ -95,7 +95,7 @@ class TetraRemoteModule : Module() {
         }
 
         Function("launchPairingUrl") {
-            appContext.currentActivity?.intent?.getStringExtra("TetratopPairURL")
+            appContext.currentActivity?.intent?.getStringExtra("TetramotePairURL")
         }
 
         View(RemoteScreenView::class) {}
@@ -141,7 +141,7 @@ class TetraRemoteModule : Module() {
         if (!TetraNative.loaded) {
             throw CodedException(
                 "ERR_TETRA_MISSING",
-                "The Tetratop core library is missing for this device's ABI. Rebuild it with `bun run build:core android`.",
+                "The Tetramote core library is missing for this device's ABI. Rebuild it with `bun run build:core android`.",
                 null,
             )
         }

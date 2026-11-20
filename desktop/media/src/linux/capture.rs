@@ -282,7 +282,7 @@ fn pipewire_loop(
         .map_err(pipewire_failed)?;
     let stream = StreamBox::new(
         &core,
-        "tetratop-screen",
+        "tetramote-screen",
         properties! {
             *pw::keys::MEDIA_TYPE => "Video",
             *pw::keys::MEDIA_CATEGORY => "Capture",

@@ -445,7 +445,7 @@ impl Duplicator {
         duplicator.duplicate().map_err(|e| {
             if e.code() == E_ACCESSDENIED {
                 MediaError::PermissionDenied(
-                    "Windows refused screen capture. Run Tetratop in your signed-in desktop session (not as a service), unlock the computer, then reconnect.".into(),
+                    "Windows refused screen capture. Run Tetramote in your signed-in desktop session (not as a service), unlock the computer, then reconnect.".into(),
                 )
             } else {
                 failed("Starting screen capture", e)

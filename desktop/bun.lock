@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "tetratop-desktop",
+      "name": "tetramote-desktop",
       "dependencies": {
         "@tauri-apps/api": "~2.12.4",
         "@tauri-apps/plugin-autostart": "~2.7.0",

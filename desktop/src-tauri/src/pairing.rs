@@ -43,10 +43,10 @@ fn decode(s: &str) -> Option<String> {
     String::from_utf8(out).ok()
 }
 
-/// The QR code and "Copy link" text: `tetratop://pair?ticket=…&secret=…&name=…`.
+/// The QR code and "Copy link" text: `tetramote://pair?ticket=…&secret=…&name=…`.
 pub fn make(ticket: &str, secret: &str, name: &str) -> String {
     format!(
-        "tetratop://pair?ticket={}&secret={}&name={}",
+        "tetramote://pair?ticket={}&secret={}&name={}",
         encode(ticket),
         secret,
         encode(name)
@@ -54,7 +54,7 @@ pub fn make(ticket: &str, secret: &str, name: &str) -> String {
 }
 
 pub fn parse(link: &str) -> Option<PairingLink> {
-    let query = link.trim().strip_prefix("tetratop://pair?")?;
+    let query = link.trim().strip_prefix("tetramote://pair?")?;
     let mut ticket = None;
     let mut secret = None;
     let mut name = None;
@@ -98,7 +98,7 @@ mod tests {
         );
         assert_eq!(
             link,
-            "tetratop://pair?ticket=endpointabc&secret=0123456789abcdef0123456789abcdef&name=Fosse%E2%80%99s%20Mac"
+            "tetramote://pair?ticket=endpointabc&secret=0123456789abcdef0123456789abcdef&name=Fosse%E2%80%99s%20Mac"
         );
         assert_eq!(
             parse(&link),
@@ -113,13 +113,13 @@ mod tests {
     #[test]
     fn rejects_other_links_and_bad_secrets() {
         assert_eq!(parse("https://example.com"), None);
-        assert_eq!(parse("tetratop://pair?ticket=t&secret=xyz"), None);
+        assert_eq!(parse("tetramote://pair?ticket=t&secret=xyz"), None);
         assert_eq!(
-            parse("tetratop://pair?secret=0123456789abcdef0123456789abcdef"),
+            parse("tetramote://pair?secret=0123456789abcdef0123456789abcdef"),
             None
         );
         assert_eq!(
-            parse("tetratop://pair?ticket=%E0%A4%A&secret=0123456789abcdef0123456789abcdef"),
+            parse("tetramote://pair?ticket=%E0%A4%A&secret=0123456789abcdef0123456789abcdef"),
             None
         );
     }
@@ -127,7 +127,7 @@ mod tests {
     #[test]
     fn defaults_the_name_and_makes_fresh_secrets() {
         let parsed =
-            parse("tetratop://pair?ticket=t&secret=0123456789ABCDEF0123456789ABCDEF").unwrap();
+            parse("tetramote://pair?ticket=t&secret=0123456789ABCDEF0123456789ABCDEF").unwrap();
         assert_eq!(parsed.name, "Computer");
         assert_eq!(parsed.secret, "0123456789abcdef0123456789abcdef");
         let (a, b) = (new_secret(), new_secret());

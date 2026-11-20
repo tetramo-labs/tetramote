@@ -223,7 +223,7 @@ impl MacInjector {
     pub fn new() -> Result<Self> {
         let source = CGEventSource::new(CGEventSourceStateID::HIDSystemState).ok_or_else(|| {
             MediaError::Failed(
-                "macOS didn't give Tetratop an input event source. Restart Tetratop and try again."
+                "macOS didn't give Tetramote an input event source. Restart Tetramote and try again."
                     .into(),
             )
         })?;

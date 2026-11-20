@@ -1,4 +1,4 @@
-package com.tetratop.remote
+package com.tetramote.remote
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder

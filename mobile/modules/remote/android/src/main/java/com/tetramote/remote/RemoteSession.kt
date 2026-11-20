@@ -1,4 +1,4 @@
-package com.tetratop.remote
+package com.tetramote.remote
 
 import android.os.SystemClock
 import org.json.JSONObject

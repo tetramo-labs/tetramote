@@ -19,10 +19,10 @@ use crate::{clipboard, pairing, system};
 
 const MAX_BACKLOG: u32 = 4;
 
-/// `TETRATOP_TEST_PATTERN=1` shares a synthetic display and writes input to
-/// `TETRATOP_INPUT_LOG` instead of the real screen, pointer and keyboard.
+/// `TETRAMOTE_TEST_PATTERN=1` shares a synthetic display and writes input to
+/// `TETRAMOTE_INPUT_LOG` instead of the real screen, pointer and keyboard.
 fn test_pattern() -> bool {
-    std::env::var("TETRATOP_TEST_PATTERN").is_ok_and(|v| v == "1")
+    std::env::var("TETRAMOTE_TEST_PATTERN").is_ok_and(|v| v == "1")
 }
 
 struct LogInjector {
@@ -80,7 +80,7 @@ fn start_stream(
 fn input_injector() -> Option<Box<dyn InputInjector>> {
     if test_pattern() {
         Some(Box::new(LogInjector {
-            path: std::env::var("TETRATOP_INPUT_LOG").ok(),
+            path: std::env::var("TETRAMOTE_INPUT_LOG").ok(),
         }))
     } else {
         tetra_media::input_injector().ok()
@@ -257,11 +257,11 @@ impl HostService {
         }
     }
 
-    /// `TETRATOP_PAIRING_FILE` receives the current pairing link, for tests that pair without a camera.
+    /// `TETRAMOTE_PAIRING_FILE` receives the current pairing link, for tests that pair without a camera.
     fn emit(&self) {
         let state = self.state();
         if let (Ok(path), Some(url)) = (
-            std::env::var("TETRATOP_PAIRING_FILE"),
+            std::env::var("TETRAMOTE_PAIRING_FILE"),
             state.pairing_url.as_ref(),
         ) {
             let _ = std::fs::write(path, url);

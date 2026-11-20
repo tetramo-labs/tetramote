@@ -4,7 +4,7 @@ import {result as Res, type Result} from "typesafe-ts"
 let mmkv: MMKV | null = null
 
 function store(): MMKV {
-  mmkv ??= createMMKV({id: "tetratop"})
+  mmkv ??= createMMKV({id: "tetramote"})
   return mmkv
 }
 

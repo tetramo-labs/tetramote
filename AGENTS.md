@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Rules for coding agents working in Tetratop. The phone app follows the Glassly App's design and stack
+Rules for coding agents working in Tetramote. The phone app follows the Glassly App's design and stack
 (`~/dev/glassly/mobile`); when this file is silent, do what the Glassly App does.
 
 ## Map
 
 - `core/`: Rust transport (iroh 1.4). `PROTOCOL.md` is its spec, `core/include/tetra_core.h` its C API,
-  `core/src/android.rs` its JNI API (`com.tetratop.remote.TetraNative`).
+  `core/src/android.rs` its JNI API (`com.tetramote.remote.TetraNative`).
 - `desktop/`: the Tauri 2 desktop app (macOS, Windows, Linux): `src-tauri/` Rust backend on `tetra_core`,
   `src/` React 19 + Vite + Tailwind 4 + Zustand frontend (popover `index.html`, viewer `viewer.html`),
   `media/` (`tetra_media`) the per-OS capture/encode/audio/input layer behind one interface in `media/src/lib.rs`.
@@ -18,9 +18,9 @@ Rules for coding agents working in Tetratop. The phone app follows the Glassly A
 - Core: `scripts/build-core.sh [ios|android|all]`, then `cd core && cargo test && cargo clippy --all-targets`.
   The script caps cargo at 2 jobs: more corrupt freshly built proc-macro dylibs under the macOS 27 linker.
 - Desktop: `cd desktop && bun install`, then `bunx tauri dev`; checks are `CARGO_BUILD_JOBS=2 cargo test -p tetra_media
-  -p tetratop-desktop`, `cargo clippy -p tetra_media -p tetratop-desktop --all-targets`, `bunx vitest run`,
+  -p tetramote-desktop`, `cargo clippy -p tetra_media -p tetramote-desktop --all-targets`, `bunx vitest run`,
   `bunx tsc --noEmit -p .` and `bunx eslint .`. Windows and Linux are checked by `.github/workflows/desktop.yml`.
-  Run the app with `TETRATOP_PROFILE=<name>` in tests so it never reads the real keys (README lists the
+  Run the app with `TETRAMOTE_PROFILE=<name>` in tests so it never reads the real keys (README lists the
   other test variables). Release with `scripts/release-desktop.sh <version>`.
 - Mobile, from `mobile/`: `bun run test` (Jest), `bun compile` (tsc), `bun run lint:check`, `bun ios`, `bun android`.
   `ios/` and `android/` are generated (CNG); make durable changes in `app.config.ts` or the module.

@@ -1,4 +1,4 @@
-import {remote} from "@tetratop/remote"
+import {remote} from "@tetramote/remote"
 import * as Clipboard from "expo-clipboard"
 import * as Device from "expo-device"
 import {useEffect, useState} from "react"

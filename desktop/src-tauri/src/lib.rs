@@ -1,4 +1,4 @@
-//! Tetratop for desktops: shares this computer with paired devices and controls
+//! Tetramote for desktops: shares this computer with paired devices and controls
 //! other computers, from a menu bar (or tray) popover and a viewer window.
 
 mod bitrate;
@@ -23,7 +23,7 @@ use crate::store::Store;
 
 fn open_links(app: &tauri::AppHandle, urls: impl IntoIterator<Item = String>) {
     let state = app.state::<AppState>();
-    for url in urls.into_iter().filter(|u| u.starts_with("tetratop://")) {
+    for url in urls.into_iter().filter(|u| u.starts_with("tetramote://")) {
         if let Err(message) = state.client.connect_link(&url) {
             log::warn!("{message}");
         }
@@ -68,17 +68,17 @@ pub fn run() {
             if let Ok(Some(urls)) = app.deep_link().get_current() {
                 open_links(app.handle(), urls.into_iter().map(|u| u.to_string()));
             }
-            if let Ok(link) = std::env::var("TETRATOP_CONNECT") {
+            if let Ok(link) = std::env::var("TETRAMOTE_CONNECT") {
                 open_links(app.handle(), [link]);
             }
-            if std::env::var("TETRATOP_SHOW_POPOVER").is_ok() {
+            if std::env::var("TETRAMOTE_SHOW_POPOVER").is_ok() {
                 tray::show(app.handle());
             }
             Ok(())
         })
         .on_window_event(|window, event| match (window.label(), event) {
             (tray::POPOVER, WindowEvent::Focused(false)) => {
-                if std::env::var("TETRATOP_SHOW_POPOVER").is_err() {
+                if std::env::var("TETRAMOTE_SHOW_POPOVER").is_err() {
                     let _ = window.hide();
                 }
             }
@@ -108,7 +108,7 @@ pub fn run() {
             commands::app_quit,
         ])
         .build(tauri::generate_context!())
-        .expect("Tetratop failed to start")
+        .expect("Tetramote failed to start")
         .run(|_app, event| {
             if let RunEvent::ExitRequested {
                 api, code: None, ..

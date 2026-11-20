@@ -1,4 +1,4 @@
-import {remote} from "@tetratop/remote"
+import {remote} from "@tetramote/remote"
 import type {BottomSheetModal} from "@gorhom/bottom-sheet"
 import {MonitorSmartphone, Plus, Settings} from "lucide-react-native"
 import {useEffect, useRef} from "react"

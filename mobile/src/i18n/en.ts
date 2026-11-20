@@ -15,7 +15,7 @@ const en = {
     title: "Connections",
     empty: "No computers paired yet",
     emptyHint:
-      "Install Tetratop on your computer, click its icon in the menu bar or system tray, then scan its code or paste its link.",
+      "Install Tetramote on your computer, click its icon in the menu bar or system tray, then scan its code or paste its link.",
     pair: "Pair device",
     lastConnected: "Last connected {{when}}",
     neverConnected: "Not connected yet",
@@ -25,16 +25,16 @@ const en = {
   pair: {
     title: "Pair device",
     scan: "Scan the code",
-    scanHint: "Point the camera at the code in Tetratop's menu on the computer.",
+    scanHint: "Point the camera at the code in Tetramote's menu on the computer.",
     paste: "Paste a link",
-    pasteHint: "Click Copy link in Tetratop's menu on the computer first.",
+    pasteHint: "Click Copy link in Tetramote's menu on the computer first.",
     noLink:
-      "The clipboard has no Tetratop pairing link. Click Copy link in Tetratop's menu on the computer, then paste again.",
-    hint: "Point the camera at the code in Tetratop's menu on the computer.",
+      "The clipboard has no Tetramote pairing link. Click Copy link in Tetramote's menu on the computer, then paste again.",
+    hint: "Point the camera at the code in Tetramote's menu on the computer.",
     pairing: "Pairing with {{name}}…",
-    notACode: "That isn't a Tetratop pairing code.",
+    notACode: "That isn't a Tetramote pairing code.",
     cameraTitle: "Camera access needed",
-    cameraMessage: "Tetratop needs the camera to scan the computer's pairing code.",
+    cameraMessage: "Tetramote needs the camera to scan the computer's pairing code.",
     allowCamera: "Allow camera",
     openSettings: "Open Settings",
     paired: "Paired with {{name}}",
@@ -69,17 +69,18 @@ const en = {
     sentClipboard: "Sent to the computer",
     copiedClipboard: "Copied to iPhone",
     needsScreenRecording:
-      "Allow Screen Recording for Tetratop in System Settings › Privacy & Security on the computer.",
+      "Allow Screen Recording for Tetramote in System Settings › Privacy & Security on the computer.",
     needsAccessibility:
-      "Allow Accessibility for Tetratop in System Settings › Privacy & Security on the computer so this iPhone can control it.",
+      "Allow Accessibility for Tetramote in System Settings › Privacy & Security on the computer so this iPhone can control it.",
   },
   errors: {
-    notPaired: "This iPhone isn't paired with the computer. Click New code in Tetratop on the computer and pair again.",
-    badSecret: "That code is no longer valid. Click New code in Tetratop on the computer and pair again.",
-    version: "This computer runs a different Tetratop version. Update both apps.",
+    notPaired:
+      "This iPhone isn't paired with the computer. Click New code in Tetramote on the computer and pair again.",
+    badSecret: "That code is no longer valid. Click New code in Tetramote on the computer and pair again.",
+    version: "This computer runs a different Tetramote version. Update both apps.",
     badHello: "The computer rejected this iPhone's first message. Update both apps.",
-    timedOut: "Couldn't reach the computer. Check that Tetratop is running on it and that both have internet.",
-    startFailed: "Tetratop couldn't start its network engine: {{message}}",
+    timedOut: "Couldn't reach the computer. Check that Tetramote is running on it and that both have internet.",
+    startFailed: "Tetramote couldn't start its network engine: {{message}}",
     generic: "Connection lost: {{message}}",
   },
   settings: {

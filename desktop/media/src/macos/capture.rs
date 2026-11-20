@@ -103,7 +103,7 @@ impl Audio {
         let bits = format.audio_bits_per_channel().unwrap_or(0);
         if !format.audio_is_float() || bits != 32 || rate != f64::from(OPUS_SAMPLE_RATE) {
             let error = MediaError::Unsupported(format!(
-                "System audio arrived as {rate} Hz {bits}-bit samples, which Tetratop can't encode. Share without audio."
+                "System audio arrived as {rate} Hz {bits}-bit samples, which Tetramote can't encode. Share without audio."
             ));
             return shared.fail(&shared.audio_failed, error);
         }
@@ -167,7 +167,7 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
     }
     let content = SCShareableContent::get().map_err(|error| {
         MediaError::Failed(format!(
-            "macOS didn't list the displays to capture ({error}). Check that Screen Recording is on for Tetratop in System Settings > Privacy & Security, then share again."
+            "macOS didn't list the displays to capture ({error}). Check that Screen Recording is on for Tetramote in System Settings > Privacy & Security, then share again."
         ))
     })?;
     let displays = content.displays();

@@ -1,6 +1,6 @@
-# Tetratop wire protocol, version 2
+# Tetramote wire protocol, version 2
 
-The phone dials the Mac over [iroh](https://iroh.computer) with ALPN `tetratop/1`. The ALPN stays the same
+The phone dials the Mac over [iroh](https://iroh.computer) with ALPN `tetramote/1`. The ALPN stays the same
 across protocol versions, so a phone and a Mac on different versions still get as far as `rejected` with
 reason `version`. iroh authenticates both ends by their endpoint keys, so a QR code only needs to carry the
 Mac's address and a one-time pairing secret. Everything below is big-endian. `core/src/protocol.rs`
@@ -11,7 +11,7 @@ implements the framing; a change to either changes both in the same commit.
 The Mac shows a QR code holding
 
 ```
-tetratop://pair?ticket=<iroh EndpointTicket>&secret=<32 hex chars>&name=<url-encoded Mac name>
+tetramote://pair?ticket=<iroh EndpointTicket>&secret=<32 hex chars>&name=<url-encoded Mac name>
 ```
 
 The secret is single use. The Mac remembers the phone's endpoint id once a hello carries the secret, and

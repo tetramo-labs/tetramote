@@ -1,7 +1,7 @@
-import {remote} from "@tetratop/remote"
+import {remote} from "@tetramote/remote"
 import * as SecureStore from "expo-secure-store"
 
-const KEY = "tetratop.secretKey"
+const KEY = "tetramote.secretKey"
 const HEX_KEY = /^[0-9a-f]{64}$/
 
 /** The phone's iroh identity. The Mac trusts the endpoint id derived from it. */

@@ -1,7 +1,7 @@
-# Tetratop
+# Tetramote
 
 Control your computers from your phone, or from another computer, over [iroh](https://iroh.computer).
-There's no account and no Tetratop server: a computer shows a QR code (or a link), the phone or other
+There's no account and no Tetramote server: a computer shows a QR code (or a link), the phone or other
 computer uses it once, and from then on the two find each other by their keys. Connections are end-to-end
 encrypted QUIC. They go direct (hole-punched) when they can, and fall back to n0's public relays, or a relay
 you run yourself, when they can't.
@@ -42,7 +42,7 @@ in `/Applications` for that reason.
 cd core && cargo test                      # protocol unit tests and loopback sessions
 
 cd desktop && bun install && bunx tauri dev                      # the desktop app
-cd desktop && cargo test -p tetra_media -p tetratop-desktop      # cap jobs at 2 on macOS 27: CARGO_BUILD_JOBS=2
+cd desktop && cargo test -p tetra_media -p tetramote-desktop      # cap jobs at 2 on macOS 27: CARGO_BUILD_JOBS=2
 cd desktop && bunx vitest run && bunx tsc --noEmit -p . && bunx eslint .
 
 scripts/build-core.sh ios|android          # the core for the phone
@@ -57,7 +57,7 @@ cd mobile && bun run test && bun compile && bun run lint:check
 builds and signs the universal macOS app on this Mac, then `.github/workflows/release-desktop.yml` adds the
 Windows and Linux builds. Installed copies check `latest.json` on the newest release every few hours and,
 unless "Install updates automatically" is off, install while nothing is connected. Updates are signed with
-the updater key (`~/.tauri/tetratop.key`, also the `TAURI_SIGNING_PRIVATE_KEY` Actions secret); back it up,
+the updater key (`~/.tauri/tetramote.key`, also the `TAURI_SIGNING_PRIVATE_KEY` Actions secret); back it up,
 since installed copies only accept updates signed with it. The macOS app is signed with an Apple Development
 certificate and not notarized for now.
 
@@ -81,7 +81,7 @@ The phone app is designed for the iPhone Duo first and widens rather than switch
 ## Pairing and trust
 
 1. The shared computer generates an iroh key (kept in the system keychain) and a one-time 128-bit pairing
-   secret, and shows `tetratop://pair?ticket=…&secret=…&name=…` as a QR code and a copyable link.
+   secret, and shows `tetramote://pair?ticket=…&secret=…&name=…` as a QR code and a copyable link.
 2. The phone or other computer dials the ticket and sends the secret in its hello. iroh's TLS already proves
    both endpoint keys, so the secret only has to show that this device saw the code.
 3. The shared computer adds the device's endpoint id to its trusted list and spends the secret. Later
@@ -95,17 +95,17 @@ and encrypted packets only.
 - `cargo run --release --example fakehost -- --h264 test.h264 --opus test.ogg --pairing-file /tmp/pair.txt`
   streams a recorded clip to the phone and logs the input it receives. The example's header shows how to
   make the clip with ffmpeg. To pair a simulator without scanning, launch the app with the URL:
-  `xcrun simctl launch <udid> com.tetramo.tetratop -TetratopPairURL "$(cat /tmp/pair.txt)"` (on Android, a
-  `TetratopPairURL` string extra on the launch intent). `simctl openurl` works too, but iOS asks to confirm.
+  `xcrun simctl launch <udid> com.tetramo.tetramote -TetramotePairURL "$(cat /tmp/pair.txt)"` (on Android, a
+  `TetramotePairURL` string extra on the launch intent). `simctl openurl` works too, but iOS asks to confirm.
 - `cargo run --release --example probe -- --pair "<url>" --out /tmp/probe.h264` acts as a phone against the
   desktop app. Environment variables for the desktop app in tests:
-  - `TETRATOP_PROFILE=<name>`: separate settings and keys, so the real ones are never read (no keychain
+  - `TETRAMOTE_PROFILE=<name>`: separate settings and keys, so the real ones are never read (no keychain
     prompts).
-  - `TETRATOP_TEST_PATTERN=1`: share a synthetic display (software encoder, silent audio) instead of the
-    screen; `TETRATOP_INPUT_LOG=<file>` then receives the input records instead of the pointer and keyboard.
-  - `TETRATOP_PAIRING_FILE=<file>`: write the pairing link there.
-  - `TETRATOP_CONNECT=<link>`: connect to another computer at launch.
-  - `TETRATOP_SHOW_POPOVER=1`: open the popover at launch and keep it open.
+  - `TETRAMOTE_TEST_PATTERN=1`: share a synthetic display (software encoder, silent audio) instead of the
+    screen; `TETRAMOTE_INPUT_LOG=<file>` then receives the input records instead of the pointer and keyboard.
+  - `TETRAMOTE_PAIRING_FILE=<file>`: write the pairing link there.
+  - `TETRAMOTE_CONNECT=<link>`: connect to another computer at launch.
+  - `TETRAMOTE_SHOW_POPOVER=1`: open the popover at launch and keep it open.
 
 ## License
 

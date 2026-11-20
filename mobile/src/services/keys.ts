@@ -1,4 +1,4 @@
-import {FLAG_COMMAND, FLAG_CONTROL, FLAG_OPTION, FLAG_SHIFT, type InputEvent} from "@tetratop/remote"
+import {FLAG_COMMAND, FLAG_CONTROL, FLAG_OPTION, FLAG_SHIFT, type InputEvent} from "@tetramote/remote"
 
 export const KEY = {
   return: 0x24,

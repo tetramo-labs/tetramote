@@ -135,9 +135,9 @@ export function Viewer() {
   const rtt = status?.kind === "connected" && status.rttMs !== null ? `${status.rttMs} ms` : null
   const blocked =
     client?.remoteStatus && !client.remoteStatus.screenRecording
-      ? `${name} hasn't allowed Screen Recording for Tetratop yet. Allow it in Tetratop's menu on that computer.`
+      ? `${name} hasn't allowed Screen Recording for Tetramote yet. Allow it in Tetramote's menu on that computer.`
       : client?.remoteStatus && !client.remoteStatus.accessibility
-        ? `${name} hasn't allowed Accessibility for Tetratop, so input won't work until it does.`
+        ? `${name} hasn't allowed Accessibility for Tetramote, so input won't work until it does.`
         : null
 
   return (

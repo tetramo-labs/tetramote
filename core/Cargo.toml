@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 license = "MIT"
-description = "iroh transport shared by the Tetratop Mac host and phone app"
+description = "iroh transport shared by the Tetramote Mac host and phone app"
 
 [lib]
 crate-type = ["staticlib", "cdylib", "rlib"]

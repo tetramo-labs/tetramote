@@ -1,4 +1,4 @@
-import {MOUSE_LEFT, MOUSE_RIGHT, SCROLL_BEGAN, SCROLL_CHANGED, SCROLL_ENDED, SCROLL_MOMENTUM} from "@tetratop/remote"
+import {MOUSE_LEFT, MOUSE_RIGHT, SCROLL_BEGAN, SCROLL_CHANGED, SCROLL_ENDED, SCROLL_MOMENTUM} from "@tetramote/remote"
 import * as Haptics from "expo-haptics"
 import {useMemo, useRef} from "react"
 import {Gesture} from "react-native-gesture-handler"

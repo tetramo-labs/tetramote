@@ -1,4 +1,4 @@
-package com.tetratop.remote
+package com.tetramote.remote
 
 import android.media.AudioAttributes
 import android.media.AudioFormat

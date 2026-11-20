@@ -1,4 +1,4 @@
-import {FLAG_COMMAND, FLAG_SHIFT} from "@tetratop/remote"
+import {FLAG_COMMAND, FLAG_SHIFT} from "@tetramote/remote"
 
 import {keyPress, shortcutFor} from "@/services/keys"
 import {isRelayUrl} from "@/services/relay"

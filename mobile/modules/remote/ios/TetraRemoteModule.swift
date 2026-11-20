@@ -78,7 +78,7 @@ public class TetraRemoteModule: Module {
     }
 
     Function("launchPairingUrl") { () -> String? in
-      UserDefaults.standard.string(forKey: "TetratopPairURL")
+      UserDefaults.standard.string(forKey: "TetramotePairURL")
     }
 
     View(RemoteScreenView.self) {}

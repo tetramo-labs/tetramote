@@ -1,4 +1,4 @@
-import type {HostMessage, MacDisplay, PathKind, StreamStats} from "@tetratop/remote"
+import type {HostMessage, MacDisplay, PathKind, StreamStats} from "@tetramote/remote"
 import {create} from "zustand"
 
 import type {InputMode} from "@/stores/settings"

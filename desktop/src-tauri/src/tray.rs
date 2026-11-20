@@ -7,13 +7,13 @@ pub const POPOVER: &str = "main";
 
 /// The menu bar (or system tray) icon: a click toggles the popover, the menu quits.
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
-    let quit = MenuItem::with_id(app, "quit", "Quit Tetratop", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit Tetramote", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&quit])?;
     let icon = tauri::image::Image::from_bytes(include_bytes!("../icons/tray@2x.png"))?;
-    TrayIconBuilder::with_id("tetratop")
+    TrayIconBuilder::with_id("tetramote")
         .icon(icon)
         .icon_as_template(true)
-        .tooltip("Tetratop")
+        .tooltip("Tetramote")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| {

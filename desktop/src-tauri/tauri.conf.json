@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Tetratop",
+  "productName": "Tetramote",
   "version": "0.3.0",
-  "identifier": "com.tetramo.tetratop.host",
+  "identifier": "com.tetramo.tetramote.host",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -15,7 +15,7 @@
       {
         "label": "main",
         "url": "index.html",
-        "title": "Tetratop",
+        "title": "Tetramote",
         "width": 360,
         "height": 560,
         "resizable": false,
@@ -60,14 +60,14 @@
     "deep-link": {
       "desktop": {
         "schemes": [
-          "tetratop"
+          "tetramote"
         ]
       }
     },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlCODc0NDNFNTU3NENCRDAKUldUUXkzUlZQa1NIbTFjZnF4UXRXMzdqaW15TkFQb1M3cXkrMjVvK3lTYnRGV2VrOXlYMGU2OVEK",
       "endpoints": [
-        "https://github.com/tetramo-labs/tetratop/releases/latest/download/latest.json"
+        "https://github.com/tetramo-labs/tetramote/releases/latest/download/latest.json"
       ]
     }
   }

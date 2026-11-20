@@ -29,7 +29,7 @@ fn started(env: &mut JNIEnv, result: Result<u64, String>) -> jstring {
 /// iroh reads DNS servers and network interfaces through Android APIs, which
 /// need the app context registered with ndk-context before the first bind.
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_init(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_init(
     env: JNIEnv,
     _class: JClass,
     context: JObject,
@@ -50,7 +50,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_init(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_generateSecretKey(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_generateSecretKey(
     mut env: JNIEnv,
     _class: JClass,
 ) -> jstring {
@@ -58,7 +58,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_generateSecretKey(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_endpointId(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_endpointId(
     mut env: JNIEnv,
     _class: JClass,
     secret: JString,
@@ -71,7 +71,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_endpointId(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientStart(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_clientStart(
     mut env: JNIEnv,
     _class: JClass,
     config: JString,
@@ -83,7 +83,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientStart(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientConnect(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_clientConnect(
     mut env: JNIEnv,
     _class: JClass,
     handle: jlong,
@@ -94,7 +94,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientConnect(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientDisconnect(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_clientDisconnect(
     _env: JNIEnv,
     _class: JClass,
     handle: jlong,
@@ -103,7 +103,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientDisconnect(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientSendControl(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_clientSendControl(
     mut env: JNIEnv,
     _class: JClass,
     handle: jlong,
@@ -114,7 +114,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientSendControl(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientSendInput(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_clientSendInput(
     env: JNIEnv,
     _class: JClass,
     handle: jlong,
@@ -128,7 +128,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_clientSendInput(
 
 /// Returns null on timeout; the array's first byte is the event kind.
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_nextEvent(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_nextEvent(
     env: JNIEnv,
     _class: JClass,
     handle: jlong,
@@ -143,7 +143,7 @@ pub extern "system" fn Java_com_tetratop_remote_TetraNative_nextEvent(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_tetratop_remote_TetraNative_stop(
+pub extern "system" fn Java_com_tetramote_remote_TetraNative_stop(
     _env: JNIEnv,
     _class: JClass,
     handle: jlong,

@@ -2,7 +2,7 @@ import {relaunch} from "@tauri-apps/plugin-process"
 import {check, type Update} from "@tauri-apps/plugin-updater"
 import {create} from "zustand"
 
-const AUTO_KEY = "tetratop.autoUpdate"
+const AUTO_KEY = "tetramote.autoUpdate"
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000
 
 type Phase = "idle" | "checking" | "upToDate" | "available" | "installing" | "failed"

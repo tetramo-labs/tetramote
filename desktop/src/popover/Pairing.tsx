@@ -55,7 +55,7 @@ export function Pairing() {
         )}
       </div>
       <div className="text-center text-[12px] text-muted">
-        Scan with Tetratop on your phone, or copy the link to another computer, to let it control this one.
+        Scan with Tetramote on your phone, or copy the link to another computer, to let it control this one.
       </div>
       <div className="flex gap-2">
         <Button kind="secondary" onClick={() => void api.hostNewCode()}>

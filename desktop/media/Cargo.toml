@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 license = "MIT"
-description = "Screen capture, H.264 encoding, Opus audio and input injection for the Tetratop desktop app"
+description = "Screen capture, H.264 encoding, Opus audio and input injection for the Tetramote desktop app"
 
 [dependencies]
 tetra_core = { path = "../../core" }
