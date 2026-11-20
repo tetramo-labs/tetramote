@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Weekly full cleanup of the Tetramote runner host, Sundays 04:00 (an hour after
+  Glassly's com.glassly.runner-cleanup). setup-runner.sh installs it as
+  ~/Library/LaunchAgents/com.tetramote.runner-cleanup.plist with @@RUNNER_BASE_DIR@@ filled in.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.tetramote.runner-cleanup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>@@RUNNER_BASE_DIR@@/runner-cleanup.sh</string>
+      <string>--tier</string>
+      <string>all</string>
+    </array>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+      <key>Weekday</key><integer>0</integer>
+      <key>Hour</key><integer>4</integer>
+      <key>Minute</key><integer>0</integer>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>@@RUNNER_BASE_DIR@@/runner-cleanup.log</string>
+    <key>StandardErrorPath</key>
+    <string>@@RUNNER_BASE_DIR@@/runner-cleanup.log</string>
+
+    <key>Nice</key>
+    <integer>10</integer>
+  </dict>
+</plist>

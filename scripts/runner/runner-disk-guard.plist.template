@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Runs runner-cleanup.sh --auto every 30 minutes, which picks a tier from free disk
+  space, so a busy week can't fill the disk between weekly cleanups. setup-runner.sh
+  installs it as ~/Library/LaunchAgents/com.tetramote.runner-disk-guard.plist with
+  @@RUNNER_BASE_DIR@@ filled in.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.tetramote.runner-disk-guard</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>@@RUNNER_BASE_DIR@@/runner-cleanup.sh</string>
+      <string>--auto</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>1800</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>@@RUNNER_BASE_DIR@@/runner-cleanup.log</string>
+    <key>StandardErrorPath</key>
+    <string>@@RUNNER_BASE_DIR@@/runner-cleanup.log</string>
+
+    <key>Nice</key>
+    <integer>10</integer>
+  </dict>
+</plist>

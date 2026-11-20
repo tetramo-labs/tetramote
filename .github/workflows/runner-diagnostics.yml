@@ -1,0 +1,149 @@
+name: Runner diagnostics
+
+# Reports the Xcode, simulator, toolchain and disk state a job on a self-hosted
+# Tetramote runner would find (scripts/runner/README.md). Self-hosted workflows
+# in this public repo run on workflow_dispatch only, never on pull requests.
+on:
+  workflow_dispatch:
+    inputs:
+      runner_label:
+        description: Runner name to pin (e.g. tetramote-bob-1); empty for any Tetramote runner
+        required: false
+        default: ""
+      repair:
+        description: Run xcodebuild -runFirstLaunch and restart CoreSimulatorService, then list runtimes again
+        type: boolean
+        default: false
+      download_ios_platform:
+        description: Run xcodebuild -downloadPlatform iOS when no iOS 27.1+ simulator runtime is installed
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ${{ inputs.runner_label != '' && fromJSON(format('["self-hosted", "macOS", "ARM64", "tetramote", "{0}"]', inputs.runner_label)) || fromJSON('["self-hosted", "macOS", "ARM64", "tetramote"]') }}
+    timeout-minutes: 60
+    env:
+      MIN_XCODE: "27.1"
+      MIN_IOS_RUNTIME: "27.1"
+    steps:
+      - name: Xcode
+        id: xcode
+        run: |
+          set +e
+          version_ge() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)" == "$1" ]]; }
+          echo "runner: $RUNNER_NAME on $(hostname)"
+          echo "DEVELOPER_DIR: ${DEVELOPER_DIR:-unset}"
+          echo "xcode-select: $(xcode-select -p)"
+          echo "--- Xcodes in /Applications ---"
+          newest=""; newest_version=""
+          for app in /Applications/Xcode*.app; do
+            [[ -d "$app/Contents/Developer" ]] || continue
+            v="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist" 2>/dev/null)" || continue
+            echo "$v  $app"
+            if [[ -z "$newest" ]] || version_ge "$v" "$newest_version"; then newest="$app"; newest_version="$v"; fi
+          done
+          echo "newest: $newest_version ($newest)"
+          if [[ -n "${DEVELOPER_DIR:-}" && "$DEVELOPER_DIR" != "$newest/Contents/Developer" ]]; then
+            echo "::warning::DEVELOPER_DIR is not the newest Xcode ($newest). Re-run scripts/runner/setup-runner.sh to update the runner's .env."
+          fi
+          echo "--- xcodebuild -version ---"
+          xcodebuild -version
+          selected="$(xcodebuild -version | awk 'NR == 1 { print $2 }')"
+          if version_ge "$selected" "$MIN_XCODE"; then
+            echo "xcode_ok=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Jobs build with Xcode $selected; the iPhone Duo build needs $MIN_XCODE or later."
+          fi
+          xcodebuild -checkFirstLaunchStatus && echo "first launch: complete" || echo "::warning::First launch incomplete; dispatch again with repair."
+          echo "--- SDKs ---"
+          xcodebuild -showsdks 2>&1 | grep -iE 'ios|macos'
+          echo "--- session (simulators need the user's GUI session) ---"
+          launchctl managername
+          echo "console owner: $(stat -f '%Su' /dev/console)"
+          uptime
+
+      - name: Simulators
+        id: sim
+        run: |
+          set +e
+          version_ge() { [[ "$(printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)" == "$1" ]]; }
+          xcrun simctl list runtimes
+          for v in $(xcrun simctl list runtimes -j | jq -r '.runtimes[] | select(.platform == "iOS" and .isAvailable) | .version'); do
+            version_ge "$v" "$MIN_IOS_RUNTIME" && echo "runtime_ok=1" >> "$GITHUB_OUTPUT" && break
+          done
+          grep -q runtime_ok "$GITHUB_OUTPUT" || echo "::error::No iOS $MIN_IOS_RUNTIME+ simulator runtime. Dispatch again with download_ios_platform."
+          echo "--- available devices ---"
+          xcrun simctl list devices available | head -40
+          echo "--- CoreSimulatorService ---"
+          ps -axo pid,etime,%cpu,comm | grep -i coresimulator | grep -v grep || echo "not running"
+
+      - name: Toolchain
+        id: tools
+        run: |
+          set +e
+          missing=""
+          for tool in bun cargo rustc rustup pod xcbeautify maestro asc gh jq ffmpeg magick cwebp java git; do
+            command -v "$tool" >/dev/null || missing="$missing $tool"
+          done
+          bun --version | sed 's/^/bun /'
+          cargo --version
+          rustc --version
+          rustup target list --installed | sed 's/^/rust target: /'
+          pod --version | sed 's/^/cocoapods /'
+          xcbeautify --version | sed 's/^/xcbeautify /'
+          maestro --version 2>/dev/null | tail -1 | sed 's/^/maestro /'
+          asc --version | sed 's/^/asc /'
+          echo "ASC_PROFILE: ${ASC_PROFILE:-unset}"
+          asc auth status
+          gh --version | head -1
+          ffmpeg -version | head -1
+          magick -version | head -1
+          cwebp -version | sed 's/^/cwebp /'
+          java -version 2>&1 | head -1
+          for target in aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios; do
+            rustup target list --installed | grep -qx "$target" || missing="$missing rust:$target"
+          done
+          if [[ -n "$missing" ]]; then
+            echo "::error::Missing:$missing. Re-run scripts/runner/setup-runner.sh on the host."
+          else
+            echo "tools_ok=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Disk
+        run: |
+          set +e
+          df -h /
+          du -sh "$HOME"/Library/Developer/Xcode/DerivedData/Tetramote-* 2>/dev/null
+          log="$(cd "$RUNNER_WORKSPACE/../../.." && pwd)/runner-cleanup.log"
+          echo "--- last cleanup runs ($log) ---"
+          grep -E 'Starting|Auto:|Freed|deferring' "$log" 2>/dev/null | tail -10 || echo "no cleanup log"
+
+      - name: Repair Xcode and simulator service
+        if: inputs.repair
+        run: |
+          set +e
+          if sudo -n true 2>/dev/null; then
+            sudo -n env DEVELOPER_DIR="${DEVELOPER_DIR:-$(xcode-select -p)}" xcodebuild -runFirstLaunch
+          else
+            xcodebuild -runFirstLaunch
+          fi
+          xcrun simctl shutdown all
+          launchctl kill SIGKILL "gui/$(id -u)/com.apple.CoreSimulator.CoreSimulatorService"
+          sleep 5
+          xcrun simctl list runtimes
+
+      - name: Download iOS simulator platform
+        if: inputs.download_ios_platform && steps.sim.outputs.runtime_ok != '1'
+        run: |
+          xcodebuild -downloadPlatform iOS
+          xcrun simctl list runtimes
+
+      - name: Verdict
+        if: steps.xcode.outputs.xcode_ok != '1' || steps.tools.outputs.tools_ok != '1' || (steps.sim.outputs.runtime_ok != '1' && !inputs.download_ios_platform)
+        run: |
+          echo "::error::This runner can't build Tetramote yet; see the errors above."
+          exit 1
