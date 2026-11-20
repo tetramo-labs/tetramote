@@ -58,6 +58,7 @@ device's connection replaces it, 3 when the device is removed, and 4 when the li
 | `getClipboard` | phone → Mac | (none); the Mac answers with `clipboard` |
 | `selectDisplay` | phone → Mac | `id` |
 | `setAudio` | phone → Mac | `enabled` |
+| `cursor` | phone → Mac | `shown`: whether the Mac draws its pointer into the video (true until a viewer sends this; a viewer that shows its own pointer sends false). A Mac that can't change it mid-stream (Linux) keeps drawing it |
 | `keyframe` | phone → Mac | (none); the phone lost a frame and needs a keyframe |
 
 A side ignores message types it does not know.

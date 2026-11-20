@@ -60,6 +60,7 @@ pub struct StreamConfig {
     pub fps: u32,
     pub bitrate_bps: u32,
     pub audio: bool,
+    pub cursor: bool,
 }
 
 impl Default for StreamConfig {
@@ -70,6 +71,7 @@ impl Default for StreamConfig {
             fps: 60,
             bitrate_bps: 8_000_000,
             audio: true,
+            cursor: true,
         }
     }
 }
@@ -112,6 +114,9 @@ pub trait ScreenStream: Send {
     fn info(&self) -> &StreamInfo;
     fn request_keyframe(&self);
     fn set_bitrate(&self, bps: u32);
+    /// Whether the pointer is drawn into the picture. A platform that can't
+    /// change it mid-stream keeps drawing it.
+    fn set_cursor(&self, _shown: bool) {}
 }
 
 pub fn displays() -> Result<Vec<DisplayInfo>> {

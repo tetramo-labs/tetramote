@@ -136,6 +136,11 @@ pub fn viewer_set_audio(state: State<AppState>, enabled: bool) {
 }
 
 #[tauri::command]
+pub fn viewer_set_hide_local_pointer(state: State<AppState>, hide: bool) {
+    state.client.set_hide_local_pointer(hide);
+}
+
+#[tauri::command]
 pub fn viewer_keyframe(state: State<AppState>) {
     state.client.send_control(&json!({"t": "keyframe"}));
 }

@@ -46,6 +46,8 @@ import {parseFrame, VideoPipe} from "@/video"
 type Phase = "connecting" | "connected" | "failed"
 
 const TOUCH = window.matchMedia("(any-pointer: coarse)").matches || navigator.maxTouchPoints > 0
+const HIDE_POINTER_KEY = "tetramote.hidePointer"
+const remotePointerAtStart = () => TOUCH || localStorage.getItem(HIDE_POINTER_KEY) === "1"
 const NO_VIDEO = "This browser can't decode video. Open the link in a recent Chrome, Edge, Safari or Firefox."
 
 const KEY_BAR: {label: string; title: string; flag?: number; keyCode?: number}[] = [
@@ -99,6 +101,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
   const remoteClipboard = useRef<string | null>(null)
   const name = useRef(link.name)
   const soundOn = useRef(false)
+  const remotePointer = useRef(remotePointerAtStart())
   const latch = useRef(0)
   const gestures = useRef<TouchGestures | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -114,6 +117,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
   const [displays, setDisplays] = useState<Display[]>([])
   const [activeDisplay, setActiveDisplay] = useState<number | null>(null)
   const [sound, setSound] = useState(false)
+  const [hidePointer, setHidePointer] = useState(remotePointerAtStart)
   const [touchMode, setTouchMode] = useState<TouchMode>("trackpad")
   const [keyboardOpen, setKeyboardOpen] = useState(false)
   const [latched, setLatched] = useState(0)
@@ -126,7 +130,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
     toastTimer.current = setTimeout(() => setToast(null), 2600)
   }, [])
 
-  const send = useCallback((events: InputEvent[]) => {
+  const send = useCallback((events: InputEvent[], now = false) => {
     const q = queue.current
     for (const e of events) {
       const last = q[q.length - 1]
@@ -135,13 +139,16 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
         q[q.length - 1] = {...e, dx: last.dx + e.dx, dy: last.dy + e.dy}
       else q.push(e)
     }
-    if (raf.current) return
-    raf.current = requestAnimationFrame(() => {
+    const flush = () => {
       raf.current = 0
       const batch = queue.current
       queue.current = []
       remote.current?.input(encodeRecords(batch))
-    })
+    }
+    if (now) {
+      if (raf.current) cancelAnimationFrame(raf.current)
+      flush()
+    } else if (!raf.current) raf.current = requestAnimationFrame(flush)
   }, [])
 
   const geometry = useCallback((): Geometry => {
@@ -196,6 +203,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
           setFailure(null)
           setPhase("connected")
           remote.current?.send({t: "setAudio", enabled: soundOn.current})
+          remote.current?.send({t: "cursor", shown: remotePointer.current})
           remote.current?.send({t: "getClipboard"})
           break
         case "path":
@@ -287,15 +295,18 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
     const pointerCancel = (e: PointerEvent) => {
       if (e.pointerType === "touch") touch.cancel()
     }
-    const mouseMove = (e: MouseEvent) => send([{kind: "moveTo", ...point(e)}])
+    const mouseMove = (e: MouseEvent) => send([{kind: "moveTo", ...point(e)}], e.buttons !== 0)
     const mouseButton = (down: boolean) => (e: MouseEvent) => {
       const button = protocolButton(e.button)
       if (button === null) return
       e.preventDefault()
-      send([
-        {kind: "moveTo", ...point(e)},
-        {kind: "button", button, down, clicks: Math.max(1, Math.min(3, e.detail || 1))},
-      ])
+      send(
+        [
+          {kind: "moveTo", ...point(e)},
+          {kind: "button", button, down, clicks: Math.max(1, Math.min(3, e.detail || 1))},
+        ],
+        true,
+      )
     }
     const mouseDown = mouseButton(true)
     const mouseUp = mouseButton(false)
@@ -452,6 +463,14 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
     setSound(true)
   }
 
+  const togglePointer = () => {
+    const hide = !hidePointer
+    localStorage.setItem(HIDE_POINTER_KEY, hide ? "1" : "0")
+    remotePointer.current = hide
+    setHidePointer(hide)
+    remote.current?.send({t: "cursor", shown: hide})
+  }
+
   const sendClipboard = () => {
     navigator.clipboard
       ?.readText()
@@ -560,6 +579,14 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
             onClick={() => setTouchMode(touchMode === "trackpad" ? "direct" : "trackpad")}
           />
         )}
+        {connected && !TOUCH && (
+          <BarButton
+            icon={MousePointer2}
+            label={hidePointer ? "Use your own pointer" : "Use the computer's pointer"}
+            active={hidePointer}
+            onClick={togglePointer}
+          />
+        )}
         {connected && TOUCH && (
           <BarButton icon={Keyboard} label="Keyboard" active={keyboardOpen} onClick={toggleKeyboard} />
         )}
@@ -616,7 +643,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
           height={10}
           tabIndex={0}
           aria-label={`${hostName}'s screen`}
-          className={`h-full w-full touch-none object-contain outline-none select-none ${TOUCH ? "" : "cursor-none"}`}
+          className={`h-full w-full touch-none object-contain outline-none select-none ${TOUCH ? "" : hidePointer ? "cursor-none" : "cursor-default"}`}
         />
         {notice && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">

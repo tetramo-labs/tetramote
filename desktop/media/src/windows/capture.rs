@@ -57,6 +57,7 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
         stop: AtomicBool::new(false),
         keyframe: AtomicBool::new(true),
         bitrate: AtomicU32::new(0),
+        cursor: AtomicBool::new(config.cursor),
     });
     let (ready_tx, ready_rx) = mpsc::channel();
     let thread = {
@@ -111,6 +112,7 @@ struct Control {
     stop: AtomicBool,
     keyframe: AtomicBool,
     bitrate: AtomicU32,
+    cursor: AtomicBool,
 }
 
 struct WindowsStream {
@@ -131,6 +133,12 @@ impl ScreenStream for WindowsStream {
 
     fn set_bitrate(&self, bps: u32) {
         self.control.bitrate.store(bps.max(1), Ordering::Relaxed);
+    }
+
+    fn set_cursor(&self, shown: bool) {
+        if self.control.cursor.swap(shown, Ordering::Relaxed) != shown {
+            self.control.keyframe.store(true, Ordering::Relaxed);
+        }
     }
 }
 
@@ -224,7 +232,7 @@ fn capture(
             continue;
         }
         let keyframe = control.keyframe.swap(false, Ordering::Relaxed);
-        duplicator.compose(&mut composed);
+        duplicator.compose(&mut composed, control.cursor.load(Ordering::Relaxed));
         let frame = if (duplicator.width, duplicator.height) == (width, height) {
             &composed
         } else {
@@ -594,11 +602,11 @@ impl Duplicator {
         Ok(())
     }
 
-    fn compose(&self, out: &mut Vec<u8>) {
+    fn compose(&self, out: &mut Vec<u8>, cursor: bool) {
         out.clear();
         out.extend_from_slice(&self.desktop);
         out.resize(self.width * self.height * 4, 0);
-        if self.pointer.visible {
+        if cursor && self.pointer.visible {
             if let Some(shape) = &self.pointer.shape {
                 draw_pointer(
                     out,

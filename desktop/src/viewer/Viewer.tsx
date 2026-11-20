@@ -13,7 +13,8 @@ const BAR = "bg-[#1f1f1f] text-[#fafafa]"
 
 /**
  * Another computer's screen. Mouse and keyboard go to it while this window is
- * focused; input is batched per animation frame.
+ * focused. Moves are batched per animation frame; clicks and drags go out at
+ * once, at this computer's pointer, so they land where it shows.
  */
 export function Viewer() {
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -77,23 +78,26 @@ export function Viewer() {
       queue.current = []
       void api.input(events)
     }
-    const send = (event: ViewerInput) => {
+    const send = (event: ViewerInput, now = false) => {
       const q = queue.current
       if (event.kind === "moveTo" && q.length > 0 && q[q.length - 1].kind === "moveTo") q[q.length - 1] = event
       else q.push(event)
-      if (!raf) raf = requestAnimationFrame(flush)
+      if (now) {
+        if (raf) cancelAnimationFrame(raf)
+        flush()
+      } else if (!raf) raf = requestAnimationFrame(flush)
     }
     const c = canvas.current
     if (!c) return
     const point = (e: MouseEvent) =>
       normalized(e.clientX, e.clientY, contentRect(c.getBoundingClientRect(), c.width / Math.max(1, c.height)))
-    const move = (e: MouseEvent) => send({kind: "moveTo", ...point(e)})
+    const move = (e: MouseEvent) => send({kind: "moveTo", ...point(e)}, e.buttons !== 0)
     const button = (down: boolean) => (e: MouseEvent) => {
       const b = protocolButton(e.button)
       if (b === null) return
       e.preventDefault()
       send({kind: "moveTo", ...point(e)})
-      send({kind: "button", button: b, down, clicks: Math.max(1, Math.min(3, e.detail || 1))})
+      send({kind: "button", button: b, down, clicks: Math.max(1, Math.min(3, e.detail || 1))}, true)
     }
     const wheel = (e: WheelEvent) => {
       e.preventDefault()
@@ -189,7 +193,12 @@ export function Viewer() {
         </Button>
       </div>
       <div className="relative min-h-0 flex-1">
-        <canvas ref={canvas} className="h-full w-full cursor-none object-contain" width={16} height={10} />
+        <canvas
+          ref={canvas}
+          className={`h-full w-full object-contain ${client?.hideLocalPointer ? "cursor-none" : "cursor-default"}`}
+          width={16}
+          height={10}
+        />
         {(!connected || !hasPicture || decodeError || blocked) && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-8">
             <div className="max-w-[420px] rounded-3xl bg-[#2e2e2e] px-6 py-5 text-center text-[13px] text-[#fafafa]">

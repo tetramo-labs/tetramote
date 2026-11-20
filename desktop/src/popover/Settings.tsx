@@ -8,6 +8,7 @@ import {useUpdates} from "@/updates"
 
 export function Settings() {
   const settings = useAppStore((s) => s.settings)
+  const hidePointer = useAppStore((s) => s.client?.hideLocalPointer ?? false)
   const [draft, setRelay] = useState<string | null>(null)
   const relay = draft ?? settings?.relayUrl ?? ""
   const [relayError, setRelayError] = useState<string | null>(null)
@@ -89,6 +90,20 @@ export function Settings() {
             Used when devices can't reach each other directly. Leave empty for n0's public relays.
           </div>
           {relayError && <div className="text-[11px] text-destructive">{relayError}</div>}
+        </Row>
+        <Row className="flex-col !items-stretch gap-1">
+          <div className="flex items-center">
+            <div className="flex-1 text-[13px]">Use the other computer's pointer</div>
+            <Toggle
+              label="Use the other computer's pointer"
+              checked={hidePointer}
+              onChange={(v) => void api.setHideLocalPointer(v)}
+            />
+          </div>
+          <div className="text-[11px] text-muted">
+            When you control another computer, hide this computer's pointer and show that computer's pointer in the
+            picture instead. Off, your own pointer stays and clicks land exactly where it is.
+          </div>
         </Row>
         <Row>
           <div className="flex-1 text-[13px]">Open at login</div>

@@ -133,6 +133,7 @@ impl Audio {
 struct MacStream {
     info: StreamInfo,
     stream: SCStream,
+    capture: Mutex<SCStreamConfiguration>,
     shared: Arc<Shared>,
 }
 
@@ -147,6 +148,17 @@ impl ScreenStream for MacStream {
 
     fn set_bitrate(&self, bps: u32) {
         self.shared.bitrate.store(bps, Ordering::Release);
+    }
+
+    fn set_cursor(&self, shown: bool) {
+        let mut capture = lock(&self.capture);
+        if capture.shows_cursor() == shown {
+            return;
+        }
+        capture.set_shows_cursor(shown);
+        if let Err(error) = self.stream.update_configuration(&capture) {
+            log::warn!("The pointer setting didn't apply to screen capture: {error}");
+        }
     }
 }
 
@@ -234,7 +246,7 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
         .with_height(height)
         .with_minimum_frame_interval(&CMTime::new(1, fps as i32))
         .with_pixel_format(pixel_format)
-        .with_shows_cursor(true)
+        .with_shows_cursor(config.cursor)
         .with_queue_depth(5)
         .with_captures_audio(config.audio)
         .with_sample_rate(OPUS_SAMPLE_RATE as i32)
@@ -279,6 +291,7 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
             encoder: encoder_name,
         },
         stream,
+        capture: Mutex::new(capture),
         shared,
     }))
 }

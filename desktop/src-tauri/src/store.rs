@@ -48,6 +48,7 @@ pub struct Settings {
     pub trusted: Vec<PairedDevice>,
     pub hosts: Vec<SavedHost>,
     pub play_audio: bool,
+    pub hide_local_pointer: bool,
 }
 
 impl Default for Settings {
@@ -57,6 +58,7 @@ impl Default for Settings {
             trusted: Vec::new(),
             hosts: Vec::new(),
             play_audio: true,
+            hide_local_pointer: false,
         }
     }
 }

@@ -45,6 +45,7 @@ export type PhoneMessage =
   | {t: "getClipboard"}
   | {t: "selectDisplay"; id: number}
   | {t: "setAudio"; enabled: boolean}
+  | {t: "cursor"; shown: boolean}
   | {t: "keyframe"}
 
 export interface StreamStats {

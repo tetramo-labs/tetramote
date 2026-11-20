@@ -54,6 +54,7 @@ export interface ClientState {
   video: {width: number; height: number; displayId: number} | null
   remoteStatus: {screenRecording: boolean; accessibility: boolean} | null
   playAudio: boolean
+  hideLocalPointer: boolean
 }
 
 export interface SettingsView {
@@ -87,6 +88,7 @@ export const api = {
   input: (events: ViewerInput[]) => invoke<void>("viewer_input", {events}),
   selectDisplay: (id: number) => invoke<void>("viewer_select_display", {id}),
   setAudio: (enabled: boolean) => invoke<void>("viewer_set_audio", {enabled}),
+  setHideLocalPointer: (hide: boolean) => invoke<void>("viewer_set_hide_local_pointer", {hide}),
   keyframe: () => invoke<void>("viewer_keyframe"),
   quit: () => invoke<void>("app_quit"),
 }

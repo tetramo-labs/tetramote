@@ -15,7 +15,7 @@ thiserror = "2"
 log = "0.4"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-screencapturekit = "11"
+screencapturekit = { version = "11", features = ["macos_14_0"] }
 objc2 = "0.6"
 objc2-foundation = "0.3"
 objc2-core-foundation = "0.3"

@@ -136,6 +136,7 @@ struct Inner {
     injector: Option<Box<dyn InputInjector>>,
     sink: Option<Arc<Sink>>,
     last_denied_status: Option<Instant>,
+    cursor: bool,
 }
 
 pub type Notify = Box<dyn Fn(HostState) + Send + Sync>;
@@ -172,6 +173,7 @@ impl HostService {
                 injector: None,
                 sink: None,
                 last_denied_status: None,
+                cursor: true,
             }),
             stream: Arc::new(Mutex::new(None)),
             clipboard: Mutex::new(clipboard::Watcher::new()),
@@ -390,6 +392,7 @@ impl HostService {
                         id,
                         name: name.clone(),
                     });
+                    inner.cursor = true;
                     inner.status = HostStatus::Connected {
                         name,
                         path: v["path"].as_str().map(String::from),
@@ -461,6 +464,7 @@ impl HostService {
         let config = StreamConfig {
             display_id: wanted,
             bitrate_bps: START_BPS,
+            cursor: self.inner.lock().unwrap().cursor,
             ..StreamConfig::default()
         };
         match start_stream(config, sink.clone()) {
@@ -491,6 +495,7 @@ impl HostService {
                 inner.sink = Some(sink);
                 drop(inner);
                 *self.stream.lock().unwrap() = Some(stream);
+                self.apply_cursor();
             }
             Err(e) => {
                 self.inner.lock().unwrap().stream_error = Some(e.to_string());
@@ -508,6 +513,13 @@ impl HostService {
         inner.sink = None;
         inner.encoder = None;
         inner.display = None;
+    }
+
+    fn apply_cursor(&self) {
+        let shown = self.inner.lock().unwrap().cursor;
+        if let Some(stream) = self.stream.lock().unwrap().as_ref() {
+            stream.set_cursor(shown);
+        }
     }
 
     fn on_control(self: &Arc<Self>, host: &Arc<Host>, v: &Value) {
@@ -531,6 +543,10 @@ impl HostService {
                 if let Some(text) = clipboard::read() {
                     send(host, &json!({"t": "clipboard", "text": text}));
                 }
+            }
+            Some("cursor") => {
+                self.inner.lock().unwrap().cursor = v["shown"].as_bool().unwrap_or(true);
+                self.apply_cursor();
             }
             Some("setAudio") => {
                 let enabled = v["enabled"].as_bool().unwrap_or(true);

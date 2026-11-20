@@ -45,6 +45,7 @@ pub struct ClientState {
     pub video: Option<Value>,
     pub remote_status: Option<Value>,
     pub play_audio: bool,
+    pub hide_local_pointer: bool,
 }
 
 /// One input event from the viewer, in the viewer's terms.
@@ -174,6 +175,7 @@ impl ClientService {
             video: inner.video.clone(),
             remote_status: inner.remote_status.clone(),
             play_audio: settings.play_audio,
+            hide_local_pointer: settings.hide_local_pointer,
         }
     }
 
@@ -283,6 +285,19 @@ impl ClientService {
         }
         self.send_control(&json!({"t": "setAudio", "enabled": enabled}));
         self.emit();
+    }
+
+    /// The host draws its pointer into the picture only when this computer's
+    /// own pointer is hidden over the viewer.
+    pub fn set_hide_local_pointer(&self, hide: bool) {
+        self.store.update(|s| s.hide_local_pointer = hide);
+        self.send_cursor();
+        self.emit();
+    }
+
+    fn send_cursor(&self) {
+        let shown = self.store.get().hide_local_pointer;
+        self.send_control(&json!({"t": "cursor", "shown": shown}));
     }
 
     /// Binding the endpoint blocks and windows must not be created inside a
@@ -486,6 +501,9 @@ impl ClientService {
                 }
                 _ => return,
             }
+        }
+        if v["type"] == "connected" {
+            self.send_cursor();
         }
         self.emit();
     }
