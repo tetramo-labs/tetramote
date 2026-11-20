@@ -291,7 +291,7 @@ fn main() {
                         let url = tetra_core::link::make(
                             v["endpointId"].as_str().unwrap_or(""),
                             &pairing_secret,
-                            "Fake Mac",
+                            &args.name,
                         );
                         eprintln!("ticket: {}", v["ticket"].as_str().unwrap_or(""));
                         eprintln!("pairing URL: {url}");
