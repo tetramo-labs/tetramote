@@ -73,7 +73,12 @@ function handleState(state: RemoteState) {
       connectedOnce = true
       const target = session.target
       if (target) {
-        useHostsStore.getState().upsert({id: state.endpointId, name: state.hostName, ticket: target.ticket})
+        useHostsStore.getState().upsert({
+          id: state.endpointId,
+          name: state.hostName,
+          ticket: target.ticket,
+          ...(target.pairingSecret ? {secret: target.pairingSecret} : {}),
+        })
         useHostsStore.getState().markConnected(state.endpointId, state.hostName)
         useSessionStore.setState({target: {...target, id: state.endpointId, name: state.hostName, pairingSecret: null}})
       }

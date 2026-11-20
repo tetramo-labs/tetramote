@@ -1,4 +1,4 @@
-import {pairingFromParams, parsePairingUrl} from "@/services/pairingUrl"
+import {makePairingUrl, pairingFromParams, parsePairingUrl} from "@/services/pairingUrl"
 import {redirectSystemPath} from "@/app/+native-intent"
 
 const ID = "20335dac186d6285c52b0dbe2f7b91a73dadbea6abe08d6e9aa777fe2bfe99e5"
@@ -43,5 +43,16 @@ describe("redirectSystemPath", () => {
       `/pair?id=${ID}&secret=${SECRET}&name=Fosse%E2%80%99s%20MacBook`,
     )
     expect(redirectSystemPath({path: "/settings", initial: false})).toBe("/settings")
+  })
+})
+
+describe("makePairingUrl", () => {
+  it("writes the link the computer shares, which reads back", () => {
+    expect(makePairingUrl({endpointId: ID, secret: SECRET, name: "Fosse’s Mac"})).toBe(
+      `https://remote.tetramote.com/#id=${ID}&secret=${SECRET}&name=Fosse%E2%80%99s%20Mac`,
+    )
+    const odd = makePairingUrl({endpointId: ID, secret: SECRET, name: "It's (mine)!"})
+    expect(odd).toBe(`https://remote.tetramote.com/#id=${ID}&secret=${SECRET}&name=It%27s%20%28mine%29%21`)
+    expect(parsePairingUrl(odd)?.name).toBe("It's (mine)!")
   })
 })

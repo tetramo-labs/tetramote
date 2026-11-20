@@ -22,6 +22,13 @@ const en = {
     forgetTitle: "Forget {{name}}?",
     forgetMessage: "You will need to pair it again to connect. Remove this iPhone on the computer too.",
   },
+  host: {
+    copyLink: "Copy pairing link",
+    copyLinkHint: "Anyone with it can connect until the computer makes a new link.",
+    linkCopied: "Link copied",
+    remove: "Remove",
+    removeHint: "You'll need to pair again to connect.",
+  },
   pair: {
     title: "Pair device",
     scan: "Scan the code",

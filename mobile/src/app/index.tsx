@@ -1,10 +1,11 @@
 import {remote} from "@tetramote/remote"
 import type {BottomSheetModal} from "@gorhom/bottom-sheet"
 import {MonitorSmartphone, Plus, Settings} from "lucide-react-native"
-import {useEffect, useRef} from "react"
+import {useEffect, useRef, useState} from "react"
 import {Alert, FlatList, View} from "react-native"
 
 import {HostCard} from "@/components/hosts/HostCard"
+import {HostSheet} from "@/components/hosts/HostSheet"
 import {PairSheet} from "@/components/hosts/PairSheet"
 import {Button} from "@/components/ignite/Button"
 import {Header} from "@/components/ignite/Header"
@@ -26,6 +27,8 @@ export default function HomeScreen() {
   const push = useNavigationStore((s) => s.push)
   const gutters = usePageGutters()
   const pairSheet = useRef<BottomSheetModal>(null)
+  const hostSheet = useRef<BottomSheetModal>(null)
+  const [selected, setSelected] = useState<PairedMac | null>(null)
 
   useEffect(() => {
     const code = parsePairingUrl(remote.launchPairingUrl() ?? "")
@@ -71,7 +74,14 @@ export default function HomeScreen() {
           contentContainerClassName="gap-3 pt-2 pb-6"
           contentContainerStyle={{paddingLeft: gutters.left, paddingRight: gutters.right}}
           renderItem={({item}) => (
-            <HostCard host={item} onPress={() => open(item)} onLongPress={() => confirmForget(item)} />
+            <HostCard
+              host={item}
+              onPress={() => open(item)}
+              onLongPress={() => {
+                setSelected(item)
+                hostSheet.current?.present()
+              }}
+            />
           )}
         />
       )}
@@ -82,6 +92,7 @@ export default function HomeScreen() {
         style={{marginBottom: 8}}
       />
       <PairSheet sheet={pairSheet} />
+      <HostSheet sheet={hostSheet} host={selected} onRemove={confirmForget} />
     </Screen>
   )
 }

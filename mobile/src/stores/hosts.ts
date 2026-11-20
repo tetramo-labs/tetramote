@@ -6,6 +6,7 @@ export interface PairedMac {
   id: string
   name: string
   ticket: string
+  secret?: string
   pairedAt: number
   lastConnectedAt: number | null
 }

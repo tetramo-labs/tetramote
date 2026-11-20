@@ -38,3 +38,12 @@ export function pairingFromParams(params: {id?: unknown; secret?: unknown; name?
   if (!ID.test(endpointId) || !SECRET.test(secret)) return null
   return {endpointId, secret, name}
 }
+
+/** The link `core/src/link.rs` writes, encoding the name the same way (only `-_.~` and letters and digits stay). */
+export function makePairingUrl(code: PairingCode): string {
+  const name = encodeURIComponent(code.name).replace(
+    /[!'()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+  )
+  return `https://${HOST}/#id=${code.endpointId}&secret=${code.secret}&name=${name}`
+}
