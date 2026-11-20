@@ -15,12 +15,14 @@ export interface Insets {
 export type ToolbarPlacement = "rail" | "panel" | "bottomRail" | "side" | "floating"
 
 export type SessionLayout =
-  | {kind: "stacked"; video: Rect; panel: Rect; toolbar: "rail" | "panel" | "bottomRail"}
+  | {kind: "stacked"; video: Rect; panel: Rect; toolbar: "rail" | "panel" | "bottomRail"; trackpad?: Rect}
   | {kind: "overlay"; video: Rect; toolbar: "rail" | "side" | "floating"}
 
 export const MIN_PANEL_HEIGHT = 180
 export const PANEL_GAP = 12
 export const SIDE_TOOLBAR_WIDTH = 64
+export const TRACKPAD_ASPECT = 16 / 9
+export const TRACKPAD_INSET = 12
 
 export interface SessionLayoutInput {
   width: number
@@ -37,6 +39,23 @@ function fitInside(area: Rect, aspect: number): Rect {
   const width = Math.min(area.width, area.height * aspect)
   const height = width / aspect
   return {x: area.x + (area.width - width) / 2, y: area.y + (area.height - height) / 2, width, height}
+}
+
+/**
+ * A 16:9 trackpad as wide as the panel allows, centred between the bottom of
+ * the screen above it and the bottom of the window, never outside the panel.
+ */
+function centredTrackpad(panel: Rect, screenBottom: number, windowHeight: number): Rect {
+  const room: Rect = {
+    x: panel.x + TRACKPAD_INSET,
+    y: panel.y,
+    width: panel.width - 2 * TRACKPAD_INSET,
+    height: panel.height - TRACKPAD_INSET,
+  }
+  const fitted = fitInside(room, TRACKPAD_ASPECT)
+  const centred = (screenBottom + windowHeight - fitted.height) / 2
+  const y = Math.min(Math.max(centred, room.y), room.y + room.height - fitted.height)
+  return {...fitted, y}
 }
 
 /** A fold that runs across the content, splitting it into a top and a bottom half. */
@@ -60,9 +79,10 @@ function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; pan
  * window has room under the screen it becomes a laptop: screen on top, trackpad
  * below, split at a horizontal fold when there is one so nothing sits in it.
  * Otherwise the screen fills the window. Controls go in the iPhone Duo's rail
- * when there is one. Full screen fits the screen to the whole window, edge to
- * edge, with floating controls. Decided from sizes alone, never the device or
- * orientation.
+ * when there is one, and then a laptop with no fold to split at (the folded
+ * Duo) gets a 16:9 trackpad centred under the screen. Full screen fits the
+ * screen to the whole window, edge to edge, with floating controls. Decided
+ * from sizes alone, never the device or orientation.
  */
 export function sessionLayout({
   width,
@@ -98,12 +118,11 @@ export function sessionLayout({
   const videoHeight = content.width / aspect
   const below = content.height - videoHeight - PANEL_GAP
   if (below >= MIN_PANEL_HEIGHT) {
-    return {
-      kind: "stacked",
-      video: {x: content.x, y: content.y, width: content.width, height: videoHeight},
-      panel: {x: content.x, y: content.y + videoHeight + PANEL_GAP, width: content.width, height: below},
-      toolbar: stackedToolbar,
-    }
+    const video: Rect = {x: content.x, y: content.y, width: content.width, height: videoHeight}
+    const panel: Rect = {x: content.x, y: content.y + videoHeight + PANEL_GAP, width: content.width, height: below}
+    if (!rail) return {kind: "stacked", video, panel, toolbar: stackedToolbar}
+    const trackpad = centredTrackpad(panel, video.y + video.height, height)
+    return {kind: "stacked", video, panel, toolbar: stackedToolbar, trackpad}
   }
 
   const video = fitInside(content, aspect)

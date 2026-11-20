@@ -174,7 +174,21 @@ function SessionBody() {
         <RemoteSurface zoomControls={zoomControls} onThreeFingerTap={controls.toggle} />
       </View>
 
-      {plan.kind === "stacked" ? (
+      {plan.kind === "stacked" && plan.trackpad ? (
+        <>
+          <View pointerEvents="box-none" className="px-3" style={rectStyle(plan.panel)}>
+            {status}
+          </View>
+          <View style={rectStyle(plan.trackpad)}>
+            <TrackpadPanel
+              bare
+              screenWidth={plan.video.width}
+              zoomControls={zoomControls}
+              onThreeFingerTap={controls.toggle}
+            />
+          </View>
+        </>
+      ) : plan.kind === "stacked" ? (
         <View style={rectStyle(plan.panel)}>
           <TrackpadPanel
             screenWidth={plan.video.width}

@@ -24,7 +24,29 @@ describe("sessionLayout", () => {
       video: {x: 0, y: 0, width: 382, height: 238.75},
       panel: {x: 0, y: 250.75, width: 382, height: 407.25},
       toolbar: "rail",
+      trackpad: {x: 12, y: 357.6875, width: 358, height: 201.375},
     })
+  })
+
+  it("keeps the folded Duo's 16:9 trackpad inside a short panel, sized by its height", () => {
+    const layout = sessionLayout({
+      width: 466,
+      height: 470,
+      insets: {top: 0, bottom: 20, left: 0, right: 84},
+      rail: "right",
+      aspect: 1.6,
+      fold: null,
+    })
+    expect(layout.kind).toBe("stacked")
+    if (layout.kind !== "stacked") return
+    expect(layout.trackpad).toEqual(near({x: 24.5556, y: 250.75, width: 332.8889, height: 187.25}))
+  })
+
+  it("gives a phone without a rail the full-width trackpad panel", () => {
+    const layout = sessionLayout({width: 393, height: 852, insets: none, rail: null, aspect: 1.6, fold: null})
+    expect(layout.kind).toBe("stacked")
+    if (layout.kind !== "stacked") return
+    expect(layout.trackpad).toBeUndefined()
   })
 
   it("splits at the fold on the open Duo in portrait", () => {

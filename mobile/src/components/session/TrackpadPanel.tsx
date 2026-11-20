@@ -15,13 +15,15 @@ interface TrackpadPanelProps {
   onThreeFingerTap: () => void
   header?: ReactNode
   footer?: ReactNode
+  bare?: boolean
 }
 
 /**
  * The laptop half of the session: a trackpad under the Mac's screen. A swipe
  * across it moves the pointer about as far as a swipe across the screen would.
+ * A bare panel is only the trackpad, filling its parent edge to edge.
  */
-export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, header, footer}: TrackpadPanelProps) {
+export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, header, footer, bare}: TrackpadPanelProps) {
   const {theme} = useAppTheme()
   const video = useSessionStore((s) => s.video)
   const [speed] = useSetting("trackpad_speed")
@@ -44,7 +46,7 @@ export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, head
   }
 
   return (
-    <View className="flex-1 gap-3 px-3 pb-3">
+    <View className={bare ? "flex-1" : "flex-1 gap-3 px-3 pb-3"}>
       {header}
       <GestureDetector gesture={gesture}>
         <View
