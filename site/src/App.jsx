@@ -32,7 +32,7 @@ export const features = [
   },
   {
     title: "Trackpad or direct touch",
-    body: "Drag to move the pointer, tap to click, tap with two fingers to right-click, and drag two fingers to scroll. Tap then drag to drag a window. Or switch to direct touch and tap the screen itself, pinching to zoom in.",
+    body: "Drag to move the pointer, tap to click, tap with two fingers to right-click, and drag two fingers to scroll. To drag a window, hold your finger still until the phone taps back, then drag. Or switch to direct touch and tap the screen itself, pinching to zoom in.",
   },
   {
     title: "Modifier and arrow keys",

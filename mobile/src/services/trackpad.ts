@@ -3,7 +3,6 @@ import type {TrackpadSpeed} from "@/stores/settings"
 const SPEED: Record<TrackpadSpeed, number> = {slow: 0.6, normal: 1, fast: 1.6}
 const DOUBLE_CLICK_MS = 350
 const DOUBLE_CLICK_SLOP = 24
-const TAP_DRAG_MS = 350
 
 /** Mac points per phone point for a finger moving across the visible stream. */
 export function pointerGain(viewWidth: number, pointWidth: number, zoom: number, speed: TrackpadSpeed): number {
@@ -35,9 +34,8 @@ export class ClickCounter {
   }
 }
 
-export function startsTapDrag(lastTapAt: number | null, touchAt: number): boolean {
-  return lastTapAt !== null && touchAt - lastTapAt >= 0 && touchAt - lastTapAt <= TAP_DRAG_MS
-}
+/** How long a finger rests on the trackpad before it presses the button and drags. */
+export const HOLD_DRAG_MS = 800
 
 /** Decays a scroll fling into momentum steps; returns deltas per 16 ms frame. */
 export function momentumSteps(vx: number, vy: number, decay = 0.92, minStep = 0.5): {dx: number; dy: number}[] {

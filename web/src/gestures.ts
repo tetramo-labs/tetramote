@@ -2,7 +2,7 @@ import {MOUSE_LEFT, MOUSE_RIGHT, SCROLL_BEGAN, SCROLL_CHANGED, SCROLL_ENDED, typ
 
 export type TouchMode = "trackpad" | "direct"
 
-export const TAP_DRAG_MS = 350
+export const HOLD_DRAG_MS = 800
 const TAP_MS = 250
 const TWO_FINGER_TAP_MS = 300
 const LONG_PRESS_MS = 500
@@ -22,8 +22,8 @@ export interface Geometry {
 }
 
 /**
- * Touches on the picture as the phone app reads them. Trackpad: drag moves the pointer, tap clicks, tap then drag
- * drags, two fingers tap to right-click or drag to scroll. Direct: the finger is the pointer, and a long press
+ * Touches on the picture as the phone app reads them. Trackpad: drag moves the pointer, tap clicks, a finger held
+ * still for HOLD_DRAG_MS presses the button and drags until it lifts, two fingers tap to right-click or drag to scroll. Direct: the finger is the pointer, and a long press
  * right-clicks.
  */
 export class TouchGestures {
@@ -33,9 +33,8 @@ export class TouchGestures {
   private most = 0
   private moved = false
   private pressed = false
-  private tapDrag = false
+  private hold: ReturnType<typeof setTimeout> | null = null
   private scrolling = false
-  private lastTapAt: number | null = null
   private centroid: {x: number; y: number} | null = null
   private scrollFrom: {x: number; y: number} | null = null
 
@@ -52,9 +51,10 @@ export class TouchGestures {
       this.moved = false
       this.pressed = false
       this.scrolling = false
-      this.tapDrag = this.mode === "trackpad" && this.lastTapAt !== null && at - this.lastTapAt <= TAP_DRAG_MS
+      if (this.mode === "trackpad") this.hold = setTimeout(() => this.press(), HOLD_DRAG_MS)
       return
     }
+    this.stopHold()
     this.most = Math.max(this.most, this.fingers.size)
     if (this.pressed) {
       this.send([{kind: "button", button: MOUSE_LEFT, down: false, clicks: 1}])
@@ -78,6 +78,7 @@ export class TouchGestures {
     if (!this.moved && Math.hypot(x - finger.startX, y - finger.startY) < SLOP_PX) return
     const first = !this.moved
     this.moved = true
+    this.stopHold()
     const geometry = this.geometry()
     if (this.mode === "direct") {
       const events: InputEvent[] = [{kind: "moveTo", ...geometry.toScreen(x, y)}]
@@ -86,13 +87,7 @@ export class TouchGestures {
       this.send(events)
       return
     }
-    const events: InputEvent[] = []
-    if (first && this.tapDrag) {
-      events.push({kind: "button", button: MOUSE_LEFT, down: true, clicks: 1})
-      this.pressed = true
-    }
-    events.push({kind: "move", dx: dx * geometry.pointsPerPixel, dy: dy * geometry.pointsPerPixel})
-    this.send(events)
+    this.send([{kind: "move", dx: dx * geometry.pointsPerPixel, dy: dy * geometry.pointsPerPixel}])
   }
 
   up(id: number, at: number) {
@@ -103,6 +98,7 @@ export class TouchGestures {
       this.centroid = this.center()
       return
     }
+    this.stopHold()
     const held = at - this.startedAt
     if (this.scrolling) {
       this.send([{kind: "scroll", dx: 0, dy: 0, phase: SCROLL_ENDED}])
@@ -115,19 +111,30 @@ export class TouchGestures {
       this.click(held >= LONG_PRESS_MS ? MOUSE_RIGHT : MOUSE_LEFT, point)
     } else if (this.most === 1 && !this.moved && held <= TAP_MS) {
       this.click(MOUSE_LEFT, null)
-      this.lastTapAt = at
-      return
     }
     this.pressed = false
-    this.lastTapAt = null
   }
 
   cancel() {
+    this.stopHold()
     if (this.pressed) this.send([{kind: "button", button: MOUSE_LEFT, down: false, clicks: 1}])
     if (this.scrolling) this.send([{kind: "scroll", dx: 0, dy: 0, phase: SCROLL_ENDED}])
     this.fingers.clear()
     this.pressed = false
     this.scrolling = false
+  }
+
+  private press() {
+    this.hold = null
+    if (this.fingers.size !== 1 || this.moved) return
+    this.pressed = true
+    globalThis.navigator?.vibrate?.(15)
+    this.send([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
+  }
+
+  private stopHold() {
+    if (this.hold) clearTimeout(this.hold)
+    this.hold = null
   }
 
   private click(button: number, at: {x: number; y: number} | null) {

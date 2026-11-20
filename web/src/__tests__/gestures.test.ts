@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it} from "vitest"
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest"
 
 import {TouchGestures} from "@/gestures"
 import type {InputEvent} from "@/input"
@@ -7,11 +7,16 @@ let sent: InputEvent[]
 let touch: TouchGestures
 
 beforeEach(() => {
+  vi.useFakeTimers()
   sent = []
   touch = new TouchGestures(
     (events) => sent.push(...events),
     () => ({toScreen: (x, y) => ({x: x / 100, y: y / 100}), pointsPerPixel: 2}),
   )
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 const left = (down: boolean) => ({kind: "button", button: 0, down, clicks: 1})
@@ -28,14 +33,31 @@ describe("trackpad touches", () => {
     expect(sent).toEqual([{kind: "move", dx: 20, dy: 10}])
   })
 
-  it("drags after a quick tap, then releases", () => {
+  it("presses after a finger rests for 800 ms, drags with the button held, then releases", () => {
     touch.down(1, 10, 10, 0)
-    touch.up(1, 80)
-    sent = []
-    touch.down(1, 10, 10, 300)
+    vi.advanceTimersByTime(799)
+    expect(sent).toEqual([])
+    vi.advanceTimersByTime(1)
+    expect(sent).toEqual([left(true)])
     touch.move(1, 30, 10)
-    touch.up(1, 600)
+    touch.up(1, 1500)
     expect(sent).toEqual([left(true), {kind: "move", dx: 40, dy: 0}, left(false)])
+  })
+
+  it("only moves when the finger moves before the hold, and no longer drags after a quick tap", () => {
+    touch.down(1, 10, 10, 0)
+    touch.move(1, 30, 10)
+    vi.advanceTimersByTime(1000)
+    touch.up(1, 1000)
+    expect(sent).toEqual([{kind: "move", dx: 40, dy: 0}])
+    sent = []
+    touch.down(1, 10, 10, 2000)
+    touch.up(1, 2080)
+    sent = []
+    touch.down(1, 10, 10, 2300)
+    touch.move(1, 30, 10)
+    touch.up(1, 2600)
+    expect(sent).toEqual([{kind: "move", dx: 40, dy: 0}])
   })
 
   it("right-clicks on a two-finger tap and scrolls on a two-finger drag", () => {

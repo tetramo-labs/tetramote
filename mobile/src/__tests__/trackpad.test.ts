@@ -1,4 +1,4 @@
-import {acceleration, ClickCounter, momentumSteps, normalize, pointerGain, startsTapDrag} from "@/services/trackpad"
+import {acceleration, ClickCounter, momentumSteps, normalize, pointerGain} from "@/services/trackpad"
 
 describe("pointerGain", () => {
   it("maps the visible stream width to the Mac's width in points", () => {
@@ -46,15 +46,5 @@ describe("momentumSteps", () => {
     expect(steps[1].dy).toBeCloseTo(14.72)
     expect(Math.abs(steps[steps.length - 1].dy)).toBeGreaterThanOrEqual(0.5)
     expect(momentumSteps(0, 10)).toEqual([])
-  })
-})
-
-describe("startsTapDrag", () => {
-  it("drags only when the finger lands soon after a tap", () => {
-    expect(startsTapDrag(null, 1000)).toBe(false)
-    expect(startsTapDrag(1000, 1200)).toBe(true)
-    expect(startsTapDrag(1000, 1350)).toBe(true)
-    expect(startsTapDrag(1000, 1351)).toBe(false)
-    expect(startsTapDrag(1000, 900)).toBe(false)
   })
 })
