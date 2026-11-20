@@ -5,7 +5,15 @@ import {Gesture} from "react-native-gesture-handler"
 import type {SharedValue} from "react-native-reanimated"
 
 import {sendInput} from "@/services/remote"
-import {acceleration, ClickCounter, HOLD_DRAG_MS, momentumSteps, normalize, pointerGain} from "@/services/trackpad"
+import {
+  acceleration,
+  ClickCounter,
+  HOLD_DRAG_MS,
+  HOLD_DRAG_SLOP,
+  momentumSteps,
+  normalize,
+  pointerGain,
+} from "@/services/trackpad"
 import type {InputMode, TrackpadSpeed} from "@/stores/settings"
 
 const MAX_ZOOM = 4
@@ -42,9 +50,11 @@ function clampOffset(offset: number, content: number, container: number, zoom: n
 /**
  * Touch to Mac input. On the screen, trackpad mode moves the pointer relatively
  * and touch mode puts it under the finger; two fingers scroll unless the gesture
- * starts as a pinch, which zooms the view. As a trackpad, a finger held still
- * for HOLD_DRAG_MS presses the button and drags until it lifts. The trackpad panel always behaves as
- * a trackpad and never zooms. Three fingers toggle the controls.
+ * starts as a pinch, which zooms the view. As a trackpad, a finger held within
+ * HOLD_DRAG_SLOP of where it landed for HOLD_DRAG_MS presses the button and
+ * drags until it lifts; one that moved first only moves the pointer. The
+ * trackpad panel always behaves as a trackpad and never zooms. Three fingers
+ * toggle the controls.
  */
 export function useInputGesture({
   surface,
@@ -58,6 +68,7 @@ export function useInputGesture({
 }: InputGestureOptions) {
   const clicks = useRef(new ClickCounter()).current
   const dragging = useRef(false)
+  const holdFrom = useRef<{x: number; y: number} | null>(null)
   const twoFinger = useRef<{mode: "undecided" | "scroll" | "zoom"; travel: number}>({mode: "undecided", travel: 0})
   const pinchStart = useRef({zoom: 1, x: 0, y: 0})
   const momentum = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -151,6 +162,16 @@ export function useInputGesture({
       .maxPointers(1)
       .activateAfterLongPress(HOLD_DRAG_MS)
       .runOnJS(true)
+      .onTouchesDown((e) => {
+        const touch = e.allTouches[0]
+        holdFrom.current = touch ? {x: touch.x, y: touch.y} : null
+      })
+      .onTouchesMove((e, manager) => {
+        const from = holdFrom.current
+        const touch = e.allTouches[0]
+        if (dragging.current || !from || !touch) return
+        if (Math.hypot(touch.x - from.x, touch.y - from.y) > HOLD_DRAG_SLOP) manager.fail()
+      })
       .onStart(() => {
         stopMomentum()
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)

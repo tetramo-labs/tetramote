@@ -34,8 +34,8 @@ export class ClickCounter {
   }
 }
 
-/** How long a finger rests on the trackpad before it presses the button and drags. */
 export const HOLD_DRAG_MS = 800
+export const HOLD_DRAG_SLOP = 6
 
 /** Decays a scroll fling into momentum steps; returns deltas per 16 ms frame. */
 export function momentumSteps(vx: number, vy: number, decay = 0.92, minStep = 0.5): {dx: number; dy: number}[] {
