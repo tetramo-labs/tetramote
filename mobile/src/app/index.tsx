@@ -57,7 +57,7 @@ export default function HomeScreen() {
       {hosts.length === 0 ? (
         <View className="flex-1 items-center justify-center gap-4 px-4">
           <View className="w-20 h-20 rounded-full items-center justify-center bg-primary-foreground">
-            <Icon icon={MonitorSmartphone} size={36} color={theme.colors.brand_primary} />
+            <Icon icon={MonitorSmartphone} size={36} color={theme.colors.brand_secondary} />
           </View>
           <Text tx="home:empty" preset="subheading" className="text-foreground text-center" />
           <Text tx="home:emptyHint" size="sm" className="text-muted-foreground text-center" />

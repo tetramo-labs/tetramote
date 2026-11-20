@@ -1,7 +1,7 @@
 import {CameraView, useCameraPermissions, type BarcodeScanningResult} from "expo-camera"
 import {useLocalSearchParams} from "expo-router"
 import {X} from "lucide-react-native"
-import {useEffect, useRef} from "react"
+import {useEffect, useRef, useState} from "react"
 import {Linking, View} from "react-native"
 import Toast from "react-native-toast-message"
 
@@ -17,6 +17,7 @@ import {useNavigationStore} from "@/stores/navigation"
 import {useRailActions} from "@/stores/railToolbar"
 
 const FRAME = 260
+const CLOSE_BAR = 56
 
 export default function PairScreen() {
   const params = useLocalSearchParams<{id?: string; secret?: string; name?: string}>()
@@ -24,7 +25,8 @@ export default function PairScreen() {
   const insets = useSaferAreaInsets()
   const {replace, goBack} = useNavigationStore.getState()
   const handled = useRef(false)
-  const {rail, insetLeft} = useLayout()
+  const {rail, insetLeft, insetRight} = useLayout()
+  const [frame, setFrame] = useState(FRAME)
   useRailActions(rail ? [{key: "close", icon: X, label: translate("common:close"), onPress: goBack}] : null)
 
   const start = (code: PairingCode) => {
@@ -58,12 +60,25 @@ export default function PairScreen() {
           onBarcodeScanned={onScan}
         />
       )}
-      <View pointerEvents="box-none" className="absolute inset-0 items-center justify-center">
+      <View
+        pointerEvents="box-none"
+        className="absolute inset-0 gap-6"
+        style={{
+          paddingTop: insets.top + (rail ? 16 : CLOSE_BAR),
+          paddingBottom: insets.bottom + 32,
+          paddingLeft: insetLeft,
+          paddingRight: insetRight,
+        }}>
         <View
           pointerEvents="none"
-          style={{width: FRAME, height: FRAME, borderRadius: 32, borderWidth: 3, borderColor: "rgba(255,255,255,0.9)"}}
-        />
-        <View className="absolute left-0 right-0 items-center px-8" style={{bottom: insets.bottom + 48}}>
+          className="flex-1 items-center justify-center"
+          onLayout={(e) => {
+            const {width, height} = e.nativeEvent.layout
+            setFrame(Math.max(0, Math.min(FRAME, width - 48, height)))
+          }}>
+          <View className="rounded-[32px] border-[3px] border-white/90" style={{width: frame, height: frame}} />
+        </View>
+        <View className="items-center px-8">
           {granted ? (
             <Text tx="pair:hint" size="md" className="text-center" style={{color: "#ffffff"}} />
           ) : (

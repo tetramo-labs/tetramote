@@ -7,6 +7,7 @@ import {Pressable, View} from "react-native"
 import {Icon} from "@/components/ignite/Icon"
 import {Text} from "@/components/ignite/Text"
 import {Sheet} from "@/components/session/Sheet"
+import {useAppTheme} from "@/contexts/ThemeContext"
 import type {TxKeyPath} from "@/i18n"
 import {parsePairingUrl} from "@/services/pairingUrl"
 import {pair} from "@/services/remote"
@@ -23,12 +24,13 @@ function Choice({
   subtitleTx: TxKeyPath
   onPress: () => void
 }) {
+  const {theme} = useAppTheme()
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
       className="flex-row items-center gap-3 rounded-2xl px-4 py-3 bg-primary-foreground">
-      <Icon icon={icon} size={20} />
+      <Icon icon={icon} size={20} color={theme.colors.brand_secondary} />
       <View className="flex-1 gap-0.5">
         <Text tx={labelTx} size="sm" className="text-foreground" />
         <Text tx={subtitleTx} size="xs" className="text-muted-foreground" />
@@ -56,7 +58,7 @@ export function PairSheet({sheet}: {sheet: RefObject<BottomSheetModal | null>}) 
   }
 
   return (
-    <Sheet ref={sheet} onDismiss={() => setNoLink(false)}>
+    <Sheet ref={sheet} fullWidth onDismiss={() => setNoLink(false)}>
       <Text tx="pair:title" preset="subheading" className="text-foreground" />
       <Choice icon={QrCode} labelTx="pair:scan" subtitleTx="pair:scanHint" onPress={scan} />
       <Choice icon={ClipboardPaste} labelTx="pair:paste" subtitleTx="pair:pasteHint" onPress={paste} />

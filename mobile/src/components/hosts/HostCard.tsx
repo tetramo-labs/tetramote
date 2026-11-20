@@ -27,7 +27,7 @@ export function HostCard({host, onPress, onLongPress}: HostCardProps) {
           style={{backgroundColor: theme.colors.primary_foreground, opacity: pressed ? 0.75 : 1}}>
           <View className="flex-row items-center gap-3 px-4 py-4">
             <View className="w-12 h-12 rounded-full items-center justify-center bg-background">
-              <Icon icon={Monitor} size={22} />
+              <Icon icon={Monitor} size={22} color={theme.colors.brand_secondary} />
             </View>
             <View className="flex-1 gap-0.5">
               <Text text={host.name} size="md" weight="semibold" className="text-foreground" numberOfLines={1} />
