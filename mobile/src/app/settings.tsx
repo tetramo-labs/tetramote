@@ -61,6 +61,7 @@ export default function SettingsScreen() {
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
   const [startFullScreen, setStartFullScreen] = useSetting("start_full_screen")
+  const [connectionDetails, setConnectionDetails] = useSetting("show_connection_details")
   const [deviceName, setDeviceName] = useSetting("device_name")
   const forgetAll = useHostsStore((s) => s.forgetAll)
   const [relayDraft, setRelayDraft] = useState(relay)
@@ -130,6 +131,12 @@ export default function SettingsScreen() {
           subtitleTx="settings:autoHideHint"
           value={autoHide}
           onValueChange={setAutoHide}
+        />
+        <ToggleRow
+          labelTx="settings:connectionDetails"
+          subtitleTx="settings:connectionDetailsHint"
+          value={connectionDetails}
+          onValueChange={setConnectionDetails}
         />
         <ToggleRow labelTx="settings:playAudio" value={playAudio} onValueChange={setPlayAudio} />
       </Group>

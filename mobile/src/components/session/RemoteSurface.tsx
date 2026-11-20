@@ -56,7 +56,7 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
   return (
     <GestureDetector gesture={gesture}>
       <View
-        className="flex-1 items-center justify-center overflow-hidden bg-black"
+        className="flex-1 items-center justify-center overflow-hidden bg-background"
         onLayout={onLayout}
         collapsable={false}>
         <Animated.View style={[{width: frame.width, height: frame.height}, animated]}>

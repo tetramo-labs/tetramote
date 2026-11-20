@@ -104,6 +104,9 @@ const en = {
       "The computer's screen fills the display. The controls sit on top of it and hide after a few seconds.",
     autoHide: "Hide controls automatically",
     autoHideHint: "They fade after a few seconds. Tap with three fingers to bring them back.",
+    connectionDetails: "Show connection details",
+    connectionDetailsHint:
+      "A pill above the screen shows whether the connection is direct or relayed, its round trip time and the frame rate.",
     appearance: "Appearance",
     system: "System",
     light: "Light",

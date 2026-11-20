@@ -51,7 +51,7 @@ export default function PairScreen() {
   const granted = permission?.granted === true
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-background">
       {granted && (
         <CameraView
           style={{flex: 1}}
@@ -76,15 +76,18 @@ export default function PairScreen() {
             const {width, height} = e.nativeEvent.layout
             setFrame(Math.max(0, Math.min(FRAME, width - 48, height)))
           }}>
-          <View className="rounded-[32px] border-[3px] border-white/90" style={{width: frame, height: frame}} />
+          <View
+            className={`rounded-[32px] border-[3px] ${granted ? "border-white/90" : "border-muted-foreground"}`}
+            style={{width: frame, height: frame}}
+          />
         </View>
         <View className="items-center px-8">
           {granted ? (
-            <Text tx="pair:hint" size="md" className="text-center" style={{color: "#ffffff"}} />
+            <Text tx="pair:hint" size="md" className="text-center text-white" />
           ) : (
             <View className="items-center gap-3 w-full">
-              <Text tx="pair:cameraTitle" preset="subheading" style={{color: "#ffffff"}} />
-              <Text tx="pair:cameraMessage" size="sm" className="text-center" style={{color: "#d4d4d4"}} />
+              <Text tx="pair:cameraTitle" preset="subheading" className="text-foreground" />
+              <Text tx="pair:cameraMessage" size="sm" className="text-center text-muted-foreground" />
               <Button
                 tx={permission?.canAskAgain === false ? "pair:openSettings" : "pair:allowCamera"}
                 preset="secondary"

@@ -5,6 +5,7 @@ import {GestureDetector} from "react-native-gesture-handler"
 
 import {Icon} from "@/components/ignite/Icon"
 import {useInputGesture, type ZoomControls} from "@/components/session/useInputGesture"
+import {useAppTheme} from "@/contexts/ThemeContext"
 import {useSessionStore} from "@/stores/session"
 import {useSetting} from "@/stores/settings"
 
@@ -16,15 +17,12 @@ interface TrackpadPanelProps {
   footer?: ReactNode
 }
 
-const SURFACE = "rgba(255,255,255,0.07)"
-const EDGE = "rgba(255,255,255,0.12)"
-const HINT = "rgba(255,255,255,0.35)"
-
 /**
  * The laptop half of the session: a trackpad under the Mac's screen. A swipe
  * across it moves the pointer about as far as a swipe across the screen would.
  */
 export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, header, footer}: TrackpadPanelProps) {
+  const {theme} = useAppTheme()
   const video = useSessionStore((s) => s.video)
   const [speed] = useSetting("trackpad_speed")
   const [size, setSize] = useState({width: 0, height: 0})
@@ -52,9 +50,8 @@ export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, head
         <View
           onLayout={onLayout}
           collapsable={false}
-          className="flex-1 rounded-3xl items-center justify-center"
-          style={{backgroundColor: SURFACE, borderWidth: 1, borderColor: EDGE}}>
-          <Icon icon={MousePointer2} size={22} color={HINT} />
+          className="flex-1 rounded-3xl items-center justify-center bg-primary-foreground">
+          <Icon icon={MousePointer2} size={22} color={theme.colors.muted_foreground} />
         </View>
       </GestureDetector>
       {footer}

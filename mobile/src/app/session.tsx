@@ -19,6 +19,7 @@ import {StatusPill} from "@/components/session/StatusPill"
 import {TrackpadPanel} from "@/components/session/TrackpadPanel"
 import GlassView from "@/components/ui/GlassView"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
+import {useAppTheme} from "@/contexts/ThemeContext"
 import {useAutoHide} from "@/hooks/useAutoHide"
 import {useLayout} from "@/hooks/useLayout"
 import {disconnect, send} from "@/services/remote"
@@ -70,6 +71,8 @@ function Fade({visible, children, style}: {visible: boolean; children: ReactNode
  * the rail and status bar off, like a video player, and floats the controls.
  */
 function SessionBody() {
+  const {themeContext} = useAppTheme()
+  const [connectionDetails] = useSetting("show_connection_details")
   const {width, height} = useWindowDimensions()
   const insets = useSaferAreaInsets()
   const layout = useLayout()
@@ -149,7 +152,7 @@ function SessionBody() {
 
   const status = (
     <Fade visible={controls.visible} style={{gap: 8, alignItems: "flex-start"}}>
-      <StatusPill />
+      {connectionDetails && <StatusPill />}
       <PermissionBanner />
     </Fade>
   )
@@ -161,9 +164,9 @@ function SessionBody() {
     )
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-background">
       <StatusBar
-        style="light"
+        style={themeContext === "dark" ? "light" : "dark"}
         hidden={fullScreen || laptop || !layout.rail}
         verticalBarBehaviorIOS={fullScreen || laptop ? "disabled" : "automatic"}
       />
@@ -224,8 +227,9 @@ function SessionBody() {
 }
 
 export default function SessionScreen() {
+  const {theme} = useAppTheme()
   return (
-    <ReservedRegionsProvider style={{flex: 1, backgroundColor: "#000000"}}>
+    <ReservedRegionsProvider style={{flex: 1, backgroundColor: theme.colors.background}}>
       <SessionBody />
     </ReservedRegionsProvider>
   )

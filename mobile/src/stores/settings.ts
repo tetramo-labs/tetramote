@@ -14,6 +14,7 @@ export interface Settings {
   play_audio: boolean
   auto_hide_controls: boolean
   start_full_screen: boolean
+  show_connection_details: boolean
   device_name: string
 }
 
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   play_audio: true,
   auto_hide_controls: false,
   start_full_screen: false,
+  show_connection_details: false,
   device_name: "",
 }
 
