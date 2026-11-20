@@ -28,7 +28,7 @@ export const steps = [
 export const features = [
   {
     title: "Screen and sound",
-    body: "The screen streams as H.264 from the computer's hardware encoder where it has one, and system audio streams as Opus. A status pill shows whether the connection is direct and how long a round trip takes.",
+    body: "The screen streams as H.264 from the computer's hardware encoder where it has one, and system audio streams as Opus. Turn on connection details in Settings to see whether the connection is direct and how long a round trip takes.",
   },
   {
     title: "Trackpad or direct touch",
@@ -419,6 +419,7 @@ function Footer() {
             [`${REPO}/releases`, "Releases"],
             [`${REPO}/blob/main/PROTOCOL.md`, "Protocol"],
             [`${REPO}/blob/main/LICENSE`, "License"],
+            ["/privacy", "Privacy policy"],
             ["https://tetramo.com", "Tetramo"],
           ].map(([href, label]) => (
             <a key={href} href={href} className="inline-block py-3 text-muted hover:text-foreground hover:opacity-100">

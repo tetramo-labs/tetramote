@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#171717" />
+    <meta name="color-scheme" content="light dark" />
+        <title>Privacy policy · Tetramote</title>
+    <meta name="description" content="What Tetramote collects (nothing) and where your session data goes." />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <style>
+      :root {
+        --background: #ffffff;
+        --foreground: #0a0a0a;
+        --muted: #737373;
+        --button-fill: #0a0a0a;
+        --button-text: #f5f5f5;
+        --link: #0043e0;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background: #171717;
+          --foreground: #fafafa;
+          --muted: #a3a3a3;
+          --button-fill: #fafafa;
+          --button-text: #2e2e2e;
+          --link: #86acff;
+        }
+      }
+      body {
+        margin: 0;
+        padding: 48px 24px 64px;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 40em;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+      }
+      h2 {
+        margin: 36px 0 8px;
+        font-size: 20px;
+        font-weight: 600;
+      }
+      p,
+      li {
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.55;
+      }
+      p {
+        margin: 8px 0;
+      }
+      a {
+        color: var(--link);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Privacy policy</h1>
+      <p>Last updated November 20, 2026. Tetramote is made by Tetramo, Inc.</p>
+
+      <h2>What we collect</h2>
+      <p>Nothing. Tetramote has no accounts, no analytics, no advertising and no crash reporting, and Tetramo runs no server that sees your sessions.</p>
+
+      <h2>How a session travels</h2>
+      <p>Your phone, browser or computer connects straight to the computer you control with <a href="https://iroh.computer">iroh</a>. The screen, sound, clipboard and your input are end to end encrypted between the two devices. When a direct connection isn't possible, the encrypted traffic passes through a relay: n0's public relays by default, or one you set. A relay forwards the encrypted packets and sees the two devices' IP addresses, but it can't read the session.</p>
+
+      <h2>What stays on your devices</h2>
+      <ul>
+        <li>Each device's key and the list of devices it is paired with, kept in the system keychain or the app's settings.</li>
+        <li>Your settings, such as the relay address and trackpad speed.</li>
+      </ul>
+      <p>Pairing links carry their secret after the #, which browsers never send to a web server. Remove a device on the computer and it can no longer connect.</p>
+
+      <h2>Permissions</h2>
+      <ul>
+        <li>Camera: only to scan the pairing code your computer shows. The picture isn't saved or sent anywhere.</li>
+        <li>Local network: to reach your computer directly when both are on the same network.</li>
+        <li>On the computer, Screen Recording and Accessibility: to share its screen and take input from devices you paired.</li>
+      </ul>
+
+      <h2>Websites and updates</h2>
+      <p>tetramote.com and remote.tetramote.com are static pages served by Cloudflare, which keeps standard request logs. The desktop app checks GitHub for updates. Neither is sent anything about your sessions.</p>
+
+      <h2>Contact</h2>
+      <p>Questions or requests: open an issue at <a href="https://github.com/tetramo-labs/tetramote/issues">github.com/tetramo-labs/tetramote</a>.</p>
+
+      <p><a href="/">Back to Tetramote</a></p>
+    </main>
+  </body>
+</html>
