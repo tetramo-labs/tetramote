@@ -26,7 +26,7 @@ describe("device names and failures", () => {
     )
     expect(failureText("closed by peer: linkChanged (code 4)", "Studio Mac")).toContain("made a new one")
     expect(failureText("timedOut", "Studio Mac")).toBe(
-      "Couldn't reach Studio Mac. Check that it's on with Tetramote running, then try again.",
+      "Couldn't reach Studio Mac. Check that it's on and Tetramote is running, then try again.",
     )
     expect(failureText("closed by peer: replaced (code 2)", "Studio Mac")).toContain("Another device connected")
   })

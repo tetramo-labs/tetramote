@@ -556,7 +556,7 @@ export function SessionView({link, onLeave}: {link: Link; onLeave: () => void}) 
         {connected && TOUCH && (
           <BarButton
             icon={touchMode === "trackpad" ? MousePointer2 : Hand}
-            label={touchMode === "trackpad" ? "Trackpad (switch to direct touch)" : "Direct touch (switch to trackpad)"}
+            label={touchMode === "trackpad" ? "Switch to direct touch" : "Switch to trackpad"}
             onClick={() => setTouchMode(touchMode === "trackpad" ? "direct" : "trackpad")}
           />
         )}

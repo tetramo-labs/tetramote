@@ -123,8 +123,8 @@ export function Landing() {
           Open a Tetramote link
         </h1>
         <p className="mt-4 text-[17px] text-muted">
-          Paste the link from Tetramote on the computer you want to control, or scan its code. The computer opens in
-          this tab.
+          Paste the link from Tetramote on the computer you want to control, or scan its code. Its screen opens in this
+          tab.
         </p>
         <div className="mt-8">
           {scanning ? (
@@ -172,8 +172,8 @@ export function Landing() {
         </div>
       </main>
       <footer className="mx-auto w-full max-w-[560px] px-6 pb-10 text-[14px] text-faint">
-        Your browser reaches the computer through an encrypted iroh relay that can't read the session. Nothing is stored
-        on a server.{" "}
+        Your browser reaches the computer through an encrypted iroh relay, which can't read the session. This page saves
+        nothing on a server.{" "}
         <a href="https://tetramote.com" className="text-accent underline underline-offset-2">
           About Tetramote
         </a>

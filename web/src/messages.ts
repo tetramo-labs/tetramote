@@ -39,10 +39,10 @@ export function failureText(reason: string, name: string): string {
     return `${name} didn't accept this browser's first message. Update Tetramote on that computer, then try again.`
   }
   if (reason === "timedOut" || reason.startsWith("connect failed")) {
-    return `Couldn't reach ${name}. Check that it's on with Tetramote running, then try again.`
+    return `Couldn't reach ${name}. Check that it's on and Tetramote is running, then try again.`
   }
   if (reason.includes("replaced")) {
-    return `Another device connected to ${name}, which ended this session. Try again to take it back.`
+    return `Another device connected to ${name} and ended this session. Try again to reconnect, which disconnects that device.`
   }
   return `The connection to ${name} ended (${reason}). Try again.`
 }
