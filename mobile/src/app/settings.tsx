@@ -206,6 +206,9 @@ export default function SettingsScreen() {
             Toast.show({type: "success", text1: translate("common:copied"), visibilityTime: 1200})
           }}
         />
+      </Group>
+
+      <Group titleTx="settings:computers">
         <Row labelTx="settings:exportLinks" onPress={exportLinks} />
         <Row labelTx="settings:importLinks" onPress={importLinks} />
         <Row labelTx="settings:forgetAll" destructive onPress={confirmForgetAll} />

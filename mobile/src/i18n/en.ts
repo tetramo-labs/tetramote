@@ -119,6 +119,7 @@ const en = {
     light: "Light",
     dark: "Dark",
     phone: "This phone",
+    computers: "Paired computers",
     phoneName: "Name shown on the computer",
     phoneId: "Endpoint ID",
     exportLinks: "Export pairing links",

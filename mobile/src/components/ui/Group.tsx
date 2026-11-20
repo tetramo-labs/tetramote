@@ -23,7 +23,7 @@ export function Group({titleTx, children}: {titleTx?: TxKeyPath; children: React
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<{style?: ViewStyle}>[]
   return (
     <View className="gap-2">
-      {titleTx && <Text tx={titleTx} size="md" className="text-muted-foreground mt-4 px-4" />}
+      {titleTx && <Text tx={titleTx} size="md" className="text-muted-foreground mt-4 px-1" />}
       <View className="gap-1">
         {items.map((child, i) => cloneElement(child, {style: {...child.props.style, ...groupRadius(i, items.length)}}))}
       </View>
