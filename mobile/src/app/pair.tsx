@@ -19,7 +19,7 @@ import {useRailActions} from "@/stores/railToolbar"
 const FRAME = 260
 
 export default function PairScreen() {
-  const params = useLocalSearchParams<{ticket?: string; secret?: string; name?: string}>()
+  const params = useLocalSearchParams<{id?: string; secret?: string; name?: string}>()
   const [permission, requestPermission] = useCameraPermissions()
   const insets = useSaferAreaInsets()
   const {replace, goBack} = useNavigationStore.getState()

@@ -1,8 +1,8 @@
 //! A headless phone for testing a Tetramote host:
-//! `cargo run --release --example probe -- --pair '<tetramote://pair?...>' [--seconds 8] [--out /tmp/probe.h264] [--local-only] [--secret]`
+//! `cargo run --release --example probe -- --pair '<https://remote.tetramote.com/#...>' [--seconds 8] [--out /tmp/probe.h264] [--secret] [--guest] [--local-only --ticket <ticket>]`
 //!
-//! The phone key is kept at /tmp/tetramote-probe.key, so the first run pairs with
-//! the URL's secret and later runs reconnect as a trusted phone without it.
+//! The phone key is kept at /tmp/tetramote-probe.key, so the first run pairs with the link's secret and later
+//! runs reconnect as a trusted phone without it. `--guest` connects the way a browser does instead.
 
 use std::collections::BTreeMap;
 use std::io::Write;
@@ -22,6 +22,8 @@ struct Args {
     out: String,
     local_only: bool,
     force_secret: bool,
+    guest: bool,
+    ticket: Option<String>,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -31,6 +33,8 @@ fn parse_args() -> Result<Args, String> {
         out: "/tmp/probe.h264".into(),
         local_only: false,
         force_secret: false,
+        guest: false,
+        ticket: None,
     };
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
@@ -45,44 +49,15 @@ fn parse_args() -> Result<Args, String> {
             "--out" => args.out = it.next().ok_or("--out needs a path")?,
             "--local-only" => args.local_only = true,
             "--secret" => args.force_secret = true,
+            "--guest" => args.guest = true,
+            "--ticket" => args.ticket = Some(it.next().ok_or("--ticket needs a ticket")?),
             other => return Err(format!("unknown argument {other}")),
         }
     }
     if args.pair.is_empty() {
-        return Err("--pair <tetramote://pair?...> is required".into());
+        return Err("--pair <https://remote.tetramote.com/#...> is required".into());
     }
     Ok(args)
-}
-
-fn percent_decode(s: &str) -> String {
-    let bytes = s.as_bytes();
-    let mut out = Vec::with_capacity(bytes.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        let hex = |b: u8| (b as char).to_digit(16);
-        match bytes[i] {
-            b'%' if i + 2 < bytes.len() => match (hex(bytes[i + 1]), hex(bytes[i + 2])) {
-                (Some(h), Some(l)) => {
-                    out.push((h * 16 + l) as u8);
-                    i += 3;
-                    continue;
-                }
-                _ => out.push(b'%'),
-            },
-            b'+' => out.push(b' '),
-            b => out.push(b),
-        }
-        i += 1;
-    }
-    String::from_utf8_lossy(&out).into_owned()
-}
-
-fn query(url: &str) -> BTreeMap<String, String> {
-    let q = url.split_once('?').map(|(_, q)| q).unwrap_or("");
-    q.split('&')
-        .filter_map(|pair| pair.split_once('='))
-        .map(|(k, v)| (k.to_string(), percent_decode(v)))
-        .collect()
 }
 
 fn phone_key() -> (String, bool) {
@@ -118,12 +93,12 @@ fn main() {
             std::process::exit(2);
         }
     };
-    let params = query(&args.pair);
-    let ticket = params.get("ticket").cloned().unwrap_or_default();
+    let Some(link) = tetra_core::link::parse(&args.pair) else {
+        eprintln!("--pair is not a Tetramote link");
+        std::process::exit(2);
+    };
     let (key, fresh) = phone_key();
-    let secret = (fresh || args.force_secret)
-        .then(|| params.get("secret").cloned())
-        .flatten();
+    let secret = (fresh || args.force_secret || args.guest).then(|| link.secret.clone());
 
     let rt = tokio::runtime::Runtime::new().expect("runtime");
     let (events, rx) = Events::channel();
@@ -141,10 +116,11 @@ fn main() {
     {
         let _guard = rt.enter();
         client.connect(ConnectRequest {
-            ticket: Some(ticket),
-            endpoint_id: String::new(),
+            ticket: args.ticket.clone(),
+            endpoint_id: link.endpoint_id.clone(),
             pairing_secret: secret.clone(),
             device_name: "Probe".into(),
+            guest: args.guest,
             timeout_ms: 20_000,
         });
     }

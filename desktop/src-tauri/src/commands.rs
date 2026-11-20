@@ -29,8 +29,8 @@ pub fn host_state(state: State<AppState>) -> HostState {
 }
 
 #[tauri::command]
-pub fn host_new_code(state: State<AppState>) {
-    state.host.new_code();
+pub fn host_new_link(state: State<AppState>) -> Result<(), String> {
+    state.host.new_link()
 }
 
 #[tauri::command]

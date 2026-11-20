@@ -23,8 +23,11 @@ use crate::store::Store;
 
 fn open_links(app: &tauri::AppHandle, urls: impl IntoIterator<Item = String>) {
     let state = app.state::<AppState>();
-    for url in urls.into_iter().filter(|u| u.starts_with("tetramote://")) {
-        if let Err(message) = state.client.connect_link(&url) {
+    for url in urls {
+        let Some(link) = url.strip_prefix("tetramote://") else {
+            continue;
+        };
+        if let Err(message) = state.client.connect_link(link) {
             log::warn!("{message}");
         }
     }
@@ -89,7 +92,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::host_state,
-            commands::host_new_code,
+            commands::host_new_link,
             commands::host_remove,
             commands::host_disconnect,
             commands::request_permission,

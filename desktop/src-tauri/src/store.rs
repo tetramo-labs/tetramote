@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 const KEY_SERVICE: &str = "com.tetramo.tetramote.host";
 const HOST_KEY_ACCOUNT: &str = "endpoint-secret-key";
 const CLIENT_KEY_ACCOUNT: &str = "client-secret-key";
+const LINK_SECRET_ACCOUNT: &str = "link-secret";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -99,6 +100,23 @@ impl Store {
         key(&self.account(CLIENT_KEY_ACCOUNT))
     }
 
+    /// The secret in this computer's shared link, created on first use and kept until "New link" replaces it.
+    pub fn link_secret(&self) -> Result<String, String> {
+        let entry = entry(&self.account(LINK_SECRET_ACCOUNT))?;
+        match entry.get_password() {
+            Ok(existing) if is_link_secret(&existing) => Ok(existing),
+            _ => {
+                let created = crate::pairing::new_secret();
+                save_link_secret(&entry, &created)?;
+                Ok(created)
+            }
+        }
+    }
+
+    pub fn set_link_secret(&self, secret: &str) -> Result<(), String> {
+        save_link_secret(&entry(&self.account(LINK_SECRET_ACCOUNT))?, secret)
+    }
+
     fn account(&self, base: &str) -> String {
         self.profile
             .as_ref()
@@ -106,10 +124,24 @@ impl Store {
     }
 }
 
-fn key(account: &str) -> Result<String, String> {
-    let entry = keyring::Entry::new(KEY_SERVICE, account).map_err(|e| {
+fn entry(account: &str) -> Result<keyring::Entry, String> {
+    keyring::Entry::new(KEY_SERVICE, account).map_err(|e| {
         format!("The system keychain isn't available ({e}). Unlock it and restart Tetramote.")
-    })?;
+    })
+}
+
+fn is_link_secret(s: &str) -> bool {
+    s.len() == 32 && s.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+fn save_link_secret(entry: &keyring::Entry, secret: &str) -> Result<(), String> {
+    entry.set_password(secret).map_err(|e| {
+        format!("Saving this computer's link to the keychain failed ({e}). Unlock the keychain, then make a new link again.")
+    })
+}
+
+fn key(account: &str) -> Result<String, String> {
+    let entry = entry(account)?;
     match entry.get_password() {
         Ok(existing) if existing.len() == 64 => Ok(existing),
         _ => {

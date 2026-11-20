@@ -45,6 +45,7 @@ struct Frame {
 struct Peer {
     generation: u64,
     id: String,
+    guest: bool,
     conn: Connection,
     control_tx: mpsc::UnboundedSender<Vec<u8>>,
     video_tx: mpsc::UnboundedSender<Frame>,
@@ -107,8 +108,21 @@ impl Host {
         }
     }
 
+    /// A new secret retires the old link: the guest it let in, if any, is disconnected.
     pub fn set_pairing_secret(&self, secret: Option<String>) {
-        *self.shared.pairing_secret.lock().unwrap() = secret.filter(|s| !s.is_empty());
+        let secret = secret.filter(|s| !s.is_empty());
+        let changed = {
+            let mut current = self.shared.pairing_secret.lock().unwrap();
+            let changed = *current != secret;
+            *current = secret;
+            changed
+        };
+        if !changed {
+            return;
+        }
+        if let Some(peer) = self.active().filter(|p| p.guest) {
+            peer.conn.close(VarInt::from_u32(4), b"linkChanged");
+        }
     }
 
     pub fn send_control(&self, json: &[u8]) -> i32 {
@@ -228,7 +242,7 @@ async fn handle_incoming(shared: Arc<Shared>, incoming: Incoming) -> Result<(), 
         let secret = shared.pairing_secret.lock().unwrap();
         authorize(&remote, &hello, &trusted, secret.as_deref())
     };
-    let paired = match auth {
+    let (paired, guest) = match auth {
         Auth::Rejected(reason) => {
             let msg = serde_json::json!({"t": "rejected", "reason": reason}).to_string();
             let _ = write_message(&mut send, msg.as_bytes()).await;
@@ -242,13 +256,13 @@ async fn handle_incoming(shared: Arc<Shared>, incoming: Incoming) -> Result<(), 
         }
         Auth::Paired => {
             shared.trusted.lock().unwrap().insert(remote.clone());
-            *shared.pairing_secret.lock().unwrap() = None;
             shared
                 .events
                 .json(serde_json::json!({"type": "paired", "id": remote, "name": hello.name}));
-            true
+            (true, false)
         }
-        Auth::Trusted => false,
+        Auth::Guest => (false, true),
+        Auth::Trusted => (false, false),
     };
 
     let welcome = serde_json::json!({
@@ -268,6 +282,7 @@ async fn handle_incoming(shared: Arc<Shared>, incoming: Incoming) -> Result<(), 
     let peer = Arc::new(Peer {
         generation,
         id: remote.clone(),
+        guest,
         conn: conn.clone(),
         control_tx,
         video_tx,
@@ -297,6 +312,7 @@ async fn handle_incoming(shared: Arc<Shared>, incoming: Incoming) -> Result<(), 
         "id": remote,
         "name": hello.name,
         "paired": paired,
+        "guest": guest,
         "path": path.as_ref().map(|p| p.kind),
         "rttMs": path.as_ref().map(|p| p.rtt_ms),
     }));

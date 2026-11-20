@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["B8446S9493.com.tetramo.tetramote"],
+        "components": [{"/": "/", "#": "*id=*", "comment": "Tetramote links open the phone app when it's installed"}]
+      }
+    ]
+  }
+}

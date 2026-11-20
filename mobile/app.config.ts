@@ -26,6 +26,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
   icon: "./assets/app-icons/icon.png",
   ios: {
     bundleIdentifier: "com.tetramo.tetramote",
+    associatedDomains: ["applinks:remote.tetramote.com"],
     buildNumber: String(build),
     appleTeamId: process.env.EXPO_PUBLIC_APPLE_TEAM_ID || "B8446S9493",
     supportsTablet: false,

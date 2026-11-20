@@ -126,7 +126,6 @@ struct Peer {
 struct Inner {
     host: Option<Arc<Host>>,
     generation: u64,
-    ticket: Option<String>,
     endpoint_id: Option<String>,
     secret: String,
     peer: Option<Peer>,
@@ -151,15 +150,17 @@ pub struct HostService {
 
 impl HostService {
     pub fn new(app: AppHandle, store: Arc<Store>) -> Arc<Self> {
+        let secret = store
+            .link_secret()
+            .unwrap_or_else(|_| pairing::new_secret());
         Arc::new(Self {
             app,
             store,
             inner: Mutex::new(Inner {
                 host: None,
                 generation: 0,
-                ticket: None,
                 endpoint_id: None,
-                secret: pairing::new_secret(),
+                secret,
                 peer: None,
                 status: HostStatus::Starting,
                 permissions: permissions(),
@@ -196,7 +197,6 @@ impl HostService {
             let mut inner = self.inner.lock().unwrap();
             inner.generation += 1;
             inner.status = HostStatus::Starting;
-            inner.ticket = None;
             inner.host.take()
         };
         self.end_session();
@@ -215,9 +215,9 @@ impl HostService {
     pub fn state(&self) -> HostState {
         let inner = self.inner.lock().unwrap();
         let pairing_url = inner
-            .ticket
+            .endpoint_id
             .as_ref()
-            .map(|t| pairing::make(t, &inner.secret, &system::computer_name()));
+            .map(|id| tetra_core::link::make(id, &inner.secret, &system::computer_name()));
         HostState {
             status: inner.status.clone(),
             qr_svg: pairing_url.as_deref().map(qr_svg),
@@ -231,16 +231,20 @@ impl HostService {
         }
     }
 
-    pub fn new_code(&self) {
-        let (host, secret) = {
+    /// Replaces the shared link: the old one stops working, and a browser that came in with it is disconnected.
+    pub fn new_link(&self) -> Result<(), String> {
+        let secret = pairing::new_secret();
+        self.store.set_link_secret(&secret)?;
+        let host = {
             let mut inner = self.inner.lock().unwrap();
-            inner.secret = pairing::new_secret();
-            (inner.host.clone(), inner.secret.clone())
+            inner.secret = secret.clone();
+            inner.host.clone()
         };
         if let Some(host) = host {
             host.set_pairing_secret(Some(secret));
         }
         self.emit();
+        Ok(())
     }
 
     pub fn remove(&self, id: &str) {
@@ -352,9 +356,6 @@ impl HostService {
     fn on_state(self: &Arc<Self>, host: &Arc<Host>, v: &Value) {
         let id = v["id"].as_str().unwrap_or_default().to_string();
         match v["type"].as_str() {
-            Some("ticket") => {
-                self.inner.lock().unwrap().ticket = v["ticket"].as_str().map(String::from);
-            }
             Some("paired") => {
                 let name = v["name"]
                     .as_str()
@@ -369,9 +370,6 @@ impl HostService {
                         paired_at: now_ms(),
                     });
                 });
-                let secret = pairing::new_secret();
-                self.inner.lock().unwrap().secret = secret.clone();
-                host.set_pairing_secret(Some(secret));
             }
             Some("peerConnected") => {
                 let name = v["name"]

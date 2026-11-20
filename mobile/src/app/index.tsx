@@ -29,7 +29,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const code = parsePairingUrl(remote.launchPairingUrl() ?? "")
-    if (code) push({pathname: "/pair", params: {...code}})
+    if (code) push({pathname: "/pair", params: {id: code.endpointId, secret: code.secret, name: code.name}})
   }, [push])
 
   const open = (host: PairedMac) => {

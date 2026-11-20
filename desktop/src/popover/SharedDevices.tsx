@@ -2,7 +2,7 @@ import {api} from "@/ipc"
 import {useAppStore} from "@/store"
 import {Button, Group, GroupTitle, Row} from "@/ui/Kit"
 
-/** Devices allowed to control this computer without a new code. */
+/** Devices paired with this computer: they keep connecting after the link changes, until removed. */
 export function SharedDevices() {
   const trusted = useAppStore((s) => s.host?.trusted)
   if (!trusted || trusted.length === 0) return null

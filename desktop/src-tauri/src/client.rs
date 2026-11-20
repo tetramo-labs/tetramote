@@ -11,7 +11,7 @@ use tetra_media::playback::AudioPlayer;
 use tetra_media::InputRecord;
 
 use crate::store::{now_ms, SavedHost, Store};
-use crate::{clipboard, pairing, system};
+use crate::{clipboard, system};
 
 pub const VIEWER: &str = "viewer";
 const AUDIO_HEADER: usize = 12;
@@ -182,20 +182,17 @@ impl ClientService {
     }
 
     pub fn connect_link(self: &Arc<Self>, link: &str) -> Result<(), String> {
-        let link = pairing::parse(link).ok_or(
+        let link = tetra_core::link::parse(link).ok_or(
             "That isn't a Tetramote link. Copy it again from Tetramote on the other computer.",
         )?;
-        let id = tetra_core::net::parse_addr(Some(&link.ticket), "")
-            .map_err(|_| "That link's address is damaged. Copy it again from the other computer.")?
-            .id
-            .to_string();
+        let id = link.endpoint_id;
         if (self.own_endpoint)().as_deref() == Some(id.as_str()) {
             return Err("That's this computer's own link. Open it on the computer you want to control from.".into());
         }
         self.spawn_begin(Target {
             id: Some(id),
             name: link.name,
-            ticket: link.ticket,
+            ticket: String::new(),
             secret: Some(link.secret),
         });
         Ok(())
@@ -308,6 +305,7 @@ impl ClientService {
             endpoint_id: target.id.clone().unwrap_or_default(),
             pairing_secret: target.secret.clone(),
             device_name: system::computer_name(),
+            guest: false,
             timeout_ms: 15_000,
         };
         {

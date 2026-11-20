@@ -9,10 +9,11 @@ function pathText(path: string | null, rttMs: number | null) {
   return rttMs === null ? kind : `${kind} · ${rttMs} ms`
 }
 
-/** The QR code a phone scans (and the link another computer pastes), or the live session. */
+/** The QR code and link that open this computer in a phone app, another computer or a browser, or the live session. */
 export function Pairing() {
   const host = useAppStore((s) => s.host)
   const [copied, setCopied] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
   if (!host) return null
 
   if (host.status.kind === "connected") {
@@ -55,11 +56,18 @@ export function Pairing() {
         )}
       </div>
       <div className="text-center text-[12px] text-muted">
-        Scan with Tetramote on your phone, or copy the link to another computer, to let it control this one.
+        Scan the code with your phone, or open the link in a browser or on another computer, to control this one. Anyone
+        with the link can connect until you make a new one.
       </div>
+      {linkError && <div className="text-center text-[12px] text-destructive">{linkError}</div>}
       <div className="flex gap-2">
-        <Button kind="secondary" onClick={() => void api.hostNewCode()}>
-          New code
+        <Button
+          kind="secondary"
+          onClick={() => {
+            setLinkError(null)
+            api.hostNewLink().catch((error: unknown) => setLinkError(String(error)))
+          }}>
+          New link
         </Button>
         <Button kind="secondary" disabled={!host.pairingUrl} onClick={() => void copy()}>
           {copied ? "Copied" : "Copy link"}

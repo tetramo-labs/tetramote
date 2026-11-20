@@ -62,7 +62,16 @@ fn request(host: &Host, secret: Option<&str>) -> ConnectRequest {
         endpoint_id: host.endpoint().id().to_string(),
         pairing_secret: secret.map(Into::into),
         device_name: "Duo".into(),
+        guest: false,
         timeout_ms: 5000,
+    }
+}
+
+fn guest_request(host: &Host, secret: &str) -> ConnectRequest {
+    ConnectRequest {
+        device_name: "Safari on Mac".into(),
+        guest: true,
+        ..request(host, Some(secret))
     }
 }
 
@@ -134,8 +143,8 @@ async fn pairs_then_streams_video_audio_input_and_control() {
 }
 
 #[tokio::test(flavor = "multi_thread")]
-async fn rejects_unknown_phone_and_spent_secret() {
-    let (host, host_rx) = host(vec![], Some("once")).await;
+async fn the_link_secret_pairs_many_devices_until_it_changes() {
+    let (host, host_rx) = host(vec![], Some("0123456789abcdef0123456789abcdef")).await;
     let (stranger, stranger_rx) = client(3).await;
     stranger.connect(request(&host, None));
     let rejected = wait_for(&stranger_rx, |k, b| state_type(k, b, "rejected"));
@@ -143,15 +152,63 @@ async fn rejects_unknown_phone_and_spent_secret() {
     wait_for(&host_rx, |k, b| state_type(k, b, "rejected"));
 
     let (first, first_rx) = client(4).await;
-    first.connect(request(&host, Some("once")));
+    first.connect(request(&host, Some("0123456789abcdef0123456789abcdef")));
+    wait_for(&first_rx, |k, b| state_type(k, b, "connected"));
+    wait_for(&host_rx, |k, b| state_type(k, b, "paired"));
+
+    stranger.connect(request(&host, Some("0123456789abcdef0123456789abcdef")));
+    let second = wait_for(&stranger_rx, |k, b| state_type(k, b, "connected"));
+    assert_eq!(json(&second[1..])["paired"], true);
+
+    host.set_pairing_secret(Some("fedcba9876543210fedcba9876543210".into()));
+    let (late, late_rx) = client(6).await;
+    late.connect(request(&host, Some("0123456789abcdef0123456789abcdef")));
+    let old_link = wait_for(&late_rx, |k, b| state_type(k, b, "rejected"));
+    assert_eq!(json(&old_link[1..])["reason"], "badSecret");
+
+    first.connect(request(&host, None));
     wait_for(&first_rx, |k, b| state_type(k, b, "connected"));
 
-    stranger.connect(request(&host, Some("once")));
-    let reused = wait_for(&stranger_rx, |k, b| state_type(k, b, "rejected"));
-    assert_eq!(json(&reused[1..])["reason"], "badSecret");
-
+    late.close().await;
     stranger.close().await;
     first.close().await;
+    host.close().await;
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn a_guest_stays_untrusted_and_leaves_when_the_link_changes() {
+    let secret = "0123456789abcdef0123456789abcdef";
+    let (host, host_rx) = host(vec![], Some(secret)).await;
+    let (browser, browser_rx) = client(7).await;
+    browser.connect(guest_request(&host, secret));
+    let welcome = wait_for(&browser_rx, |k, b| state_type(k, b, "connected"));
+    assert_eq!(json(&welcome[1..])["paired"], false);
+    let peer = wait_for(&host_rx, |k, b| state_type(k, b, "peerConnected"));
+    assert_eq!(json(&peer[1..])["guest"], true);
+    assert_eq!(json(&peer[1..])["name"], "Safari on Mac");
+
+    host.set_pairing_secret(Some(secret.into()));
+    host.set_pairing_secret(Some("fedcba9876543210fedcba9876543210".into()));
+    let gone = wait_for(&browser_rx, |k, b| state_type(k, b, "disconnected"));
+    assert!(json(&gone[1..])["reason"]
+        .as_str()
+        .unwrap()
+        .contains("linkChanged"));
+
+    browser.connect(request(&host, None));
+    let untrusted = wait_for(&browser_rx, |k, b| state_type(k, b, "rejected"));
+    assert_eq!(json(&untrusted[1..])["reason"], "notPaired");
+
+    let (phone, phone_rx) = client(8).await;
+    phone.connect(request(&host, Some("fedcba9876543210fedcba9876543210")));
+    wait_for(&phone_rx, |k, b| state_type(k, b, "connected"));
+    host.set_pairing_secret(Some("00000000000000000000000000000000".into()));
+    assert!(phone_rx
+        .recv_timeout(std::time::Duration::from_millis(500))
+        .map_or(true, |e| !state_type(e[0], &e[1..], "disconnected")));
+
+    phone.close().await;
+    browser.close().await;
     host.close().await;
 }
 

@@ -29,10 +29,10 @@ const en = {
     paste: "Paste a link",
     pasteHint: "Click Copy link in Tetramote's menu on the computer first.",
     noLink:
-      "The clipboard has no Tetramote pairing link. Click Copy link in Tetramote's menu on the computer, then paste again.",
+      "The clipboard has no Tetramote link. Click Copy link in Tetramote's menu on the computer, then paste again.",
     hint: "Point the camera at the code in Tetramote's menu on the computer.",
     pairing: "Pairing with {{name}}…",
-    notACode: "That isn't a Tetramote pairing code.",
+    notACode: "That isn't a Tetramote code. Scan the one in Tetramote's menu on the computer.",
     cameraTitle: "Camera access needed",
     cameraMessage: "Tetramote needs the camera to scan the computer's pairing code.",
     allowCamera: "Allow camera",
@@ -74,9 +74,9 @@ const en = {
       "Allow Accessibility for Tetramote in System Settings › Privacy & Security on the computer so this iPhone can control it.",
   },
   errors: {
-    notPaired:
-      "This iPhone isn't paired with the computer. Click New code in Tetramote on the computer and pair again.",
-    badSecret: "That code is no longer valid. Click New code in Tetramote on the computer and pair again.",
+    notPaired: "This iPhone isn't paired with the computer anymore. Scan its code or paste its link to pair again.",
+    badSecret:
+      "That link no longer works because the computer made a new one. Scan the current code or copy the current link from Tetramote on the computer.",
     version: "This computer runs a different Tetramote version. Update both apps.",
     badHello: "The computer rejected this iPhone's first message. Update both apps.",
     timedOut: "Couldn't reach the computer. Check that Tetramote is running on it and that both have internet.",

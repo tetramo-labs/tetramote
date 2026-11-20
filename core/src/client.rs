@@ -30,6 +30,8 @@ pub struct ConnectRequest {
     pub pairing_secret: Option<String>,
     #[serde(default)]
     pub device_name: String,
+    #[serde(default)]
+    pub guest: bool,
     #[serde(default = "default_timeout")]
     pub timeout_ms: u64,
 }
@@ -151,6 +153,7 @@ async fn run_session(
         "v": PROTOCOL_VERSION,
         "name": request.device_name,
         "secret": request.pairing_secret,
+        "guest": request.guest,
     })
     .to_string();
     write_message(&mut send, hello.as_bytes())

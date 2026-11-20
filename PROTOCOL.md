@@ -2,21 +2,30 @@
 
 The phone dials the Mac over [iroh](https://iroh.computer) with ALPN `tetramote/1`. The ALPN stays the same
 across protocol versions, so a phone and a Mac on different versions still get as far as `rejected` with
-reason `version`. iroh authenticates both ends by their endpoint keys, so a QR code only needs to carry the
-Mac's address and a one-time pairing secret. Everything below is big-endian. `core/src/protocol.rs`
+reason `version`. iroh authenticates both ends by their endpoint keys, so a link only needs to carry the
+computer's endpoint id and a secret. Everything below is big-endian. `core/src/protocol.rs`
 implements the framing; a change to either changes both in the same commit.
 
-## Pairing
+## Links and pairing
 
-The Mac shows a QR code holding
+A computer shares one link, as a QR code and as text:
 
 ```
-tetramote://pair?ticket=<iroh EndpointTicket>&secret=<32 hex chars>&name=<url-encoded Mac name>
+https://remote.tetramote.com/#id=<endpoint id, 64 hex chars>&secret=<32 hex chars>&name=<url-encoded computer name>
 ```
 
-The secret is single use. The Mac remembers the phone's endpoint id once a hello carries the secret, and
-from then on accepts that phone without one. The phone keeps the Mac's endpoint id and its last ticket.
-It redials by ticket, and iroh's address lookup finds the Mac when the ticket's addresses are stale.
+Browsers never send what follows `#` to a server, so the secret stays between the devices. `core/src/link.rs`
+writes and reads the link. The secret is reusable: it lasts until the computer makes a new link. Dialers find the
+computer by its endpoint id through iroh's address lookup, so the link never goes stale.
+
+A `hello` with the current secret either pairs or joins as a guest:
+
+- The phone and desktop apps pair. The computer adds their endpoint id to its trusted list and accepts them
+  without a secret from then on, through later link changes, until the device is removed. An app keeps the
+  computer's endpoint id (and the last ticket it saw, if any) to redial.
+- A browser at remote.tetramote.com sends `guest: true`. The computer admits it for that connection only and
+  closes the connection with code 4 (`linkChanged`) when it makes a new link. Browsers can't send UDP, so they
+  always reach the computer through an iroh relay.
 
 ## Connection layout
 
@@ -33,11 +42,12 @@ Each message is `u32 length` followed by that many bytes of UTF-8 JSON (at most 
 names the message.
 
 The phone's first message is `hello`. The Mac answers it with `welcome` or with `rejected`, and closes
-the connection after `rejected`.
+the connection after `rejected`. The Mac closes a connection with code 1 after `rejected`, 2 when another
+device's connection replaces it, 3 when the device is removed, and 4 when the link a guest used changes.
 
 | `t` | Direction | Fields |
 | --- | --- | --- |
-| `hello` | phone → Mac | `v` (2), `name` (phone name), `secret` (pairing secret, first time only) |
+| `hello` | phone → Mac | `v` (2), `name` (device name), `secret` (the link's secret, when not yet trusted), `guest` (true from a browser) |
 | `welcome` | Mac → phone | `v`, `hostName`, `paired` (true when this hello paired the phone) |
 | `rejected` | Mac → phone | `reason`: `notPaired`, `badSecret`, `version` or `badHello` |
 | `status` | Mac → phone | `screenRecording`, `accessibility` (Mac permissions granted) |

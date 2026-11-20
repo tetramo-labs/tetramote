@@ -111,7 +111,7 @@ function scheduleReconnect() {
 }
 
 function dial(ticket: string, endpointId: string | null, pairingSecret: string | null) {
-  remote.connect({ticket, endpointId: endpointId ?? "", pairingSecret, deviceName: deviceName()})
+  remote.connect({ticket: ticket || null, endpointId: endpointId ?? "", pairingSecret, deviceName: deviceName()})
 }
 
 /** Binds the phone's iroh endpoint once per launch (again after `restart`). */
@@ -141,7 +141,7 @@ export async function connectTo(host: PairedMac): Promise<void> {
 }
 
 export async function pair(code: PairingCode): Promise<void> {
-  await startSession({id: null, name: code.name, ticket: code.ticket, pairingSecret: code.secret})
+  await startSession({id: code.endpointId, name: code.name, ticket: "", pairingSecret: code.secret})
 }
 
 async function startSession(target: {id: string | null; name: string; ticket: string; pairingSecret: string | null}) {

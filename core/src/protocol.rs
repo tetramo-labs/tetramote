@@ -2,10 +2,11 @@
 //! is the spec; a change here changes it in the same commit.
 
 use std::collections::HashSet;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use serde::Deserialize;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use web_time::Instant;
 
 pub const ALPN: &[u8] = b"tetramote/1";
 pub const PROTOCOL_VERSION: u32 = 2;
@@ -144,12 +145,16 @@ pub struct Hello {
     pub name: String,
     #[serde(default)]
     pub secret: Option<String>,
+    #[serde(default)]
+    pub guest: bool,
 }
 
+/// `Paired` trusts the device from then on; `Guest` admits it for this connection only, until the link changes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Auth {
     Trusted,
     Paired,
+    Guest,
     Rejected(&'static str),
 }
 
@@ -172,7 +177,11 @@ pub fn authorize(
         (Some(offered), Some(expected))
             if !expected.is_empty() && constant_time_eq(offered, expected) =>
         {
-            Auth::Paired
+            if hello.guest {
+                Auth::Guest
+            } else {
+                Auth::Paired
+            }
         }
         (Some(_), _) => Auth::Rejected("badSecret"),
         (None, _) => Auth::Rejected("notPaired"),
@@ -285,6 +294,7 @@ mod tests {
             v: 2,
             name: "Duo".into(),
             secret: secret.map(Into::into),
+            guest: false,
         }
     }
 
@@ -363,6 +373,19 @@ mod tests {
             authorize("new", &hello(None), &trusted, Some("s3cret")),
             Auth::Rejected("notPaired")
         );
+        let guest = Hello {
+            guest: true,
+            ..hello(Some("s3cret"))
+        };
+        assert_eq!(
+            authorize("browser", &guest, &trusted, Some("s3cret")),
+            Auth::Guest
+        );
+        assert_eq!(
+            authorize("browser", &guest, &trusted, Some("rotated")),
+            Auth::Rejected("badSecret")
+        );
+        assert_eq!(authorize("known", &guest, &trusted, None), Auth::Trusted);
         let mut old = hello(None);
         old.v = 1;
         assert_eq!(

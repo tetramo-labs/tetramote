@@ -11,7 +11,7 @@ export const steps = [
   },
   {
     title: "Scan the code with your phone",
-    body: "Or click Copy link on the computer and paste it into the phone. Each code works once.",
+    body: "Or click Copy link on the computer and paste it into the phone. The code and link stay the same until you make a new one.",
   },
   {
     title: "Connect again without a code",
@@ -41,13 +41,13 @@ export const features = [
     body: "The computer's screen fills the display and the controls float on top, hiding after a few seconds. Tap with three fingers to bring them back.",
   },
   {
-    title: "Computer to computer",
-    body: "The desktop app controls other computers too. Paste a Tetramote link into it and the other screen opens in a window.",
+    title: "From a browser or another computer",
+    body: "Open a computer's link in any browser and its screen opens in the tab, with mouse, keyboard, touch and sound. The desktop app controls other computers too, in a window.",
   },
 ]
 
 export const privacy = [
-  "Pairing uses a one-time 128-bit secret, carried only in the computer's code or link.",
+  "The link carries a 128-bit secret after the #, which browsers never send to a web server. Make a new link and the old one stops working.",
   "Each computer keeps its key in the system keychain.",
   "Remove a device in the computer's menu and its session ends right away.",
   "The apps and the protocol are open source under the MIT license.",
@@ -98,7 +98,11 @@ export const faq = [
   },
   {
     q: "Where do I get the phone app?",
-    a: "The iPhone and Android app isn't in the App Store or Google Play yet. You can build it from the source on GitHub.",
+    a: "The iPhone and Android app isn't in the App Store or Google Play yet. Until it is, open the computer's link in your phone's browser, or build the app from the source on GitHub.",
+  },
+  {
+    q: "Can I use it without installing anything?",
+    a: "On the computer you share, no: it runs the desktop app. On the device you control it from, yes. Open the computer's link in Chrome, Edge, Safari or Firefox and the screen opens in that tab. Browsers can't connect directly, so they always go through an encrypted relay.",
   },
   {
     q: "Which Linux desktops work?",
@@ -183,7 +187,8 @@ function Hero({links, platform, version}) {
         <h1>Control your computer from your phone.</h1>
         <p className="lede">
           Tetramote puts your Mac, Windows or Linux screen on your phone, sound included, and sends your taps and typing
-          back. Pair once by scanning a code. There's no account to make and no Tetramote server in between.
+          back. Scan the computer's code with the app, or open its link in any browser. There's no account to make and
+          no Tetramote server in between.
         </p>
         <div className="actions">
           {platform === "phone" ? (
@@ -322,8 +327,14 @@ function Downloads({links, version}) {
         ))}
         <li>
           <h3>iPhone and Android</h3>
-          <p>The phone app isn't in the App Store or Google Play yet. You can build it from the source on GitHub.</p>
+          <p>
+            The phone app isn't in the App Store or Google Play yet. Open the computer's link in your phone's browser
+            instead, or build the app from the source on GitHub.
+          </p>
           <div className="actions">
+            <a className="button button-primary" href="https://remote.tetramote.com">
+              Open in a browser
+            </a>
             <a className="button" href={`${REPO}#build`}>
               Build instructions <Arrow />
             </a>

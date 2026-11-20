@@ -106,17 +106,6 @@ fn split_access_units(data: &[u8]) -> Vec<AccessUnit> {
     units
 }
 
-fn percent_encode(s: &str) -> String {
-    s.bytes()
-        .map(|b| match b {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                (b as char).to_string()
-            }
-            _ => format!("%{b:02X}"),
-        })
-        .collect()
-}
-
 fn random_hex(len: usize) -> String {
     let key = tetra_core::net::generate_secret_key();
     key[..len].to_string()
@@ -295,12 +284,12 @@ fn main() {
                 let v: serde_json::Value = serde_json::from_slice(body).unwrap_or_default();
                 match v["type"].as_str() {
                     Some("ticket") => {
-                        let url = format!(
-                            "tetramote://pair?ticket={}&secret={}&name={}",
-                            v["ticket"].as_str().unwrap_or(""),
-                            pairing_secret,
-                            percent_encode("Fake Mac")
+                        let url = tetra_core::link::make(
+                            v["endpointId"].as_str().unwrap_or(""),
+                            &pairing_secret,
+                            "Fake Mac",
                         );
+                        eprintln!("ticket: {}", v["ticket"].as_str().unwrap_or(""));
                         eprintln!("pairing URL: {url}");
                         if let Some(p) = &args.pairing_file {
                             fs::write(p, &url).unwrap();

@@ -1,10 +1,11 @@
 # Tetramote
 
-Control your computers from your phone, or from another computer, over [iroh](https://iroh.computer).
-There's no account and no Tetramote server: a computer shows a QR code (or a link), the phone or other
-computer uses it once, and from then on the two find each other by their keys. Connections are end-to-end
-encrypted QUIC. They go direct (hole-punched) when they can, and fall back to n0's public relays, or a relay
-you run yourself, when they can't.
+Control your computers from your phone, another computer or a browser, over [iroh](https://iroh.computer).
+There's no account and no Tetramote server: a computer shares a link (also shown as a QR code), and anything
+that opens it can connect. The apps pair once and then find the computer by its key; a browser at
+remote.tetramote.com joins for as long as the link stays the same. Connections are end-to-end encrypted QUIC.
+They go direct (hole-punched) when they can, and fall back to n0's public relays, or a relay you run yourself,
+when they can't. Browsers always go through a relay.
 
 ```
 Phone (Expo app)  or  desktop viewer (Tauri)                   Desktop host (Tauri)
@@ -29,6 +30,10 @@ Phone (Expo app)  or  desktop viewer (Tauri)                   Desktop host (Tau
   follows the Glassly App's design and stack. The native module `mobile/modules/remote` wraps the core,
   decodes video and audio natively and renders the screen in a native view, so frames never cross the JS
   bridge.
+- `web/`: the browser client at [remote.tetramote.com](https://remote.tetramote.com), static files on
+  Cloudflare Pages. `web/wasm` (`tetra_web`) is the core's protocol plus iroh compiled to WebAssembly, built
+  into `web/src/core/` by `scripts/build-web-core.sh` and committed; the React app around it decodes video and
+  audio with WebCodecs. `?debug` in the URL sends iroh's logs to the console.
 - `site/`: [tetramote.com](https://tetramote.com), a static React and Vite page prerendered at build time
   and deployed by Cloudflare Pages from `main`. `cd site && bun install && bun run dev` serves it locally.
 
@@ -51,6 +56,10 @@ scripts/build-core.sh ios|android          # the core for the phone
 cd mobile && bun install && bun ios        # connected iPhone; --simulator, --release, --prebuild
 cd mobile && bun android                   # connected Android phone; --emulator
 cd mobile && bun run test && bun compile && bun run lint:check
+
+scripts/build-web-core.sh                  # web/wasm -> web/src/core (rustup llvm-tools, wasm-bindgen-cli)
+cd web && bun install && bun run dev       # the browser client; open it with a link's #fragment
+cd web && bunx vitest run && bun run build && bunx eslint .
 ```
 
 ## Releases and updates
@@ -82,15 +91,16 @@ The phone app is designed for the iPhone Duo first and widens rather than switch
 
 ## Pairing and trust
 
-1. The shared computer generates an iroh key (kept in the system keychain) and a one-time 128-bit pairing
-   secret, and shows `tetramote://pair?ticket=…&secret=…&name=…` as a QR code and a copyable link.
-2. The phone or other computer dials the ticket and sends the secret in its hello. iroh's TLS already proves
-   both endpoint keys, so the secret only has to show that this device saw the code.
-3. The shared computer adds the device's endpoint id to its trusted list and spends the secret. Later
-   connections need no secret, and removing a device in the popover drops its live session.
+1. The shared computer keeps an iroh key and a 128-bit link secret in the system keychain, and shows
+   `https://remote.tetramote.com/#id=…&secret=…&name=…` as a QR code and a copyable link.
+2. A phone, another computer or a browser dials the endpoint id and sends the secret in its hello. iroh's TLS
+   already proves both endpoint keys, so the secret only has to show that this device has the link.
+3. The apps pair: the computer adds their endpoint id to its trusted list, and later connections need no
+   secret. A browser joins as a guest for that connection only. New link in the popover replaces the secret,
+   which stops the old link and disconnects a guest that used it; removing a paired device drops its session.
 
-Nothing about the pairing ever leaves the two devices. Relays and n0's DNS address lookup see endpoint ids
-and encrypted packets only.
+The secret sits after `#`, which browsers keep to themselves, so neither Cloudflare (serving remote.tetramote.com)
+nor the relays or n0's DNS address lookup ever see it. They see endpoint ids and encrypted packets only.
 
 ## Testing without hardware
 
@@ -98,9 +108,10 @@ and encrypted packets only.
   streams a recorded clip to the phone and logs the input it receives. The example's header shows how to
   make the clip with ffmpeg. To pair a simulator without scanning, launch the app with the URL:
   `xcrun simctl launch <udid> com.tetramo.tetramote -TetramotePairURL "$(cat /tmp/pair.txt)"` (on Android, a
-  `TetramotePairURL` string extra on the launch intent). `simctl openurl` works too, but iOS asks to confirm.
-- `cargo run --release --example probe -- --pair "<url>" --out /tmp/probe.h264` acts as a phone against the
-  desktop app. Environment variables for the desktop app in tests:
+  `TetramotePairURL` string extra on the launch intent). `simctl openurl` with the link opens the browser
+  client in Safari instead, which is how to test `web/` on a phone.
+- `cargo run --release --example probe -- --pair "<url>" --out /tmp/probe.h264` acts as a phone (or, with
+  `--guest`, a browser) against the desktop app. Environment variables for the desktop app in tests:
   - `TETRAMOTE_PROFILE=<name>`: separate settings and keys, so the real ones are never read (no keychain
     prompts).
   - `TETRAMOTE_TEST_PATTERN=1`: share a synthetic display (software encoder, silent audio) instead of the

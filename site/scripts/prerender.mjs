@@ -33,7 +33,7 @@ try {
 function markdown({steps, features, privacy, downloads, faq, REPO, LATEST}) {
   return `# Tetramote
 
-Control your computer from your phone. Tetramote puts your Mac, Windows or Linux screen on your phone, sound included, and sends your taps and typing back. Pair once by scanning a code. There's no account to make and no Tetramote server in between.
+Control your computer from your phone. Tetramote puts your Mac, Windows or Linux screen on your phone, sound included, and sends your taps and typing back. Scan the computer's code with the app, or open its link in any browser. There's no account to make and no Tetramote server in between.
 
 ## Pair once, then connect from anywhere
 
@@ -52,7 +52,7 @@ ${privacy.map((fact) => `- ${fact}`).join("\n")}
 ## Download
 
 ${downloads.map((platform) => `- **${platform.name}.** ${platform.details}`).join("\n")}
-- **iPhone and Android.** The phone app isn't in the App Store or Google Play yet. You can build it from the source on GitHub.
+- **iPhone and Android.** The phone app isn't in the App Store or Google Play yet. Open the computer's link in your phone's browser at https://remote.tetramote.com instead, or build the app from the source on GitHub.
 
 Downloads: ${LATEST}
 Source: ${REPO}

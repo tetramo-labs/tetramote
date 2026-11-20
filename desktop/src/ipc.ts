@@ -70,7 +70,7 @@ export type ViewerInput =
 
 export const api = {
   hostState: () => invoke<HostState>("host_state"),
-  hostNewCode: () => invoke<void>("host_new_code"),
+  hostNewLink: () => invoke<void>("host_new_link"),
   hostRemove: (id: string) => invoke<void>("host_remove", {id}),
   hostDisconnect: () => invoke<void>("host_disconnect"),
   requestPermission: (kind: "screenRecording" | "accessibility") => invoke<void>("request_permission", {kind}),
