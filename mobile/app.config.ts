@@ -40,7 +40,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
       NSCameraUsageDescription: "Tetramote uses the camera to scan the pairing code your computer shows.",
       NSLocalNetworkUsageDescription: "Tetramote connects straight to your computer when it is on the same network.",
       UIBackgroundModes: ["audio"],
-      ITSAppUsesNonExemptEncryption: true,
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
