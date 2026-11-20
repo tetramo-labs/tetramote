@@ -245,12 +245,11 @@ function Hero({links, platform, version}) {
           ))}
         </p>
       </div>
-      <figure className="m-0 w-full max-w-[380px] justify-self-center max-lg:max-w-[340px]">
+      <figure className="m-0 w-full max-w-[400px] justify-self-center max-lg:max-w-[358px]">
         <img
-          className="rounded-[28px] border border-border bg-black"
           src="/screenshots/laptop.webp"
-          width="760"
-          height="1005"
+          width="800"
+          height="1116"
           alt="Tetramote on a half-open iPhone Duo: the computer's screen on the top half, a trackpad and a row of controls on the bottom half."
         />
       </figure>
@@ -302,12 +301,11 @@ function Features() {
             which leaves the whole display for the screen. Other phones show the screen above the trackpad too.
           </p>
         </div>
-        <figure className="m-0 w-full max-w-[280px] justify-self-center">
+        <figure className="m-0 w-full max-w-[305px] justify-self-center">
           <img
-            className="rounded-[28px] border border-border bg-black"
             src="/screenshots/folded.webp"
-            width="560"
-            height="815"
+            width="610"
+            height="849"
             alt="Tetramote on the folded iPhone Duo: the computer's screen above a trackpad, with the session controls in the status rail."
           />
         </figure>
