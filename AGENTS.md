@@ -35,7 +35,8 @@ Rules for coding agents working in Tetramote. The phone app follows the Glassly 
   `tetramote-remote` builds `web/` on every push to `main` that touches it.
 - Site, from `site/`: `bun run dev`, `bun run test` (builds, then `node --test`). The Cloudflare Pages project
   `tetramote` builds `site/` on every push to `main` that touches it. Download links come from GitHub's latest
-  release in the browser and fall back to the release page.
+  release in the browser and fall back to the release page. `scripts/build-screenshots.sh` rebuilds the homepage
+  screenshots from `scripts/screenshots/`.
 - Use bun, never npm or yarn. Installs skip versions published less than 7 days ago (`mobile/bunfig.toml`).
 
 ## Rules

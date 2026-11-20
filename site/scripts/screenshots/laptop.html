@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 800px; height: 1116px; background: transparent; overflow: hidden; }
+  .knuckle { position: absolute; top: 528px; width: 6px; height: 60px; background: linear-gradient(180deg, #2a2c31, #8e9199 50%, #2a2c31); }
+  .knuckle.l { left: 2px; border-radius: 3px 0 0 3px; }
+  .knuckle.r { right: 2px; border-radius: 0 3px 3px 0; }
+  .body { position: absolute; left: 4px; top: 2px; width: 792px; height: 1112px; padding: 4px; border-radius: 80px; background: linear-gradient(150deg, #9da0a8 0%, #45474e 14%, #2b2d32 40%, #55585f 62%, #2b2d32 84%, #a3a6ae 100%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
+  .seam { position: absolute; left: 0; right: 0; top: 556px; height: 2px; background: rgba(0, 0, 0, 0.75); }
+  .glass { position: relative; width: 100%; height: 100%; padding: 12px; border-radius: 76px; background: #000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07); }
+  .screen { position: relative; width: 760px; height: 1080px; border-radius: 63px; overflow: hidden; background: #000; }
+  .desktop { position: absolute; left: 0; top: 33px; width: 760px; height: 475px; }
+  .panel { position: absolute; left: 0; top: 540px; width: 760px; height: 540px; background: url(laptop-app.webp) 0 -465px / 760px 1005px no-repeat; }
+  .crease { position: absolute; left: 0; right: 0; top: 529px; height: 22px; background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.022) 35%, rgba(0, 0, 0, 0.4) 50%, rgba(255, 255, 255, 0.022) 65%, transparent); }
+</style>
+</head>
+<body>
+  <div class="knuckle l"></div>
+  <div class="knuckle r"></div>
+  <div class="body">
+    <div class="seam"></div>
+    <div class="glass">
+      <div class="screen"><img class="desktop" src="desktop.png" alt=""><div class="panel"></div><div class="crease"></div></div>
+    </div>
+  </div>
+</body>
+</html>
