@@ -1,0 +1,106 @@
+name: iOS release
+
+# Archives the phone app on the self-hosted Mac and uploads it to App Store Connect.
+# Manual only: the repo is public, so nothing a pull request controls may reach this runner.
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload the IPA to App Store Connect
+        type: boolean
+        default: true
+      build_number:
+        description: CFBundleVersion (defaults to the commit count; must exceed every uploaded build)
+        required: false
+
+jobs:
+  ios:
+    runs-on: [self-hosted, macOS, ARM64, tetramote]
+    timeout-minutes: 90
+    concurrency:
+      group: tetramote-ios-signing
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Add runner tools to PATH
+        run: |
+          {
+            echo "/opt/homebrew/bin"
+            echo "$HOME/.cargo/bin"
+            echo "$HOME/.rbenv/shims"
+            echo "$HOME/.bun/bin"
+          } >> "$GITHUB_PATH"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install
+        working-directory: mobile
+        run: bun install --frozen-lockfile
+
+      - name: Stage the distribution identity in a job keychain
+        id: keychain
+        env:
+          IOS_DIST_P12_B64: ${{ secrets.IOS_DIST_P12_B64 }}
+          IOS_DIST_P12_PASSWORD: ${{ secrets.IOS_DIST_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$IOS_DIST_P12_B64" || { echo "Set the IOS_DIST_P12_B64 secret to the base64 distribution .p12." >&2; exit 1; }
+          p12="$RUNNER_TEMP/tetramote-dist.p12"
+          printf '%s' "$IOS_DIST_P12_B64" | tr -d '\r\n \t' | base64 -d > "$p12"
+          keychain="tetramote-signing-${GITHUB_RUN_ID}.keychain-db"
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$password"
+          security delete-keychain "$keychain" 2>/dev/null || true
+          security create-keychain -p "$password" "$keychain"
+          echo "name=$keychain" >> "$GITHUB_OUTPUT"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$p12" -k "$keychain" -P "$IOS_DIST_P12_PASSWORD" -T /usr/bin/codesign
+          rm -f "$p12"
+          for wwdr in G3 G6; do
+            certificate="$RUNNER_TEMP/AppleWWDRCA$wwdr.cer"
+            curl --fail --silent --show-error --location "https://www.apple.com/certificateauthority/AppleWWDRCA$wwdr.cer" -o "$certificate"
+            security import "$certificate" -k "$keychain" 2>&1 | grep -v "already exists" || true
+          done
+          security set-key-partition-list -S "apple-tool:,apple:,codesign:" -s -k "$password" "$keychain" >/dev/null
+          keychains=("$keychain")
+          while IFS= read -r existing; do
+            existing="${existing#*\"}"
+            existing="${existing%\"*}"
+            [[ -n "$existing" && "$existing" != *"$keychain"* ]] && keychains+=("$existing")
+          done < <(security list-keychains -d user)
+          security list-keychains -d user -s "${keychains[@]}"
+          security find-identity -v -p codesigning | grep -q "iPhone Distribution: Tetramo Inc. (B8446S9493)"
+          echo "SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+          echo "SIGNING_KEYCHAIN_PASSWORD=$password" >> "$GITHUB_ENV"
+
+      - name: Build and upload
+        working-directory: mobile
+        env:
+          TETRAMOTE_BUILD_NUMBER: ${{ inputs.build_number }}
+          UPLOAD: ${{ inputs.upload }}
+        run: |
+          set -euo pipefail
+          asc doctor
+          export IOS_DERIVED_DATA_PATH="$HOME/Library/Caches/tetramote-ci/DerivedData"
+          mkdir -p "$IOS_DERIVED_DATA_PATH"
+          security unlock-keychain -p "$SIGNING_KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN"
+          if [[ "$UPLOAD" == "true" ]]; then bun ios-release --upload; else bun ios-release; fi
+
+      - name: Remove the job keychain
+        if: always()
+        env:
+          SIGNING_KEYCHAIN: ${{ steps.keychain.outputs.name }}
+        run: |
+          if [[ -n "${SIGNING_KEYCHAIN:-}" ]]; then
+            security delete-keychain "$SIGNING_KEYCHAIN" 2>/dev/null || true
+          fi

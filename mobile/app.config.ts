@@ -4,8 +4,13 @@ import type {ConfigContext, ExpoConfig} from "expo/config"
 
 const version = require("./package.json").version as string
 
-/** The commit count, so every build from a newer commit has a higher build number. */
+/**
+ * The commit count, so every build from a newer commit has a higher build number.
+ * TETRAMOTE_BUILD_NUMBER overrides it and must still exceed every build already uploaded.
+ */
 function buildNumber(): number {
+  const pinned = Number(process.env.TETRAMOTE_BUILD_NUMBER)
+  if (Number.isInteger(pinned) && pinned > 0) return pinned
   try {
     return Number(execSync("git rev-list --count HEAD", {cwd: __dirname}).toString().trim()) || 1
   } catch {
@@ -35,7 +40,7 @@ module.exports = ({config}: ConfigContext): Partial<ExpoConfig> => ({
       NSCameraUsageDescription: "Tetramote uses the camera to scan the pairing code your computer shows.",
       NSLocalNetworkUsageDescription: "Tetramote connects straight to your computer when it is on the same network.",
       UIBackgroundModes: ["audio"],
-      ITSAppUsesNonExemptEncryption: false,
+      ITSAppUsesNonExemptEncryption: true,
     },
   },
   android: {
