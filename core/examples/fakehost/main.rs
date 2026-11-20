@@ -8,6 +8,7 @@
 //! ffmpeg -f lavfi -i sine=frequency=440:sample_rate=48000 -ac 2 -t 10 -c:a libopus -b:a 128k \
 //!   -frame_duration 20 -application lowdelay test.ogg
 //! cargo run --release --example fakehost -- --h264 test.h264 --opus test.ogg --pairing-file /tmp/pair.txt
+//! (`--name` sets the computer name the phone shows; it defaults to Fake Mac.)
 
 mod ogg;
 
@@ -27,6 +28,7 @@ struct Args {
     pairing_file: Option<String>,
     log: Option<String>,
     local_only: bool,
+    name: String,
 }
 
 fn parse_args() -> Args {
@@ -37,6 +39,7 @@ fn parse_args() -> Args {
         pairing_file: None,
         log: None,
         local_only: false,
+        name: "Fake Mac".into(),
     };
     let mut it = std::env::args().skip(1);
     while let Some(flag) = it.next() {
@@ -47,6 +50,7 @@ fn parse_args() -> Args {
             "--pairing-file" => args.pairing_file = it.next(),
             "--log" => args.log = it.next(),
             "--local-only" => args.local_only = true,
+            "--name" => args.name = it.next().expect("--name <host name>"),
             other => panic!("unknown flag {other}"),
         }
     }
@@ -178,7 +182,7 @@ fn main() {
                         relay_url: None,
                         local_only: args.local_only,
                     },
-                    host_name: "Fake Mac".into(),
+                    host_name: args.name.clone(),
                     trusted: Vec::new(),
                     pairing_secret: Some(pairing_secret.clone()),
                 },
