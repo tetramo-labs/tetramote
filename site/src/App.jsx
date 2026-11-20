@@ -4,10 +4,16 @@ import {LATEST, REPO, detectPlatform, fallbackLinks, latestRelease} from "./down
 
 const PLATFORM_NAMES = {mac: "macOS", windows: "Windows", linux: "Linux"}
 
+export const lede =
+  "Tetramote shows your Mac, Windows or Linux screen on your phone, with its sound, and sends your taps and typing back. Scan the computer's code with the app, or open its link in any browser. There's no account to make and no Tetramote server in between."
+
+export const phoneNote =
+  "The phone app isn't in the App Store or Google Play yet. Until it is, open the computer's link in your phone's browser, or build the app from the source on GitHub."
+
 export const steps = [
   {
     title: "Install Tetramote on the computer",
-    body: "It sits in the menu bar on a Mac and in the system tray on Windows and Linux. Click its icon to show a pairing code.",
+    body: "Its icon is in the menu bar on a Mac and in the system tray on Windows and Linux. Click it to show a pairing code.",
   },
   {
     title: "Scan the code with your phone",
@@ -15,30 +21,30 @@ export const steps = [
   },
   {
     title: "Connect again without a code",
-    body: "The two now know each other's keys. Your phone finds the computer on the same Wi-Fi or across the internet, with no code needed.",
+    body: "Your phone and the computer now have each other's keys, so later connections need no code. They work on the same Wi-Fi or across the internet.",
   },
 ]
 
 export const features = [
   {
     title: "Screen and sound",
-    body: "The screen streams as H.264 from the computer's hardware encoder where it has one, and system audio comes along as Opus. A status pill shows whether the link is direct and how long a round trip takes.",
+    body: "The screen streams as H.264 from the computer's hardware encoder where it has one, and system audio streams as Opus. A status pill shows whether the connection is direct and how long a round trip takes.",
   },
   {
     title: "Trackpad or direct touch",
     body: "Drag to move the pointer, tap to click, tap with two fingers to right-click, and drag two fingers to scroll. Tap then drag to drag a window. Or switch to direct touch and tap the screen itself, pinching to zoom in.",
   },
   {
-    title: "The keys phones leave out",
-    body: "Esc, Tab, Command, Option, Control, Shift and the arrow keys sit above the keyboard. On Windows and Linux, Command and Control press Ctrl and Option presses Alt.",
+    title: "Modifier and arrow keys",
+    body: "A row above the phone's keyboard has Esc, Tab, Command, Option, Control, Shift and the arrow keys. On Windows and Linux, Command and Control press Ctrl and Option presses Alt.",
   },
   {
     title: "Clipboard and displays",
     body: "Send your phone's clipboard to the computer, or copy the computer's clipboard to your phone. With more than one monitor, pick which one to show.",
   },
   {
-    title: "Full screen when you want it",
-    body: "The computer's screen fills the display and the controls float on top, hiding after a few seconds. Tap with three fingers to bring them back.",
+    title: "Full screen",
+    body: "The computer's screen fills the display, and the controls float on top and hide after a few seconds. Tap with three fingers to bring them back.",
   },
   {
     title: "From a browser or another computer",
@@ -58,20 +64,20 @@ export const downloads = [
     id: "mac",
     name: "macOS",
     details:
-      "One app for Apple silicon and Intel Macs. It isn't notarized yet, so the first time you open it, allow it in System Settings › Privacy & Security. Sharing the screen and taking input need Screen Recording and Accessibility.",
+      "The app runs on Apple silicon and Intel Macs. It isn't notarized yet, so the first time you open it, allow it in System Settings › Privacy & Security. It needs Screen Recording and Accessibility permission to share the screen and take input.",
     files: [{key: "mac", label: "Download .dmg"}],
   },
   {
     id: "windows",
     name: "Windows",
-    details: "Windows 10 or later. Uses the GPU's H.264 encoder when there is one.",
+    details: "Needs Windows 10 or later. Tetramote uses the GPU's H.264 encoder when there is one.",
     files: [{key: "windows", label: "Download installer"}],
   },
   {
     id: "linux",
     name: "Linux",
     details:
-      "GNOME or KDE Plasma with PipeWire, on Wayland or X11. Needs glibc 2.39 or newer: Ubuntu 24.04, Debian 13, Fedora 40 and later.",
+      "Needs GNOME or KDE Plasma with PipeWire, on Wayland or X11. It also needs glibc 2.39 or newer, which means Ubuntu 24.04, Debian 13, Fedora 40 or later.",
     files: [
       {key: "appimage", label: "AppImage"},
       {key: "deb", label: ".deb"},
@@ -86,7 +92,7 @@ export const faq = [
   },
   {
     q: "Do I need an account?",
-    a: "No. The computer shows a code, your phone scans it once, and from then on each recognizes the other by its key.",
+    a: "No. The computer shows a code, your phone scans it once, and from then on the two identify each other by their keys.",
   },
   {
     q: "Does it work away from home?",
@@ -98,11 +104,11 @@ export const faq = [
   },
   {
     q: "Where do I get the phone app?",
-    a: "The iPhone and Android app isn't in the App Store or Google Play yet. Until it is, open the computer's link in your phone's browser, or build the app from the source on GitHub.",
+    a: phoneNote,
   },
   {
     q: "Can I use it without installing anything?",
-    a: "On the computer you share, no: it runs the desktop app. On the device you control it from, yes. Open the computer's link in Chrome, Edge, Safari or Firefox and the screen opens in that tab. Browsers can't connect directly, so they always go through an encrypted relay.",
+    a: "The computer you share needs the desktop app. The device you control it from needs nothing installed. Open the computer's link in Chrome, Edge, Safari or Firefox and the screen opens in that tab. Browsers can't connect directly, so they always go through an encrypted relay.",
   },
   {
     q: "Which Linux desktops work?",
@@ -185,11 +191,7 @@ function Hero({links, platform, version}) {
     <section className="hero wrap">
       <div className="hero-copy">
         <h1>Control your computer from your phone.</h1>
-        <p className="lede">
-          Tetramote puts your Mac, Windows or Linux screen on your phone, sound included, and sends your taps and typing
-          back. Scan the computer's code with the app, or open its link in any browser. There's no account to make and
-          no Tetramote server in between.
-        </p>
+        <p className="lede">{lede}</p>
         <div className="actions">
           {platform === "phone" ? (
             <a className="button button-primary" href="#download">
@@ -259,9 +261,9 @@ function Features() {
         <div className="duo-copy">
           <h3>Made for the iPhone Duo</h3>
           <p>
-            Half open, a session becomes a laptop: the screen on the top half, a trackpad on the bottom. Folded, Back,
-            Close and the session controls move into the status rail, so the screen gets the whole display. On other
-            phones the screen sits above the trackpad the same way.
+            Half open, the session works like a laptop, with the screen on the top half and a trackpad on the bottom.
+            When the phone is folded, the Back and Close buttons and the session controls move into the status rail,
+            which leaves the whole display for the screen. Other phones show the screen above the trackpad too.
           </p>
         </div>
         <figure className="duo-shot">
@@ -282,11 +284,11 @@ function Privacy() {
     <section id="privacy" className="section wrap" aria-labelledby="privacy-title">
       <div className="panel privacy">
         <div>
-          <h2 id="privacy-title">No account. No Tetramote server.</h2>
+          <h2 id="privacy-title">There's no account and no Tetramote server.</h2>
           <p>
             Tetramote connects your devices with <a href="https://iroh.computer">iroh</a>. Every connection is
             end-to-end encrypted QUIC and goes direct whenever the networks allow it. When they don't, traffic passes
-            through n0's public relays, or a relay you run yourself, which only ever see encrypted packets.
+            through n0's public relays, or a relay you run yourself, which see only encrypted packets.
           </p>
           <a className="button" href={`${REPO}/blob/main/PROTOCOL.md`}>
             Read the protocol <Arrow />
@@ -327,10 +329,7 @@ function Downloads({links, version}) {
         ))}
         <li>
           <h3>iPhone and Android</h3>
-          <p>
-            The phone app isn't in the App Store or Google Play yet. Open the computer's link in your phone's browser
-            instead, or build the app from the source on GitHub.
-          </p>
+          <p>{phoneNote}</p>
           <div className="actions">
             <a className="button button-primary" href="https://remote.tetramote.com">
               Open in a browser
