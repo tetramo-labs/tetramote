@@ -14,9 +14,8 @@
   .power { top: 318px; height: 64px; }
   .body { position: absolute; left: 16px; top: 2px; width: 588px; height: 845px; padding: 4px; border-radius: 22px 88px 88px 22px; background: linear-gradient(140deg, #9da0a8 0%, #45474e 18%, #2b2d32 45%, #55585f 70%, #a3a6ae 100%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
   .glass { width: 100%; height: 100%; padding: 10px; border-radius: 18px 84px 84px 18px; background: #000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07); }
-  .screen { position: relative; width: 560px; height: 815px; border-radius: 10px 71px 71px 10px; overflow: hidden; background: #000 url(folded-app.webp) 0 0 / 560px 815px no-repeat; }
-  .desktop { position: absolute; left: 0; top: 0; width: 459px; height: 287px; box-shadow: 1px 1px 0 #000; }
-  .pill { position: absolute; left: 9px; top: 296px; width: 203px; height: 47px; background: #000; }
+  .screen { position: relative; width: 560px; height: 815px; border-radius: 10px 71px 71px 10px; overflow: hidden; background: #171717 url(folded-app.webp) 0 0 / 560px 815px no-repeat; }
+  .desktop { position: absolute; left: 0; top: 0; width: 459px; height: 287px; }
   .camera { position: absolute; left: 489px; top: 140px; width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 38% 36%, #2b3550 0 12%, #0b0d14 32%, #020203 70%); box-shadow: 0 0 0 1.5px #0c0c0f; }
 </style>
 </head>
@@ -26,7 +25,7 @@
   <div class="button power"></div>
   <div class="body">
     <div class="glass">
-      <div class="screen"><img class="desktop" src="desktop.png" alt=""><div class="pill"></div><div class="camera"></div></div>
+      <div class="screen"><img class="desktop" src="desktop.png" alt=""><div class="camera"></div></div>
     </div>
   </div>
 </body>
