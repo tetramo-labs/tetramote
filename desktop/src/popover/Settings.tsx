@@ -74,8 +74,12 @@ export function Settings() {
         </Row>
         <Row className="flex-col !items-stretch gap-2">
           <div className="flex items-center">
-            <div className="flex-1 text-[13px]">Install updates automatically</div>
-            <Toggle label="Install updates automatically" checked={updates.auto} onChange={updates.setAuto} />
+            <div className="flex-1 text-[13px]">Check for and install updates automatically</div>
+            <Toggle
+              label="Check for and install updates automatically"
+              checked={updates.auto}
+              onChange={updates.setAuto}
+            />
           </div>
           <div className="flex items-center gap-2">
             <div className="flex-1 text-[11px] text-muted">

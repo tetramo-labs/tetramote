@@ -66,8 +66,8 @@ cd web && bunx vitest run && bun run build && bunx eslint .
 
 `scripts/release-desktop.sh <version>` publishes the desktop app as the GitHub release `v<version>`: it
 builds and signs the universal macOS app on this Mac, then `.github/workflows/release-desktop.yml` adds the
-Windows and Linux builds. Installed copies check `latest.json` on the newest release every few hours and,
-unless "Install updates automatically" is off, install while nothing is connected. Updates are signed with
+Windows and Linux builds. With "Check for and install updates automatically" on (the default), installed
+copies check `latest.json` on the newest release every few hours and install while nothing is connected. Updates are signed with
 the updater key (`~/.tauri/tetramote.key`, also the `TAURI_SIGNING_PRIVATE_KEY` Actions secret); back it up,
 since installed copies only accept updates signed with it. The macOS app is signed with an Apple Development
 certificate and not notarized for now.

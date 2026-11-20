@@ -55,10 +55,6 @@ export function Pairing() {
           <div className="h-[184px] w-[184px] animate-pulse rounded-lg bg-neutral-200" />
         )}
       </div>
-      <div className="text-center text-[12px] text-muted">
-        Scan the code with your phone, or open the link in a browser or on another computer, to control this one. Anyone
-        with the link can connect until you make a new one.
-      </div>
       {linkError && <div className="text-center text-[12px] text-destructive">{linkError}</div>}
       <div className="flex gap-2">
         <Button

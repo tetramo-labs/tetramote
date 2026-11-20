@@ -20,9 +20,9 @@ interface UpdateStore {
 let pending: Update | null = null
 
 /**
- * Checks GitHub Releases for a newer signed build. With automatic updates on,
- * a found update installs and relaunches only while nothing is connected, so
- * it never cuts a session off.
+ * Checks GitHub Releases for a newer signed build. With automatic updates on, the app checks every few hours and
+ * installs and relaunches only while nothing is connected, so it never cuts a session off. Off, it checks only
+ * when asked.
  */
 export const useUpdates = create<UpdateStore>()((set, get) => ({
   auto: localStorage.getItem(AUTO_KEY) !== "false",
@@ -64,8 +64,8 @@ export const useUpdates = create<UpdateStore>()((set, get) => ({
 
 export function scheduleUpdateChecks(isBusy: () => boolean) {
   const run = () => {
-    const {auto} = useUpdates.getState()
-    void useUpdates.getState().check({install: auto, busy: isBusy()})
+    if (!useUpdates.getState().auto) return
+    void useUpdates.getState().check({install: true, busy: isBusy()})
   }
   setTimeout(run, 10_000)
   setInterval(run, CHECK_EVERY_MS)
