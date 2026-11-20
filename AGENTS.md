@@ -12,6 +12,8 @@ Rules for coding agents working in Tetramote. The phone app follows the Glassly 
   `media/` (`tetra_media`) the per-OS capture/encode/audio/input layer behind one interface in `media/src/lib.rs`.
 - `mobile/`: Expo app. Screens are in `src/app/`, the native module is in `modules/remote/` (Swift in
   `ios/`, Kotlin in `android/`, TypeScript API in `src/`).
+- `site/`: tetramote.com, a static React 18 + Vite 6 page (`src/App.jsx`) prerendered into `dist/index.html`
+  with a Markdown twin at `/index.md` (`scripts/prerender.mjs`), served by Cloudflare Pages.
 
 ## Commands
 
@@ -24,6 +26,9 @@ Rules for coding agents working in Tetramote. The phone app follows the Glassly 
   other test variables). Release with `scripts/release-desktop.sh <version>`.
 - Mobile, from `mobile/`: `bun run test` (Jest), `bun compile` (tsc), `bun run lint:check`, `bun ios`, `bun android`.
   `ios/` and `android/` are generated (CNG); make durable changes in `app.config.ts` or the module.
+- Site, from `site/`: `bun run dev`, `bun run test` (builds, then `node --test`). The Cloudflare Pages project
+  `tetramote` builds `site/` on every push to `main` that touches it. Download links come from GitHub's latest
+  release in the browser and fall back to the release page.
 - Use bun, never npm or yarn. Installs skip versions published less than 7 days ago (`mobile/bunfig.toml`).
 
 ## Rules

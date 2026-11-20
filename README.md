@@ -29,6 +29,8 @@ Phone (Expo app)  or  desktop viewer (Tauri)                   Desktop host (Tau
   follows the Glassly App's design and stack. The native module `mobile/modules/remote` wraps the core,
   decodes video and audio natively and renders the screen in a native view, so frames never cross the JS
   bridge.
+- `site/`: [tetramote.com](https://tetramote.com), a static React and Vite page prerendered at build time
+  and deployed by Cloudflare Pages from `main`. `cd site && bun install && bun run dev` serves it locally.
 
 ## Build
 
