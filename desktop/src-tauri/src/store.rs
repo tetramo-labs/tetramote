@@ -1,4 +1,7 @@
 use std::fs;
+use std::io::Write;
+#[cfg(unix)]
+use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -10,6 +13,16 @@ const KEY_SERVICE: &str = "com.tetramo.tetramote.host";
 const HOST_KEY_ACCOUNT: &str = "endpoint-secret-key";
 const CLIENT_KEY_ACCOUNT: &str = "client-secret-key";
 const LINK_SECRET_ACCOUNT: &str = "link-secret";
+const LOGIN_WINDOW_FILE: &str = "login-window.json";
+
+/// What the login-window host needs and can't read from the locked login keychain. The app writes it, readable
+/// only by this user and root, while Open at boot is on.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+struct LoginWindowSecrets {
+    host_key: String,
+    link_secret: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -52,6 +65,7 @@ pub struct Store {
     path: PathBuf,
     settings: Mutex<Settings>,
     profile: Option<String>,
+    login_window: Option<Mutex<LoginWindowSecrets>>,
 }
 
 impl Store {
@@ -73,7 +87,69 @@ impl Store {
             path,
             settings: Mutex::new(settings),
             profile,
+            login_window: None,
         }
+    }
+
+    /// The login-window host's store: this user's settings, with the key and link secret from the file the app
+    /// wrote. `None` when Open at boot is off.
+    pub fn open_login_window(dir: PathBuf) -> Option<Self> {
+        let secrets = fs::read(dir.join(LOGIN_WINDOW_FILE))
+            .ok()
+            .and_then(|b| serde_json::from_slice::<LoginWindowSecrets>(&b).ok())?;
+        let path = dir.join("settings.json");
+        let settings = fs::read(&path)
+            .ok()
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .unwrap_or_default();
+        Some(Self {
+            path,
+            settings: Mutex::new(settings),
+            profile: None,
+            login_window: Some(Mutex::new(secrets)),
+        })
+    }
+
+    pub fn dir(&self) -> PathBuf {
+        self.path.parent().map(PathBuf::from).unwrap_or_default()
+    }
+
+    fn login_window_path(&self) -> PathBuf {
+        self.path.with_file_name(
+            self.profile
+                .as_ref()
+                .map_or(LOGIN_WINDOW_FILE.to_string(), |p| {
+                    format!("login-window.{p}.json")
+                }),
+        )
+    }
+
+    pub fn login_window_enabled(&self) -> bool {
+        self.login_window_path().exists()
+    }
+
+    pub fn write_login_window_secrets(&self) -> Result<(), String> {
+        let secrets = LoginWindowSecrets {
+            host_key: self.host_key()?,
+            link_secret: self.link_secret()?,
+        };
+        let json = serde_json::to_vec(&secrets).map_err(|e| e.to_string())?;
+        let path = self.login_window_path();
+        let _ = fs::remove_file(&path);
+        let mut options = fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        options.mode(0o600);
+        options
+            .open(&path)
+            .and_then(|mut file| file.write_all(&json))
+            .map_err(|e| {
+                format!("Saving this computer's key for the login screen failed ({e}). Turn Open at boot on again.")
+            })
+    }
+
+    pub fn remove_login_window_secrets(&self) {
+        let _ = fs::remove_file(self.login_window_path());
     }
 
     pub fn get(&self) -> Settings {
@@ -93,6 +169,9 @@ impl Store {
     }
 
     pub fn host_key(&self) -> Result<String, String> {
+        if let Some(secrets) = &self.login_window {
+            return Ok(secrets.lock().unwrap().host_key.clone());
+        }
         key(&self.account(HOST_KEY_ACCOUNT))
     }
 
@@ -102,6 +181,9 @@ impl Store {
 
     /// The secret in this computer's shared link, created on first use and kept until "New link" replaces it.
     pub fn link_secret(&self) -> Result<String, String> {
+        if let Some(secrets) = &self.login_window {
+            return Ok(secrets.lock().unwrap().link_secret.clone());
+        }
         let entry = entry(&self.account(LINK_SECRET_ACCOUNT))?;
         match entry.get_password() {
             Ok(existing) if is_link_secret(&existing) => Ok(existing),
@@ -113,8 +195,17 @@ impl Store {
         }
     }
 
+    /// A new link reaches the login-window host too, so the old link stops working there as well.
     pub fn set_link_secret(&self, secret: &str) -> Result<(), String> {
-        save_link_secret(&entry(&self.account(LINK_SECRET_ACCOUNT))?, secret)
+        if let Some(secrets) = &self.login_window {
+            secrets.lock().unwrap().link_secret = secret.to_string();
+            return Ok(());
+        }
+        save_link_secret(&entry(&self.account(LINK_SECRET_ACCOUNT))?, secret)?;
+        if self.login_window_enabled() {
+            self.write_login_window_secrets()?;
+        }
+        Ok(())
     }
 
     fn account(&self, base: &str) -> String {

@@ -20,6 +20,17 @@ Capture uses ScreenCaptureKit and encoding uses VideoToolbox, the hardware H.264
 CGEvent. The app needs Screen Recording and Accessibility, which `permissions()` reports and the
 `request_*` functions ask for.
 
+Open at boot (`src-tauri/src/login_window.rs`) installs `/Library/LaunchAgents/com.tetramo.tetramote.loginwindow.plist`
+behind an administrator prompt. It's a launch agent limited to the LoginWindow session that runs the app's own
+binary as a headless host (`tetramote-desktop --login-window <config dir>`) whenever the login window shows, so
+paired devices can log in after a restart or log out; launchd stops it at login and the app takes over. The login
+keychain is locked there, so turning it on writes the key and link secret to `login-window.json` (mode 0600) beside
+`settings.json`, and a new link rewrites it. The host runs as root, which can't see the user's Screen Recording and
+Accessibility grants through the preflight checks, so for root those checks report on and macOS itself refuses a
+capture it won't allow. It logs its status to `/private/tmp/com.tetramo.tetramote.loginwindow.log`. FileVault keeps
+the disk locked until someone types the password at the startup screen, so nothing runs before that; for planned
+restarts, `sudo fdesetup authrestart` skips it once.
+
 ## Windows
 
 Requirements: Windows 10 or later, the MSVC Rust toolchain with the Visual Studio C++ build tools, and CMake.

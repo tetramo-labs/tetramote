@@ -4,7 +4,6 @@ use std::time::{Duration, Instant};
 
 use serde::Serialize;
 use serde_json::{json, Value};
-use tauri::{AppHandle, Emitter};
 use tetra_core::host::SEND_DROPPED;
 use tetra_core::protocol::{EVENT_CONTROL, EVENT_INPUT, EVENT_STATE, FLAG_KEYFRAME};
 use tetra_core::{EndpointConfig, Events, Host, HostConfig};
@@ -139,9 +138,12 @@ struct Inner {
     last_denied_status: Option<Instant>,
 }
 
-/// Shares this computer: one iroh host, one connected device at a time.
+pub type Notify = Box<dyn Fn(HostState) + Send + Sync>;
+
+/// Shares this computer: one iroh host, one connected device at a time. `notify` receives every state change (the
+/// popover listens; the login-window host only logs).
 pub struct HostService {
-    app: AppHandle,
+    notify: Notify,
     store: Arc<Store>,
     inner: Mutex<Inner>,
     stream: Arc<Mutex<Option<Box<dyn ScreenStream>>>>,
@@ -149,12 +151,12 @@ pub struct HostService {
 }
 
 impl HostService {
-    pub fn new(app: AppHandle, store: Arc<Store>) -> Arc<Self> {
+    pub fn new(notify: Notify, store: Arc<Store>) -> Arc<Self> {
         let secret = store
             .link_secret()
             .unwrap_or_else(|_| pairing::new_secret());
         Arc::new(Self {
-            app,
+            notify,
             store,
             inner: Mutex::new(Inner {
                 host: None,
@@ -270,7 +272,7 @@ impl HostService {
         ) {
             let _ = std::fs::write(path, url);
         }
-        let _ = self.app.emit("host-state", state);
+        (self.notify)(state);
     }
 
     fn run(self: Arc<Self>) {

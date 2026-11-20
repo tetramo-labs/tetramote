@@ -25,6 +25,7 @@ objc2-video-toolbox = "0.3"
 objc2-core-graphics = "0.3"
 objc2-app-kit = "0.3"
 dispatch2 = "0.3"
+libc = "0.2"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.61", features = [

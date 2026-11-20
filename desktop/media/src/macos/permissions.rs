@@ -1,5 +1,6 @@
 //! Screen Recording and Accessibility. The checks never prompt; only the
-//! `request_*` functions show macOS's prompts or open System Settings.
+//! `request_*` functions show macOS's prompts or open System Settings. Root (the login-window host) can't see a
+//! user's grants through these checks, so it reports both as on and lets macOS refuse the capture itself.
 
 use objc2_app_kit::NSWorkspace;
 use objc2_core_foundation::{CFBoolean, CFDictionary, CFString, CFType};
@@ -16,12 +17,16 @@ extern "C" {
     static kAXTrustedCheckOptionPrompt: &'static CFString;
 }
 
+fn is_root() -> bool {
+    unsafe { libc::geteuid() == 0 }
+}
+
 pub fn screen_recording() -> bool {
-    CGPreflightScreenCaptureAccess()
+    is_root() || CGPreflightScreenCaptureAccess()
 }
 
 pub fn accessibility() -> bool {
-    unsafe { AXIsProcessTrusted() != 0 }
+    is_root() || unsafe { AXIsProcessTrusted() != 0 }
 }
 
 pub fn request_screen_recording() {

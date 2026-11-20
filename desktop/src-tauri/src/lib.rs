@@ -6,6 +6,8 @@ mod client;
 mod clipboard;
 mod commands;
 mod host;
+#[cfg(target_os = "macos")]
+mod login_window;
 mod pairing;
 mod store;
 mod system;
@@ -13,7 +15,7 @@ mod tray;
 
 use std::sync::Arc;
 
-use tauri::{Manager, RunEvent, WindowEvent};
+use tauri::{Emitter, Manager, RunEvent, WindowEvent};
 use tauri_plugin_deep_link::DeepLinkExt;
 
 use crate::client::ClientService;
@@ -31,6 +33,21 @@ fn open_links(app: &tauri::AppHandle, urls: impl IntoIterator<Item = String>) {
             log::warn!("{message}");
         }
     }
+}
+
+/// `--login-window <config dir>` is the headless host launchd starts at the macOS login window.
+pub fn run_from_args() {
+    let args: Vec<String> = std::env::args().collect();
+    #[cfg(target_os = "macos")]
+    if let Some(dir) = args
+        .iter()
+        .position(|a| a == login_window::FLAG)
+        .and_then(|i| args.get(i + 1))
+    {
+        return login_window::run(dir.into());
+    }
+    let _ = args;
+    run()
 }
 
 pub fn run() {
@@ -51,7 +68,13 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             let store = Arc::new(Store::open(app.path().app_config_dir()?));
-            let host = HostService::new(app.handle().clone(), store.clone());
+            let handle = app.handle().clone();
+            let host = HostService::new(
+                Box::new(move |state| {
+                    let _ = handle.emit("host-state", state);
+                }),
+                store.clone(),
+            );
             let own = host.clone();
             let client = ClientService::new(app.handle().clone(), store.clone(), move || {
                 own.endpoint_id()
@@ -109,6 +132,8 @@ pub fn run() {
             commands::viewer_set_audio,
             commands::viewer_keyframe,
             commands::app_quit,
+            commands::login_window_get,
+            commands::login_window_set,
         ])
         .build(tauri::generate_context!())
         .expect("Tetramote failed to start")

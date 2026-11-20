@@ -6700,6 +6700,7 @@ dependencies = [
  "audiopus",
  "cpal",
  "dispatch2",
+ "libc",
  "log",
  "objc2",
  "objc2-app-kit",

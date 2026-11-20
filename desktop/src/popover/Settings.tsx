@@ -12,12 +12,20 @@ export function Settings() {
   const relay = draft ?? settings?.relayUrl ?? ""
   const [relayError, setRelayError] = useState<string | null>(null)
   const [login, setLogin] = useState(false)
+  const [loginWindow, setLoginWindow] = useState(false)
+  const [loginWindowBusy, setLoginWindowBusy] = useState(false)
+  const [loginWindowError, setLoginWindowError] = useState<string | null>(null)
   const updates = useUpdates()
+  const mac = settings?.os === "macos"
 
   useEffect(() => {
     isEnabled()
       .then(setLogin)
       .catch(() => setLogin(false))
+    api
+      .loginWindowGet()
+      .then(setLoginWindow)
+      .catch(() => setLoginWindow(false))
   }, [])
 
   const applyRelay = async () => {
@@ -32,6 +40,20 @@ export function Settings() {
   const toggleLogin = async (on: boolean) => {
     await (on ? enable() : disable())
     setLogin(await isEnabled())
+  }
+
+  const toggleLoginWindow = async (on: boolean) => {
+    setLoginWindowError(null)
+    setLoginWindowBusy(true)
+    try {
+      setLoginWindow(await api.loginWindowSet(on))
+      if (on && !(await isEnabled())) await toggleLogin(true)
+    } catch (e) {
+      setLoginWindowError(String(e))
+      setLoginWindow(await api.loginWindowGet().catch(() => false))
+    } finally {
+      setLoginWindowBusy(false)
+    }
   }
 
   const updateText =
@@ -72,6 +94,24 @@ export function Settings() {
           <div className="flex-1 text-[13px]">Open at login</div>
           <Toggle label="Open at login" checked={login} onChange={(v) => void toggleLogin(v)} />
         </Row>
+        {mac && (
+          <Row className="flex-col !items-stretch gap-1">
+            <div className="flex items-center">
+              <div className="flex-1 text-[13px]">Open at boot</div>
+              <Toggle
+                label="Open at boot"
+                checked={loginWindow}
+                disabled={loginWindowBusy}
+                onChange={(v) => void toggleLoginWindow(v)}
+              />
+            </div>
+            <div className="text-[11px] text-muted">
+              Runs at the login screen after a restart or log out, so paired devices can connect and log in. Turning it
+              on asks for an administrator password.
+            </div>
+            {loginWindowError && <div className="text-[11px] text-destructive">{loginWindowError}</div>}
+          </Row>
+        )}
         <Row className="flex-col !items-stretch gap-2">
           <div className="flex items-center">
             <div className="flex-1 text-[13px]">Check for and install updates automatically</div>

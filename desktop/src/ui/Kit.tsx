@@ -37,14 +37,25 @@ export function Row({children, className = ""}: {children: ReactNode; className?
   return <div className={`flex items-center gap-3 rounded-[4px] bg-surface px-3.5 py-2.5 ${className}`}>{children}</div>
 }
 
-export function Toggle({checked, onChange, label}: {checked: boolean; onChange: (v: boolean) => void; label: string}) {
+export function Toggle({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  label: string
+  disabled?: boolean
+}) {
   return (
     <button
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors ${checked ? "bg-brand-secondary" : "bg-border"}`}>
+      className={`relative h-[22px] w-[38px] shrink-0 rounded-full transition-colors disabled:opacity-50 ${checked ? "bg-brand-secondary" : "bg-border"}`}>
       <span
         className={`absolute top-[2px] h-[18px] w-[18px] rounded-full bg-background shadow transition-[left] ${checked ? "left-[18px]" : "left-[2px]"}`}
       />

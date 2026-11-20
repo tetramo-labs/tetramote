@@ -159,3 +159,33 @@ mod tests {
         assert!(!valid_relay("ftp://relay"));
     }
 }
+
+#[tauri::command]
+pub fn login_window_get(state: State<AppState>) -> bool {
+    #[cfg(target_os = "macos")]
+    return crate::login_window::enabled(&state.store);
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = state;
+        false
+    }
+}
+
+/// Runs off the main thread, since macOS's password prompt blocks until it's answered.
+#[tauri::command(async)]
+pub fn login_window_set(state: State<AppState>, enabled: bool) -> Result<bool, String> {
+    #[cfg(target_os = "macos")]
+    {
+        if enabled {
+            crate::login_window::enable(&state.store)?;
+        } else {
+            crate::login_window::disable(&state.store)?;
+        }
+        Ok(crate::login_window::enabled(&state.store))
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (state, enabled);
+        Err("Open at boot is only available on macOS so far.".into())
+    }
+}

@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    tetramote_desktop_lib::run()
+    tetramote_desktop_lib::run_from_args()
 }
