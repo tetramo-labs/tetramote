@@ -1,0 +1,8 @@
+appId: ${MAESTRO_APP_ID:-com.tetramo.tetramote}
+name: "Tetramote screenshots"
+env:
+  MAESTRO_APP_ID: ${MAESTRO_APP_ID:-com.tetramo.tetramote}
+includedFlows:
+  - flows/screenshots.yaml
+flowConfig:
+  defaultTimeout: 10000

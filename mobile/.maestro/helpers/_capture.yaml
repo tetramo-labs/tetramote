@@ -1,0 +1,17 @@
+# Captures the current screen through the driver's capture server. Usage:
+#   - runFlow: {file: ../helpers/_capture.yaml, env: {SHOT: "01-session"}}
+appId: ${MAESTRO_APP_ID}
+---
+- waitForAnimationToEnd:
+    timeout: 10000
+- runScript:
+    file: ../scripts/capture.js
+    env:
+      SHOT: ${SHOT}
+- runFlow:
+    when:
+      true: ${output.captureFallback != null}
+    commands:
+      - takeScreenshot: ${SHOT}
+- waitForAnimationToEnd:
+    timeout: 5000

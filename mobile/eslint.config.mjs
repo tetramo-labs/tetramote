@@ -28,6 +28,7 @@ export default defineConfig([
       "modules/*/android/build/**",
       "node_modules/**",
       ".expo/**",
+      ".maestro/**",
       "expo-env.d.ts",
       "src/uniwind-types.d.ts",
     ],

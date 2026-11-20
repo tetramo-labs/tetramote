@@ -1,0 +1,76 @@
+# Store screenshots, driven by scripts/screenshots-ios.mjs. It passes PAIR_URL, a pairing link to the fake host
+# that streams the mock desktop, PHONE_NAME for the settings shot, and serves CAPTURE_URL; the Duo is folded whenever
+# this flow runs.
+appId: ${MAESTRO_APP_ID}
+tags:
+  - screenshots
+---
+- launchApp:
+    clearState: true
+    arguments:
+      TetramotePairURL: ${PAIR_URL}
+- extendedWaitUntil:
+    visible: "Keyboard"
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible: "(Pairing with|Connecting to|Reconnecting to).*"
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible: "Waiting for the screen…"
+    timeout: 30000
+- runFlow:
+    file: ../helpers/_capture.yaml
+    env:
+      SHOT: "01-session"
+
+- tapOn: "Keyboard"
+- extendedWaitUntil:
+    visible: "esc"
+    timeout: 10000
+- runFlow:
+    file: ../helpers/_capture.yaml
+    env:
+      SHOT: "05-keyboard"
+
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "MacBook Pro.*"
+    timeout: 20000
+- runFlow:
+    file: ../helpers/_capture.yaml
+    env:
+      SHOT: "02-home"
+
+- tapOn: "Pair device"
+- extendedWaitUntil:
+    visible: "Bottom sheet handle"
+    timeout: 10000
+- runFlow:
+    file: ../helpers/_capture.yaml
+    env:
+      SHOT: "03-pair"
+
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "MacBook Pro.*"
+    timeout: 20000
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible: "Trackpad speed.*"
+    timeout: 10000
+- scrollUntilVisible:
+    element: "Endpoint ID.*"
+    direction: DOWN
+- tapOn:
+    below: "Name shown on the computer"
+- inputText: ${PHONE_NAME}
+- pressKey: Enter
+- scrollUntilVisible:
+    element: "Start in.*"
+    direction: UP
+- runFlow:
+    file: ../helpers/_capture.yaml
+    env:
+      SHOT: "04-settings"

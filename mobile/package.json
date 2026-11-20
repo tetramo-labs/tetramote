@@ -11,6 +11,8 @@
     "start": "expo start --dev-client",
     "ios": "zx ./scripts/ios.mjs",
     "ios-release": "zx ./scripts/ios-release.mjs",
+    "screenshots": "zx ./scripts/screenshots-ios.mjs",
+    "frame-screenshots": "zx ./scripts/frame-screenshots.mjs",
     "android": "zx ./scripts/android.mjs",
     "build:core": "../scripts/build-core.sh",
     "compile": "tsc --noEmit -p . --pretty",
