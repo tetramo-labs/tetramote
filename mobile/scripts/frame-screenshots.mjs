@@ -48,7 +48,7 @@ const SETS = [
   {
     slug: "iphone-duo",
     slides: [
-      {raw: "iphone-duo-cover/01-session.png", out: "01-folded.png", caption: "Built for\niPhone Duo", radius: 0.1},
+      {raw: "iphone-duo-cover/01-session.png", out: "01-folded.png", caption: "Optimized for\niPhone Duo", radius: 0.1},
       {raw: "iphone-duo-open/01-session.png", out: "02-open.png", caption: "Unfold for the whole screen", radius: 0.04},
       {raw: "iphone-duo-half/01-session.png", out: "03-laptop.png", caption: "Half open,\nit's a laptop", radius: 0.04},
     ],

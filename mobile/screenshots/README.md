@@ -53,7 +53,7 @@ capture's own size. Slides and captions live in `SETS` in `scripts/frame-screens
 | `framed/iphone-6.9/03-home.png` | `iphone-6.9/02-home.png` | Your computers, one tap away |
 | `framed/iphone-6.9/04-pair.png` | `iphone-6.9/03-pair.png` | Pair once with a code |
 | `framed/iphone-6.9/05-settings.png` | `iphone-6.9/04-settings.png` | Trackpad or touch, your choice |
-| `framed/iphone-duo/01-folded.png` | `iphone-duo-cover/01-session.png` | Built for iPhone Duo |
+| `framed/iphone-duo/01-folded.png` | `iphone-duo-cover/01-session.png` | Optimized for iPhone Duo |
 | `framed/iphone-duo/02-open.png` | `iphone-duo-open/01-session.png` | Unfold for the whole screen |
 | `framed/iphone-duo/03-laptop.png` | `iphone-duo-half/01-session.png` | Half open, it's a laptop |
 
