@@ -42,11 +42,12 @@ describe("sessionLayout", () => {
     expect(layout.trackpad).toEqual(near({x: 24.5556, y: 250.75, width: 332.8889, height: 187.25}))
   })
 
-  it("gives a phone without a rail the full-width trackpad panel", () => {
+  it("asks a phone without a rail for a 16:9 trackpad laid out in the panel", () => {
     const layout = sessionLayout({width: 393, height: 852, insets: none, rail: null, aspect: 1.6, fold: null})
     expect(layout.kind).toBe("stacked")
     if (layout.kind !== "stacked") return
     expect(layout.trackpad).toBeUndefined()
+    expect(layout.trackpadAspect).toBeCloseTo(1.7778, 4)
   })
 
   it("splits at the fold on the open Duo in portrait", () => {

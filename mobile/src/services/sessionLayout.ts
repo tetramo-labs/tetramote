@@ -15,7 +15,14 @@ export interface Insets {
 export type ToolbarPlacement = "rail" | "panel" | "bottomRail" | "side" | "floating"
 
 export type SessionLayout =
-  | {kind: "stacked"; video: Rect; panel: Rect; toolbar: "rail" | "panel" | "bottomRail"; trackpad?: Rect}
+  | {
+      kind: "stacked"
+      video: Rect
+      panel: Rect
+      toolbar: "rail" | "panel" | "bottomRail"
+      trackpad?: Rect
+      trackpadAspect?: number
+    }
   | {kind: "overlay"; video: Rect; toolbar: "rail" | "side" | "floating"}
 
 export const MIN_PANEL_HEIGHT = 180
@@ -80,7 +87,8 @@ function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; pan
  * below, split at a horizontal fold when there is one so nothing sits in it.
  * Otherwise the screen fills the window. Controls go in the iPhone Duo's rail
  * when there is one, and then a laptop with no fold to split at (the folded
- * Duo) gets a 16:9 trackpad centred under the screen. Full screen fits the
+ * Duo) gets a 16:9 trackpad centred under the screen; without a rail the
+ * panel centres a 16:9 trackpad above its toolbar (trackpadAspect). Full screen fits the
  * screen to the whole window, edge to edge, with floating controls. Decided
  * from sizes alone, never the device or orientation.
  */
@@ -120,7 +128,7 @@ export function sessionLayout({
   if (below >= MIN_PANEL_HEIGHT) {
     const video: Rect = {x: content.x, y: content.y, width: content.width, height: videoHeight}
     const panel: Rect = {x: content.x, y: content.y + videoHeight + PANEL_GAP, width: content.width, height: below}
-    if (!rail) return {kind: "stacked", video, panel, toolbar: stackedToolbar}
+    if (!rail) return {kind: "stacked", video, panel, toolbar: stackedToolbar, trackpadAspect: TRACKPAD_ASPECT}
     const trackpad = centredTrackpad(panel, video.y + video.height, height)
     return {kind: "stacked", video, panel, toolbar: stackedToolbar, trackpad}
   }

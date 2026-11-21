@@ -16,18 +16,29 @@ interface TrackpadPanelProps {
   header?: ReactNode
   footer?: ReactNode
   bare?: boolean
+  aspect?: number
 }
 
 /**
  * The laptop half of the session: a trackpad under the Mac's screen. A swipe
  * across it moves the pointer about as far as a swipe across the screen would.
- * A bare panel is only the trackpad, filling its parent edge to edge.
+ * A bare panel is only the trackpad, filling its parent edge to edge. With an
+ * aspect, the trackpad is the largest such box centred between header and footer.
  */
-export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, header, footer, bare}: TrackpadPanelProps) {
+export function TrackpadPanel({
+  screenWidth,
+  zoomControls,
+  onThreeFingerTap,
+  header,
+  footer,
+  bare,
+  aspect,
+}: TrackpadPanelProps) {
   const {theme} = useAppTheme()
   const video = useSessionStore((s) => s.video)
   const [speed] = useSetting("trackpad_speed")
   const [size, setSize] = useState({width: 0, height: 0})
+  const [room, setRoom] = useState({width: 0, height: 0})
 
   const gesture = useInputGesture({
     surface: "trackpad",
@@ -45,17 +56,35 @@ export function TrackpadPanel({screenWidth, zoomControls, onThreeFingerTap, head
     setSize({width, height})
   }
 
+  const fitted = aspect && {
+    width: Math.min(room.width, room.height * aspect),
+    height: Math.min(room.width, room.height * aspect) / aspect,
+  }
+
+  const pad = (
+    <GestureDetector gesture={gesture}>
+      <View
+        onLayout={onLayout}
+        collapsable={false}
+        style={fitted || undefined}
+        className={`${fitted ? "" : "flex-1 "}rounded-3xl items-center justify-center bg-primary-foreground`}>
+        <Icon icon={MousePointer2} size={22} color={theme.colors.muted_foreground} />
+      </View>
+    </GestureDetector>
+  )
+
   return (
     <View className={bare ? "flex-1" : "flex-1 gap-3 px-3 pb-3"}>
       {header}
-      <GestureDetector gesture={gesture}>
+      {aspect ? (
         <View
-          onLayout={onLayout}
-          collapsable={false}
-          className="flex-1 rounded-3xl items-center justify-center bg-primary-foreground">
-          <Icon icon={MousePointer2} size={22} color={theme.colors.muted_foreground} />
+          className="flex-1 items-center justify-center"
+          onLayout={(e) => setRoom({width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height})}>
+          {pad}
         </View>
-      </GestureDetector>
+      ) : (
+        pad
+      )}
       {footer}
     </View>
   )

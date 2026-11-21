@@ -191,6 +191,7 @@ function SessionBody() {
       ) : plan.kind === "stacked" ? (
         <View style={rectStyle(plan.panel)}>
           <TrackpadPanel
+            aspect={plan.trackpadAspect}
             screenWidth={plan.video.width}
             zoomControls={zoomControls}
             onThreeFingerTap={controls.toggle}
