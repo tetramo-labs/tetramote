@@ -8,7 +8,7 @@ export const lede =
   "Tetramote shows your Mac, Windows or Linux screen on your phone, with its sound, and sends your taps and typing back. Scan the computer's code with the app, or open its link in any browser. There's no account to make and no Tetramote server in between."
 
 export const phoneNote =
-  "Get Tetramote for iPhone on the App Store. It's made for the iPhone Duo and works on every iPhone with iOS 17 or later."
+  "Get Tetramote for iPhone on the App Store. It's optimized for the iPhone Duo and works on every iPhone with iOS 17 or later."
 
 export const androidNote =
   "The Android app isn't on Google Play yet. Until it is, open the computer's link in your phone's browser, or build the app from the source on GitHub."
@@ -250,12 +250,12 @@ function Hero({links, platform, version}) {
           <a href={APP_STORE}>iPhone app on the App Store</a>
         </p>
       </div>
-      <figure className="m-0 w-full max-w-[400px] justify-self-center max-lg:max-w-[358px]">
+      <figure className="m-0 w-full max-w-[530px] justify-self-center max-lg:max-w-[474px]">
         <img
           src="/screenshots/laptop.webp"
-          width="800"
+          width="1060"
           height="1116"
-          alt="Tetramote on a half-open iPhone Duo: the computer's screen on the top half, a trackpad and a row of controls on the bottom half."
+          alt="Tetramote on a half-open iPhone Duo, in front of an iPhone 18 Pro: on the Duo, the computer's screen fills the top half and a trackpad and a row of controls the bottom half; the iPhone shows the screen above a trackpad."
         />
       </figure>
     </section>
@@ -299,19 +299,19 @@ function Features() {
       </div>
       <div className="mt-18 grid items-center gap-12 rounded-3xl bg-surface p-12 max-lg:px-8 max-lg:py-10 max-sm:px-6 max-sm:py-8 lg:grid-cols-2 forced-colors:border forced-colors:border-[CanvasText]">
         <div className="max-w-[30em]">
-          <h3 className="text-[clamp(26px,3vw,32px)] tracking-[-0.025em]">Made for the iPhone Duo</h3>
+          <h3 className="text-[clamp(26px,3vw,32px)] tracking-[-0.025em]">Optimized for the iPhone Duo</h3>
           <p className="mt-2 text-lg text-muted">
             Half open, the session works like a laptop, with the screen on the top half and a trackpad on the bottom.
             When the phone is folded, the Back and Close buttons and the session controls move into the status rail,
             which leaves the whole display for the screen. Other phones show the screen above the trackpad too.
           </p>
         </div>
-        <figure className="m-0 w-full max-w-[305px] justify-self-center">
+        <figure className="m-0 w-full max-w-[405px] justify-self-center">
           <img
             src="/screenshots/folded.webp"
-            width="610"
+            width="810"
             height="849"
-            alt="Tetramote on the folded iPhone Duo: the computer's screen above a trackpad, with the session controls in the status rail."
+            alt="Tetramote on the folded iPhone Duo, in front of an iPhone 18 Pro: the computer's screen above a trackpad, with the Duo's session controls in its status rail."
           />
         </figure>
       </div>
@@ -379,8 +379,14 @@ function Downloads({links, version}) {
           <h3 className={`${h3} pt-0.5`}>iPhone</h3>
           <p className="max-w-[36em] text-muted">{phoneNote}</p>
           <div className={rowActions}>
-            <a className={buttonPrimary} href={APP_STORE}>
-              Download on the App Store
+            <a href={APP_STORE} className="inline-block rounded-[10px]">
+              <img
+                src="/app-store-badge.png"
+                width="135"
+                height="40"
+                alt="Download on the App Store"
+                className="block h-10 w-auto"
+              />
             </a>
           </div>
         </li>

@@ -17,7 +17,7 @@ if ! command -v cwebp >/dev/null; then
 fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-cp desktop.html folded.html laptop.html folded-app.webp laptop-app.webp "$tmp"
+cp desktop.html iphone.html folded.html laptop.html folded-app.webp laptop-app.webp iphone-app.webp "$tmp"
 shot() {
   "$browser" --headless=new --disable-gpu --hide-scrollbars --no-first-run --user-data-dir="$tmp/profile" \
     --window-size="$2,$3" --force-device-scale-factor="$4" --default-background-color=00000000 \
@@ -25,8 +25,9 @@ shot() {
   [ -s "$tmp/$1.png" ] || { echo "Rendering $1.html failed: run $browser by hand to see why." >&2; exit 1; }
 }
 shot desktop 1024 640 2
-shot folded 610 849 1
-shot laptop 800 1116 1
+shot iphone 655 1363 1
+shot folded 810 849 1
+shot laptop 1060 1116 1
 for name in folded laptop; do
   cwebp -quiet -q 84 -alpha_q 100 -m 6 -sharp_yuv "$tmp/$name.png" -o "../../public/screenshots/$name.webp"
 done

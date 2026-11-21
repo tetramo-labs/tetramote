@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 800px; height: 1116px; background: transparent; overflow: hidden; }
+  html, body { width: 1060px; height: 1116px; background: transparent; overflow: hidden; }
+  .iphone { position: absolute; left: 0; top: 58px; width: 481px; height: 1000px; filter: brightness(0.82); }
+  .duo { position: absolute; left: 260px; top: 0; width: 800px; height: 1116px; filter: drop-shadow(-18px 0 26px rgba(0, 0, 0, 0.45)); }
   .knuckle { position: absolute; top: 528px; width: 6px; height: 60px; background: linear-gradient(180deg, #2a2c31, #8e9199 50%, #2a2c31); }
   .knuckle.l { left: 2px; border-radius: 3px 0 0 3px; }
   .knuckle.r { right: 2px; border-radius: 0 3px 3px 0; }
@@ -18,6 +20,8 @@
 </style>
 </head>
 <body>
+  <img class="iphone" src="iphone.png" alt="">
+  <div class="duo">
   <div class="knuckle l"></div>
   <div class="knuckle r"></div>
   <div class="body">
@@ -25,6 +29,7 @@
     <div class="glass">
       <div class="screen"><img class="desktop" src="desktop.png" alt=""><div class="panel"></div><div class="crease"></div></div>
     </div>
+  </div>
   </div>
 </body>
 </html>

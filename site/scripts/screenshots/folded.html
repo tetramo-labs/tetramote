@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 610px; height: 849px; background: transparent; overflow: hidden; }
+  html, body { width: 810px; height: 849px; background: transparent; overflow: hidden; }
+  .iphone { position: absolute; left: 0; top: 44px; width: 365px; height: 760px; filter: brightness(0.82); }
+  .duo { position: absolute; left: 200px; top: 0; width: 610px; height: 849px; filter: drop-shadow(-18px 0 26px rgba(0, 0, 0, 0.45)); }
   .spine { position: absolute; left: 2px; top: 8px; width: 16px; height: 833px; border-radius: 8px 0 0 8px; background: linear-gradient(90deg, #26282d 0%, #6d7079 38%, #9a9da5 50%, #5a5d65 66%, #222429 100%); box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.6); }
   .spine::before, .spine::after { content: ""; position: absolute; left: 2px; right: 0; height: 1px; background: rgba(0, 0, 0, 0.55); }
   .spine::before { top: 120px; }
@@ -20,6 +22,8 @@
 </style>
 </head>
 <body>
+  <img class="iphone" src="iphone.png" alt="">
+  <div class="duo">
   <div class="spine"></div>
   <div class="button vol"></div>
   <div class="button power"></div>
@@ -27,6 +31,7 @@
     <div class="glass">
       <div class="screen"><img class="desktop" src="desktop.png" alt=""><div class="camera"></div></div>
     </div>
+  </div>
   </div>
 </body>
 </html>
