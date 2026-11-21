@@ -1,5 +1,6 @@
 export const REPO = "https://github.com/tetramo-labs/tetramote"
 export const LATEST = `${REPO}/releases/latest`
+export const APP_STORE = "https://apps.apple.com/app/tetramote/id6837369826"
 const API = "https://api.github.com/repos/tetramo-labs/tetramote/releases/latest"
 
 const PATTERNS = {

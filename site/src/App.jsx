@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react"
 
-import {LATEST, REPO, detectPlatform, fallbackLinks, latestRelease} from "./downloads.js"
+import {APP_STORE, LATEST, REPO, detectPlatform, fallbackLinks, latestRelease} from "./downloads.js"
 
 const PLATFORM_NAMES = {mac: "macOS", windows: "Windows", linux: "Linux"}
 
@@ -8,7 +8,10 @@ export const lede =
   "Tetramote shows your Mac, Windows or Linux screen on your phone, with its sound, and sends your taps and typing back. Scan the computer's code with the app, or open its link in any browser. There's no account to make and no Tetramote server in between."
 
 export const phoneNote =
-  "The phone app isn't in the App Store or Google Play yet. Until it is, open the computer's link in your phone's browser, or build the app from the source on GitHub."
+  "Get Tetramote for iPhone on the App Store. It's made for the iPhone Duo and works on every iPhone with iOS 17 or later."
+
+export const androidNote =
+  "The Android app isn't on Google Play yet. Until it is, open the computer's link in your phone's browser, or build the app from the source on GitHub."
 
 export const steps = [
   {
@@ -104,7 +107,7 @@ export const faq = [
   },
   {
     q: "Where do I get the phone app?",
-    a: phoneNote,
+    a: `${phoneNote} ${androidNote}`,
   },
   {
     q: "Can I use it without installing anything?",
@@ -243,6 +246,8 @@ function Hero({links, platform, version}) {
               <a href="#download">{PLATFORM_NAMES[id]}</a>
             </span>
           ))}
+          {" · "}
+          <a href={APP_STORE}>iPhone app on the App Store</a>
         </p>
       </div>
       <figure className="m-0 w-full max-w-[400px] justify-self-center max-lg:max-w-[358px]">
@@ -371,8 +376,17 @@ function Downloads({links, version}) {
           </li>
         ))}
         <li className={row}>
-          <h3 className={`${h3} pt-0.5`}>iPhone and Android</h3>
+          <h3 className={`${h3} pt-0.5`}>iPhone</h3>
           <p className="max-w-[36em] text-muted">{phoneNote}</p>
+          <div className={rowActions}>
+            <a className={buttonPrimary} href={APP_STORE}>
+              Download on the App Store
+            </a>
+          </div>
+        </li>
+        <li className={row}>
+          <h3 className={`${h3} pt-0.5`}>Android</h3>
+          <p className="max-w-[36em] text-muted">{androidNote}</p>
           <div className={rowActions}>
             <a className={buttonPrimary} href="https://remote.tetramote.com">
               Open in a browser

@@ -21,13 +21,14 @@ try {
     default: App,
     lede,
     phoneNote,
+    androidNote,
     steps,
     features,
     privacy,
     downloads,
     faq,
   } = await vite.ssrLoadModule("/src/App.jsx")
-  const {REPO, LATEST} = await vite.ssrLoadModule("/src/downloads.js")
+  const {REPO, LATEST, APP_STORE} = await vite.ssrLoadModule("/src/downloads.js")
   const page = new URL("index.html", dist)
   const html = await readFile(page, "utf8")
   const mount = '<div id="root"></div>'
@@ -36,13 +37,13 @@ try {
   await writeFile(page, html.replace(mount, `<div id="root">${body}</div>`))
   await writeFile(
     new URL("index.md", dist),
-    markdown({lede, phoneNote, steps, features, privacy, downloads, faq, REPO, LATEST}),
+    markdown({lede, phoneNote, androidNote, steps, features, privacy, downloads, faq, REPO, LATEST, APP_STORE}),
   )
 } finally {
   await vite.close()
 }
 
-function markdown({lede, phoneNote, steps, features, privacy, downloads, faq, REPO, LATEST}) {
+function markdown({lede, phoneNote, androidNote, steps, features, privacy, downloads, faq, REPO, LATEST, APP_STORE}) {
   return `# Tetramote
 
 Control your computer from your phone. ${lede}
@@ -64,7 +65,8 @@ ${privacy.map((fact) => `- ${fact}`).join("\n")}
 ## Download
 
 ${downloads.map((platform) => `- **${platform.name}.** ${platform.details}`).join("\n")}
-- **iPhone and Android.** ${phoneNote}
+- **iPhone.** ${phoneNote} ${APP_STORE}
+- **Android.** ${androidNote}
 
 Downloads: ${LATEST}
 Source: ${REPO}
