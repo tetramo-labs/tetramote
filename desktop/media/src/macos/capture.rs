@@ -4,7 +4,9 @@
 
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
+use std::time::{Duration, Instant};
 
+use objc2_core_foundation::CFRetained;
 use objc2_core_graphics::CGMainDisplayID;
 use objc2_core_video::CVPixelBuffer;
 use screencapturekit::cm::{CMClock, CMSampleBuffer, CMSampleBufferSCExt, CMTime, SCFrameStatus};
@@ -22,9 +24,12 @@ use crate::{
     OPUS_CHANNELS, OPUS_SAMPLE_RATE,
 };
 
+const STILL_KEYFRAME_AFTER: Duration = Duration::from_millis(100);
+
 struct Shared {
     sink: Arc<dyn StreamSink>,
     keyframe: AtomicBool,
+    keyframe_since: Mutex<Option<Instant>>,
     bitrate: AtomicU32,
     stopped: AtomicBool,
     video_failed: AtomicBool,
@@ -47,9 +52,14 @@ impl Shared {
     }
 }
 
+struct LastFrame(CFRetained<CVPixelBuffer>);
+
+unsafe impl Send for LastFrame {}
+
 struct Video {
     shared: Arc<Shared>,
     encoder: Mutex<(VideoEncoder, u32)>,
+    last: Mutex<Option<LastFrame>>,
 }
 
 impl Video {
@@ -64,10 +74,19 @@ impl Video {
         let Some(pixels) = pixel_buffer(sample) else {
             return;
         };
+        *lock(&self.last) = Some(LastFrame(CFRetained::from(pixels)));
         if !shared.sink.should_encode() {
             return;
         }
+        self.encode(pixels, sample_micros(sample.presentation_timestamp()));
+    }
+
+    fn encode(&self, pixels: &CVPixelBuffer, pts_us: u64) {
+        let shared = &self.shared;
         let keyframe = shared.keyframe.swap(false, Ordering::AcqRel);
+        if keyframe {
+            *lock(&shared.keyframe_since) = None;
+        }
         let mut guard = lock(&self.encoder);
         let (encoder, applied) = &mut *guard;
         let bitrate = shared.bitrate.load(Ordering::Acquire);
@@ -75,13 +94,22 @@ impl Video {
             encoder.set_bitrate(bitrate);
             *applied = bitrate;
         }
-        if let Err(error) = encoder.encode(
-            pixels,
-            sample_micros(sample.presentation_timestamp()),
-            keyframe,
-        ) {
+        if let Err(error) = encoder.encode(pixels, pts_us, keyframe) {
             shared.fail(&shared.video_failed, error);
         }
+    }
+
+    fn repeat_for_keyframe(&self) {
+        let shared = &self.shared;
+        let due = lock(&shared.keyframe_since)
+            .is_some_and(|since| since.elapsed() >= STILL_KEYFRAME_AFTER);
+        if !due || shared.video_failed.load(Ordering::Acquire) || !shared.sink.should_encode() {
+            return;
+        }
+        let Some(last) = lock(&self.last).as_ref().map(|frame| frame.0.clone()) else {
+            return;
+        };
+        self.encode(&last, sample_micros(CMClock::host_time_clock().time()));
     }
 }
 
@@ -143,6 +171,7 @@ impl ScreenStream for MacStream {
     }
 
     fn request_keyframe(&self) {
+        lock(&self.shared.keyframe_since).get_or_insert_with(Instant::now);
         self.shared.keyframe.store(true, Ordering::Release);
     }
 
@@ -203,6 +232,7 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
     let shared = Arc::new(Shared {
         sink,
         keyframe: AtomicBool::new(true),
+        keyframe_since: Mutex::new(None),
         bitrate: AtomicU32::new(config.bitrate_bps),
         stopped: AtomicBool::new(false),
         video_failed: AtomicBool::new(false),
@@ -222,7 +252,9 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
     let video = Arc::new(Video {
         shared: shared.clone(),
         encoder: Mutex::new((encoder, config.bitrate_bps)),
+        last: Mutex::new(None),
     });
+    let watcher = video.clone();
     let audio = if config.audio {
         Some(Arc::new(Audio {
             shared: shared.clone(),
@@ -282,6 +314,19 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
             .map_err(failed_to_start)?;
     }
     stream.start_capture().map_err(failed_to_start)?;
+    std::thread::Builder::new()
+        .name("tetra-keyframe".into())
+        .spawn(move || {
+            while !watcher.shared.stopped.load(Ordering::Acquire) {
+                std::thread::sleep(STILL_KEYFRAME_AFTER / 2);
+                watcher.repeat_for_keyframe();
+            }
+        })
+        .map_err(|error| {
+            MediaError::Failed(format!(
+                "The keyframe thread didn't start: {error}. Share again."
+            ))
+        })?;
 
     Ok(Box::new(MacStream {
         info: StreamInfo {

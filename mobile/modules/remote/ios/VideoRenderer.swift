@@ -3,6 +3,7 @@ import CoreMedia
 import QuartzCore
 
 private let headerLength = 13
+private let keyframeRetry: CFTimeInterval = 0.3
 
 /// Turns Annex B access units into AVCC sample buffers for an
 /// AVSampleBufferDisplayLayer, which decodes in hardware and shows each frame
@@ -21,6 +22,7 @@ final class VideoRenderer {
   private var bytes = 0
   private var dropped = 0
   private var windowStart = CACurrentMediaTime()
+  private var lastKeyframeRequest = -Double.infinity
 
   func attach(_ layer: AVSampleBufferDisplayLayer) {
     queue.async {
@@ -63,12 +65,12 @@ final class VideoRenderer {
     defer { reportStats() }
 
     guard let layer else {
-      dropped += 1
       waitingForKeyframe = true
+      drop()
       return
     }
     if waitingForKeyframe && !keyframe {
-      dropped += 1
+      drop()
       return
     }
 
@@ -103,6 +105,14 @@ final class VideoRenderer {
     renderer.enqueue(sample)
     if keyframe { waitingForKeyframe = false }
     frames += 1
+  }
+
+  private func drop() {
+    dropped += 1
+    let now = CACurrentMediaTime()
+    guard now - lastKeyframeRequest >= keyframeRetry else { return }
+    lastKeyframeRequest = now
+    requestKeyframe?()
   }
 
   private func reportStats() {
