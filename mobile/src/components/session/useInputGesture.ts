@@ -1,19 +1,11 @@
 import {MOUSE_LEFT, MOUSE_RIGHT, SCROLL_BEGAN, SCROLL_CHANGED, SCROLL_ENDED, SCROLL_MOMENTUM} from "@tetramote/remote"
 import * as Haptics from "expo-haptics"
 import {useMemo, useRef} from "react"
-import {Gesture} from "react-native-gesture-handler"
+import {Gesture, State} from "react-native-gesture-handler"
 import type {SharedValue} from "react-native-reanimated"
 
 import {sendInput} from "@/services/remote"
-import {
-  acceleration,
-  ClickCounter,
-  HOLD_DRAG_MS,
-  HOLD_DRAG_SLOP,
-  momentumSteps,
-  normalize,
-  pointerGain,
-} from "@/services/trackpad"
+import {acceleration, ClickCounter, HOLD_DRAG_MS, momentumSteps, normalize, pointerGain} from "@/services/trackpad"
 import type {InputMode, TrackpadSpeed} from "@/stores/settings"
 
 const MAX_ZOOM = 4
@@ -50,11 +42,11 @@ function clampOffset(offset: number, content: number, container: number, zoom: n
 /**
  * Touch to Mac input. On the screen, trackpad mode moves the pointer relatively
  * and touch mode puts it under the finger; two fingers scroll unless the gesture
- * starts as a pinch, which zooms the view. As a trackpad, a finger held within
- * HOLD_DRAG_SLOP of where it landed for HOLD_DRAG_MS presses the button and
- * drags until it lifts; one that moved first only moves the pointer. The
- * trackpad panel always behaves as a trackpad and never zooms. Three fingers
- * toggle the controls.
+ * starts as a pinch, which zooms the view. A finger held still (within the
+ * distance that starts moving the pointer) right-clicks: in touch mode after
+ * 350 ms, as a trackpad after HOLD_DRAG_MS when it lifts, or it drags if it
+ * moves after the hold. The trackpad panel always behaves as a trackpad and
+ * never zooms. Three fingers toggle the controls.
  */
 export function useInputGesture({
   surface,
@@ -68,12 +60,12 @@ export function useInputGesture({
 }: InputGestureOptions) {
   const clicks = useRef(new ClickCounter()).current
   const dragging = useRef(false)
-  const holdFrom = useRef<{x: number; y: number} | null>(null)
   const twoFinger = useRef<{mode: "undecided" | "scroll" | "zoom"; travel: number}>({mode: "undecided", travel: 0})
   const pinchStart = useRef({zoom: 1, x: 0, y: 0})
   const momentum = useRef<ReturnType<typeof setInterval> | null>(null)
   const {zoom, offsetX, offsetY} = zoomControls
   const direct = surface === "screen" && inputMode === "direct"
+  const slop = direct ? 4 : 3
 
   return useMemo(() => {
     const toVideo = (x: number, y: number) => {
@@ -136,7 +128,7 @@ export function useInputGesture({
 
     const pointerPan = Gesture.Pan()
       .maxPointers(1)
-      .minDistance(direct ? 4 : 3)
+      .minDistance(slop)
       .runOnJS(true)
       .onStart((e) => {
         stopMomentum()
@@ -158,39 +150,47 @@ export function useInputGesture({
       })
       .onFinalize(release)
 
-    const holdDrag = Gesture.Pan()
-      .maxPointers(1)
-      .activateAfterLongPress(HOLD_DRAG_MS)
-      .runOnJS(true)
-      .onTouchesDown((e) => {
-        const touch = e.allTouches[0]
-        holdFrom.current = touch ? {x: touch.x, y: touch.y} : null
-      })
-      .onTouchesMove((e, manager) => {
-        const from = holdFrom.current
-        const touch = e.allTouches[0]
-        if (dragging.current || !from || !touch) return
-        if (Math.hypot(touch.x - from.x, touch.y - from.y) > HOLD_DRAG_SLOP) manager.fail()
-      })
+    const stillHold = (ms: number) => {
+      let from: {x: number; y: number} | null = null
+      return Gesture.Pan()
+        .maxPointers(1)
+        .activateAfterLongPress(ms)
+        .runOnJS(true)
+        .onTouchesDown((e) => {
+          const touch = e.allTouches[0]
+          from = touch ? {x: touch.x, y: touch.y} : null
+        })
+        .onTouchesMove((e, manager) => {
+          const touch = e.allTouches[0]
+          if (!from || !touch || e.state === State.ACTIVE) return
+          if (Math.hypot(touch.x - from.x, touch.y - from.y) > slop) manager.fail()
+        })
+    }
+
+    const holdDrag = stillHold(HOLD_DRAG_MS)
       .onStart(() => {
         stopMomentum()
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-        sendInput([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
-        dragging.current = true
       })
-      .onChange(moveBy)
+      .onChange((e) => {
+        if (e.changeX === 0 && e.changeY === 0) return
+        if (!dragging.current) {
+          sendInput([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
+          dragging.current = true
+        }
+        moveBy(e)
+      })
+      .onEnd((_e, success) => {
+        if (success && !dragging.current) click(MOUSE_RIGHT, 1)
+      })
       .onFinalize(release)
 
-    const longPress = Gesture.Pan()
-      .maxPointers(1)
-      .activateAfterLongPress(350)
-      .runOnJS(true)
-      .onStart((e) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-        const p = toVideo(e.x, e.y)
-        sendInput([{kind: "moveTo", x: p.x, y: p.y}])
-        click(MOUSE_RIGHT, 1)
-      })
+    const longPress = stillHold(350).onStart((e) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      const p = toVideo(e.x, e.y)
+      sendInput([{kind: "moveTo", x: p.x, y: p.y}])
+      click(MOUSE_RIGHT, 1)
+    })
 
     const scrollPan = Gesture.Pan()
       .minPointers(2)
@@ -263,6 +263,7 @@ export function useInputGesture({
     offsetY,
     onThreeFingerTap,
     pointWidth,
+    slop,
     speed,
     surface,
     zoom,
