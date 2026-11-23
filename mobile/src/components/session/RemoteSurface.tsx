@@ -1,5 +1,5 @@
 import {RemoteScreen} from "@tetramote/remote"
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {View, type LayoutChangeEvent} from "react-native"
 import {GestureDetector} from "react-native-gesture-handler"
 import Animated, {useAnimatedStyle, useSharedValue} from "react-native-reanimated"
@@ -32,6 +32,10 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
   const [container, setContainer] = useState({width: 0, height: 0})
   const {zoom, offsetX, offsetY} = zoomControls
   const frame = fit(container.width, container.height, video ? video.width / video.height : DEFAULT_ASPECT)
+
+  useEffect(() => {
+    zoomControls.view.value = {frame: {width: frame.width, height: frame.height}, container}
+  }, [zoomControls.view, frame.width, frame.height, container])
 
   const gesture = useInputGesture({
     surface: "screen",
@@ -68,5 +72,10 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
 }
 
 export function useZoomControls(): ZoomControls {
-  return {zoom: useSharedValue(1), offsetX: useSharedValue(0), offsetY: useSharedValue(0)}
+  return {
+    zoom: useSharedValue(1),
+    offsetX: useSharedValue(0),
+    offsetY: useSharedValue(0),
+    view: useSharedValue({frame: {width: 0, height: 0}, container: {width: 0, height: 0}}),
+  }
 }

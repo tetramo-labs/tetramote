@@ -24,6 +24,7 @@ export interface ZoomControls {
   zoom: SharedValue<number>
   offsetX: SharedValue<number>
   offsetY: SharedValue<number>
+  view: SharedValue<{frame: Size; container: Size}>
 }
 
 interface Size {
@@ -53,8 +54,9 @@ function clampOffset(offset: number, content: number, container: number, zoom: n
  * starts as a pinch or the view is already zoomed in; then two fingers zoom and
  * pan the view. A finger held still (within the distance that starts moving the
  * pointer) right-clicks: in touch mode after 350 ms, as a trackpad after
- * HOLD_DRAG_MS when it lifts, or it drags if it moves after the hold. The trackpad panel always behaves as a trackpad and
- * never zooms. Three fingers toggle the controls.
+ * HOLD_DRAG_MS when it lifts, or it drags if it moves after the hold. The
+ * trackpad panel always behaves as a trackpad, and its pinches zoom the screen
+ * view about its center. Three fingers toggle the controls.
  */
 export function useInputGesture({
   surface,
@@ -74,7 +76,7 @@ export function useInputGesture({
   const twoFinger = useRef<{mode: "undecided" | "scroll" | "zoom"; travel: number}>({mode: "undecided", travel: 0})
   const pinchStart = useRef(1)
   const momentum = useRef<ReturnType<typeof setInterval> | null>(null)
-  const {zoom, offsetX, offsetY} = zoomControls
+  const {zoom, offsetX, offsetY, view} = zoomControls
   const direct = surface === "screen" && inputMode === "direct"
   const slop = direct ? 4 : 3
 
@@ -84,7 +86,12 @@ export function useInputGesture({
       const vy = (y - container.height / 2 - offsetY.value) / zoom.value + frame.height / 2
       return normalize(vx, vy, frame.width, frame.height)
     }
-    const gain = () => pointerGain(frame.width, pointWidth, surface === "screen" ? zoom.value : 1, speed)
+    const gain = () => pointerGain(frame.width, pointWidth, zoom.value, speed)
+    const clampTo = (x: number, y: number, z: number) => {
+      const {frame: shown, container: box} = view.value
+      offsetX.value = clampOffset(x, shown.width, box.width, z)
+      offsetY.value = clampOffset(y, shown.height, box.height, z)
+    }
     const stopMomentum = () => {
       if (momentum.current) clearInterval(momentum.current)
       momentum.current = null
@@ -201,9 +208,6 @@ export function useInputGesture({
       .minPointers(2)
       .maxPointers(2)
       .runOnJS(true)
-      .onBegin(() => {
-        if (surface === "trackpad") twoFinger.current = {mode: "scroll", travel: 0}
-      })
       .onStart(() => {
         stopMomentum()
         if (twoFinger.current.mode === "scroll") sendInput([{kind: "scroll", dx: 0, dy: 0, phase: SCROLL_BEGAN}])
@@ -216,10 +220,7 @@ export function useInputGesture({
           sendInput([{kind: "scroll", dx: 0, dy: 0, phase: SCROLL_BEGAN}])
         }
         if (state.mode === "scroll") sendInput([{kind: "scroll", dx: e.changeX, dy: e.changeY, phase: SCROLL_CHANGED}])
-        if (state.mode === "zoom" && surface === "screen") {
-          offsetX.value = clampOffset(offsetX.value + e.changeX, frame.width, container.width, zoom.value)
-          offsetY.value = clampOffset(offsetY.value + e.changeY, frame.height, container.height, zoom.value)
-        }
+        if (state.mode === "zoom") clampTo(offsetX.value + e.changeX, offsetY.value + e.changeY, zoom.value)
       })
       .onEnd((e) => {
         if (twoFinger.current.mode !== "scroll") return
@@ -239,7 +240,6 @@ export function useInputGesture({
       })
 
     const taps = Gesture.Exclusive(threeFingerTap, twoFingerTap, tap)
-    if (surface === "trackpad") return Gesture.Race(scrollPan, pointerPan, taps)
 
     const pinch = Gesture.Pinch()
       .runOnJS(true)
@@ -253,11 +253,10 @@ export function useInputGesture({
         if (state.mode !== "zoom") return
         const before = zoom.value
         const z = Math.min(MAX_ZOOM, Math.max(1, pinchStart.current * e.scale))
-        const fx = e.focalX - container.width / 2
-        const fy = e.focalY - container.height / 2
+        const fx = surface === "screen" ? e.focalX - container.width / 2 : 0
+        const fy = surface === "screen" ? e.focalY - container.height / 2 : 0
         zoom.value = z
-        offsetX.value = clampOffset(fx - (fx - offsetX.value) * (z / before), frame.width, container.width, z)
-        offsetY.value = clampOffset(fy - (fy - offsetY.value) * (z / before), frame.height, container.height, z)
+        clampTo(fx - (fx - offsetX.value) * (z / before), fy - (fy - offsetY.value) * (z / before), z)
       })
     return Gesture.Race(Gesture.Simultaneous(pinch, scrollPan), pointerPan, taps)
   }, [
@@ -274,6 +273,7 @@ export function useInputGesture({
     slop,
     speed,
     surface,
+    view,
     zoom,
   ])
 }
