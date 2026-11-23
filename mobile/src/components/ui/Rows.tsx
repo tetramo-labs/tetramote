@@ -16,6 +16,7 @@ interface RowProps {
   onPress?: () => void
   destructive?: boolean
   trailing?: ReactNode
+  below?: ReactNode
   style?: ViewStyle
 }
 
@@ -28,6 +29,7 @@ export function Row({
   onPress,
   destructive,
   trailing,
+  below,
   style,
 }: RowProps) {
   const {theme} = useAppTheme()
@@ -39,8 +41,8 @@ export function Row({
         {backgroundColor: theme.colors.primary_foreground, opacity: pressed ? 0.75 : 1, minHeight: 56},
         style,
       ]}
-      className="flex-row items-center px-4 py-3 gap-3">
-      <View className="flex-1 gap-0.5">
+      className={below ? "px-4 py-3 gap-3" : "flex-row items-center px-4 py-3 gap-3"}>
+      <View className={below ? "gap-0.5" : "flex-1 gap-0.5"}>
         <Text
           tx={labelTx}
           text={label}
@@ -53,6 +55,7 @@ export function Row({
         )}
       </View>
       {trailing}
+      {below}
     </Pressable>
   )
 }

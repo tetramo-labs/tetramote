@@ -20,6 +20,7 @@ const NATIVE: StreamPlan = StreamPlan {
 };
 
 const MIN_LONG_EDGE: u32 = 640;
+const MAX_LONG_EDGE: u32 = 3840;
 
 pub fn plan(prefs: Option<&Value>) -> StreamPlan {
     let Some(prefs) = prefs.filter(|p| p.is_object()) else {
@@ -33,8 +34,12 @@ pub fn plan(prefs: Option<&Value>) -> StreamPlan {
         Some("sharp") => (2560, 10_000_000, 3_000_000, 25_000_000, false),
         _ => (1920, 6_000_000, 1_500_000, 12_000_000, true),
     };
-    let max_long_edge = match viewer {
-        Some(px) if fit_viewer => px.min(cap),
+    let chosen = prefs["resolution"]
+        .as_u64()
+        .map(|px| px.clamp(u64::from(MIN_LONG_EDGE), u64::from(MAX_LONG_EDGE)) as u32);
+    let max_long_edge = match (chosen, viewer) {
+        (Some(px), _) => px,
+        (None, Some(px)) if fit_viewer => px.min(cap),
         _ => cap,
     };
     StreamPlan {
@@ -80,6 +85,16 @@ mod tests {
             (p.max_long_edge, p.start_bps, p.floor_bps, p.ceiling_bps),
             (2560, 10_000_000, 3_000_000, 25_000_000)
         );
+    }
+
+    #[test]
+    fn a_chosen_resolution_overrides_the_preset_and_the_viewer() {
+        let p = plan(Some(
+            &json!({"quality": "responsive", "maxLongEdge": 1146, "resolution": 1920}),
+        ));
+        assert_eq!((p.max_long_edge, p.ceiling_bps), (1920, 6_000_000));
+        let p = plan(Some(&json!({"quality": "sharp", "resolution": 9000})));
+        assert_eq!(p.max_long_edge, 3840);
     }
 
     #[test]

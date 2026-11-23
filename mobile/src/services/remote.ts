@@ -119,7 +119,12 @@ function scheduleReconnect() {
 
 function streamPrefs(): StreamPrefs {
   const {width, height} = Dimensions.get("screen")
-  return {quality: getSetting("stream_quality"), maxLongEdge: Math.round(Math.max(width, height) * PixelRatio.get())}
+  const resolution = getSetting("stream_resolution")
+  return {
+    quality: getSetting("stream_quality"),
+    maxLongEdge: Math.round(Math.max(width, height) * PixelRatio.get()),
+    ...(resolution === "auto" ? {} : {resolution: Number(resolution)}),
+  }
 }
 
 function dial(ticket: string, endpointId: string | null, pairingSecret: string | null) {

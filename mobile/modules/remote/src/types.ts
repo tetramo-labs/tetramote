@@ -63,6 +63,7 @@ export interface StartConfig {
 export interface StreamPrefs {
   quality: "responsive" | "balanced" | "sharp"
   maxLongEdge: number
+  resolution?: number
 }
 
 export interface ConnectRequest {

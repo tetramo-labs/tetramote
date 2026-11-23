@@ -60,6 +60,7 @@ export default function SettingsScreen() {
   const [inputMode, setInputMode] = useSetting("default_input_mode")
   const [speed, setSpeed] = useSetting("trackpad_speed")
   const [quality, setQuality] = useSetting("stream_quality")
+  const [resolution, setResolution] = useSetting("stream_resolution")
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
   const [startFullScreen, setStartFullScreen] = useSetting("start_full_screen")
@@ -156,7 +157,7 @@ export default function SettingsScreen() {
         <Row
           labelTx="settings:streamQuality"
           subtitleTx="settings:streamQualityHint"
-          trailing={
+          below={
             <Segmented
               value={quality}
               onChange={(value) => {
@@ -167,6 +168,25 @@ export default function SettingsScreen() {
                 {value: "responsive", tx: "settings:responsive"},
                 {value: "balanced", tx: "settings:balanced"},
                 {value: "sharp", tx: "settings:sharp"},
+              ]}
+            />
+          }
+        />
+        <Row
+          labelTx="settings:resolution"
+          subtitleTx="settings:resolutionHint"
+          below={
+            <Segmented
+              value={resolution}
+              onChange={(value) => {
+                setResolution(value)
+                applyStreamQuality()
+              }}
+              options={[
+                {value: "auto", tx: "settings:resolutionAuto"},
+                {value: "1280", tx: "settings:resolution720"},
+                {value: "1920", tx: "settings:resolution1080"},
+                {value: "2560", tx: "settings:resolution1440"},
               ]}
             />
           }
