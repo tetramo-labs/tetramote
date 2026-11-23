@@ -239,6 +239,13 @@ fn move_to(x: i32, y: i32) -> INPUT {
     )
 }
 
+pub(super) fn wake_display() {
+    let _ = send(&[
+        mouse(1, 0, 0, MOUSEEVENTF_MOVE),
+        mouse(-1, 0, 0, MOUSEEVENTF_MOVE),
+    ]);
+}
+
 fn mouse(dx: i32, dy: i32, data: i32, flags: MOUSE_EVENT_FLAGS) -> INPUT {
     INPUT {
         r#type: INPUT_MOUSE,

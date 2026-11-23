@@ -27,8 +27,12 @@ use windows::Win32::Graphics::Dxgi::{
     DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME,
 };
 
+use windows::Win32::System::Power::{
+    SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
+};
+
 use super::mft::HardwareEncoder;
-use super::{audio, display, failed, Com};
+use super::{audio, display, failed, input, Com};
 use crate::host::{now_us, scale_bgra, stream_size};
 use crate::software::{bgra_to_yuv420, SoftwareEncoder};
 use crate::{
@@ -40,6 +44,7 @@ const IDLE_WAIT_MS: u32 = 50;
 const REDUPLICATE_EVERY: Duration = Duration::from_millis(250);
 
 pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn ScreenStream>> {
+    input::wake_display();
     let displays = display::displays()?;
     let display = config
         .display_id
@@ -151,6 +156,23 @@ impl Drop for WindowsStream {
     }
 }
 
+struct Awake;
+
+impl Awake {
+    fn hold() -> Self {
+        unsafe {
+            SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED)
+        };
+        Self
+    }
+}
+
+impl Drop for Awake {
+    fn drop(&mut self) {
+        unsafe { SetThreadExecutionState(ES_CONTINUOUS) };
+    }
+}
+
 fn run(
     display: DisplayInfo,
     size: (u32, u32),
@@ -161,6 +183,7 @@ fn run(
     ready: mpsc::Sender<Result<&'static str>>,
 ) {
     let _com = Com::init();
+    let _awake = Awake::hold();
     let opened =
         Duplicator::open(&display).and_then(|d| Ok((d, VideoEncoder::new(size, fps, bitrate)?)));
     let (mut duplicator, mut encoder) = match opened {
