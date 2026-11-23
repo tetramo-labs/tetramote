@@ -102,6 +102,12 @@ const en = {
     control: "Control",
     defaultInput: "Start in",
     trackpadSpeed: "Trackpad speed",
+    streamQuality: "Picture",
+    streamQualityHint:
+      "Fast keeps delay and data lowest with a softer picture. Sharp sends the computer's full resolution, best for zooming in, and needs a faster connection.",
+    responsive: "Fast",
+    balanced: "Balanced",
+    sharp: "Sharp",
     slow: "Slow",
     normal: "Normal",
     fast: "Fast",

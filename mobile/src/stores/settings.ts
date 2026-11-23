@@ -5,12 +5,14 @@ import {load, save} from "@/utils/storage"
 export type ThemePreference = "system" | "light" | "dark"
 export type InputMode = "trackpad" | "direct"
 export type TrackpadSpeed = "slow" | "normal" | "fast"
+export type StreamQuality = "responsive" | "balanced" | "sharp"
 
 export interface Settings {
   theme_preference: ThemePreference
   relay_url: string
   default_input_mode: InputMode
   trackpad_speed: TrackpadSpeed
+  stream_quality: StreamQuality
   play_audio: boolean
   auto_hide_controls: boolean
   start_full_screen: boolean
@@ -23,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   relay_url: "",
   default_input_mode: "trackpad",
   trackpad_speed: "normal",
+  stream_quality: "balanced",
   play_audio: true,
   auto_hide_controls: false,
   start_full_screen: false,

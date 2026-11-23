@@ -321,6 +321,7 @@ impl ClientService {
             pairing_secret: target.secret.clone(),
             device_name: system::computer_name(),
             guest: false,
+            stream: None,
             timeout_ms: 15_000,
         };
         {

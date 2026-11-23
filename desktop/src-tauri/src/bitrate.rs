@@ -1,8 +1,6 @@
 use std::time::{Duration, Instant};
 
 pub const START_BPS: u32 = 8_000_000;
-const FLOOR_BPS: u32 = 1_500_000;
-const CEILING_BPS: u32 = 20_000_000;
 const SKIPS_TO_STEP_DOWN: u32 = 2;
 const SKIP_WINDOW: Duration = Duration::from_secs(1);
 const CLEAN_TO_STEP_UP: Duration = Duration::from_secs(3);
@@ -12,6 +10,8 @@ const CLEAN_TO_STEP_UP: Duration = Duration::from_secs(3);
 #[derive(Debug)]
 pub struct BitrateController {
     bitrate: u32,
+    floor: u32,
+    ceiling: u32,
     window_start: Instant,
     skips: u32,
     last_change: Instant,
@@ -19,9 +19,11 @@ pub struct BitrateController {
 }
 
 impl BitrateController {
-    pub fn new(now: Instant) -> Self {
+    pub fn within(now: Instant, start: u32, floor: u32, ceiling: u32) -> Self {
         Self {
-            bitrate: START_BPS,
+            bitrate: start.clamp(floor, ceiling),
+            floor,
+            ceiling,
             window_start: now,
             skips: 0,
             last_change: now,
@@ -61,7 +63,7 @@ impl BitrateController {
     }
 
     fn change(&mut self, target: u32, now: Instant) -> Option<u32> {
-        let next = target.clamp(FLOOR_BPS, CEILING_BPS);
+        let next = target.clamp(self.floor, self.ceiling);
         self.last_change = now;
         if next == self.bitrate {
             return None;
@@ -78,7 +80,7 @@ mod tests {
     #[test]
     fn steps_down_after_two_skips_within_a_second_and_floors() {
         let t0 = Instant::now();
-        let mut c = BitrateController::new(t0);
+        let mut c = BitrateController::within(t0, START_BPS, 1_500_000, 20_000_000);
         assert_eq!(c.on_skip(t0), None);
         assert_eq!(c.on_skip(t0 + Duration::from_millis(100)), Some(5_600_000));
         for i in 0..40 {
@@ -90,7 +92,7 @@ mod tests {
     #[test]
     fn a_lone_skip_per_second_never_steps_down() {
         let t0 = Instant::now();
-        let mut c = BitrateController::new(t0);
+        let mut c = BitrateController::within(t0, START_BPS, 1_500_000, 20_000_000);
         assert_eq!(c.on_skip(t0), None);
         assert_eq!(c.on_skip(t0 + Duration::from_millis(1500)), None);
         assert_eq!(c.bitrate(), START_BPS);
@@ -99,7 +101,7 @@ mod tests {
     #[test]
     fn steps_up_after_three_quiet_seconds_and_caps() {
         let t0 = Instant::now();
-        let mut c = BitrateController::new(t0);
+        let mut c = BitrateController::within(t0, START_BPS, 1_500_000, 20_000_000);
         assert_eq!(c.on_sent(t0 + Duration::from_secs(2)), None);
         assert_eq!(c.on_sent(t0 + Duration::from_secs(3)), Some(8_800_000));
         assert_eq!(c.on_sent(t0 + Duration::from_secs(4)), None);
@@ -109,5 +111,22 @@ mod tests {
             c.on_sent(t);
         }
         assert_eq!(c.bitrate(), 20_000_000);
+    }
+
+    #[test]
+    fn stays_within_the_limits_it_was_given() {
+        let t0 = Instant::now();
+        let mut c = BitrateController::within(t0, 3_000_000, 800_000, 6_000_000);
+        assert_eq!(c.bitrate(), 3_000_000);
+        let mut t = t0;
+        for _ in 0..20 {
+            t += Duration::from_secs(3);
+            c.on_sent(t);
+        }
+        assert_eq!(c.bitrate(), 6_000_000);
+        for i in 0..60 {
+            c.on_skip(t + Duration::from_millis(i * 10));
+        }
+        assert_eq!(c.bitrate(), 800_000);
     }
 }

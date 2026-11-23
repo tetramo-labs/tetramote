@@ -41,6 +41,7 @@ export type HostMessage =
   | {t: "clipboard"; text: string}
 
 export type PhoneMessage =
+  | ({t: "stream"} & StreamPrefs)
   | {t: "clipboard"; text: string}
   | {t: "getClipboard"}
   | {t: "selectDisplay"; id: number}
@@ -59,9 +60,15 @@ export interface StartConfig {
   relayUrl: string | null
 }
 
+export interface StreamPrefs {
+  quality: "responsive" | "balanced" | "sharp"
+  maxLongEdge: number
+}
+
 export interface ConnectRequest {
   ticket: string | null
   endpointId: string
   pairingSecret: string | null
   deviceName: string
+  stream?: StreamPrefs
 }

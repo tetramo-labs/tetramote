@@ -5,8 +5,10 @@ import {
   type InputEvent,
   type PhoneMessage,
   type RemoteState,
+  type StreamPrefs,
 } from "@tetramote/remote"
 import * as Device from "expo-device"
+import {Dimensions, PixelRatio} from "react-native"
 
 import {translate, type TxKeyPath} from "@/i18n"
 import {loadSecretKey} from "@/services/identity"
@@ -115,8 +117,23 @@ function scheduleReconnect() {
   }, delay)
 }
 
+function streamPrefs(): StreamPrefs {
+  const {width, height} = Dimensions.get("screen")
+  return {quality: getSetting("stream_quality"), maxLongEdge: Math.round(Math.max(width, height) * PixelRatio.get())}
+}
+
 function dial(ticket: string, endpointId: string | null, pairingSecret: string | null) {
-  remote.connect({ticket: ticket || null, endpointId: endpointId ?? "", pairingSecret, deviceName: deviceName()})
+  remote.connect({
+    ticket: ticket || null,
+    endpointId: endpointId ?? "",
+    pairingSecret,
+    deviceName: deviceName(),
+    stream: streamPrefs(),
+  })
+}
+
+export function applyStreamQuality() {
+  if (useSessionStore.getState().phase === "connected") send({t: "stream", ...streamPrefs()})
 }
 
 /** Binds the phone's iroh endpoint once per launch (again after `restart`). */

@@ -32,6 +32,8 @@ pub struct ConnectRequest {
     pub device_name: String,
     #[serde(default)]
     pub guest: bool,
+    #[serde(default)]
+    pub stream: Option<serde_json::Value>,
     #[serde(default = "default_timeout")]
     pub timeout_ms: u64,
 }
@@ -154,6 +156,7 @@ async fn run_session(
         "name": request.device_name,
         "secret": request.pairing_secret,
         "guest": request.guest,
+        "stream": request.stream,
     })
     .to_string();
     write_message(&mut send, hello.as_bytes())

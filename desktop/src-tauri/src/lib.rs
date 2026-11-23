@@ -9,6 +9,7 @@ mod host;
 #[cfg(target_os = "macos")]
 mod login_window;
 mod pairing;
+mod quality;
 mod store;
 mod system;
 mod tray;

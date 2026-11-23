@@ -47,7 +47,7 @@ device's connection replaces it, 3 when the device is removed, and 4 when the li
 
 | `t` | Direction | Fields |
 | --- | --- | --- |
-| `hello` | phone → Mac | `v` (2), `name` (device name), `secret` (the link's secret, when not yet trusted), `guest` (true from a browser) |
+| `hello` | phone → Mac | `v` (2), `name` (device name), `secret` (the link's secret, when not yet trusted), `guest` (true from a browser), `stream` (optional: `quality` `responsive`, `balanced` or `sharp`, and `maxLongEdge`, the viewer's display size in pixels) |
 | `welcome` | Mac → phone | `v`, `hostName`, `paired` (true when this hello paired the phone) |
 | `rejected` | Mac → phone | `reason`: `notPaired`, `badSecret`, `version` or `badHello` |
 | `status` | Mac → phone | `screenRecording`, `accessibility` (Mac permissions granted) |
@@ -58,6 +58,7 @@ device's connection replaces it, 3 when the device is removed, and 4 when the li
 | `getClipboard` | phone → Mac | (none); the Mac answers with `clipboard` |
 | `selectDisplay` | phone → Mac | `id` |
 | `setAudio` | phone → Mac | `enabled` |
+| `stream` | phone → Mac | the same object as `hello`'s `stream`; the Mac restarts the stream to match. Without one, the Mac streams up to 2560 pixels at 8 to 20 Mbps |
 | `cursor` | phone → Mac | `shown`: whether the Mac draws its pointer into the video (true until a viewer sends this; a viewer that shows its own pointer sends false). A Mac that can't change it mid-stream (Linux) keeps drawing it |
 | `keyframe` | phone → Mac | (none); the phone lost a frame and needs a keyframe |
 

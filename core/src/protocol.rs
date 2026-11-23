@@ -147,6 +147,8 @@ pub struct Hello {
     pub secret: Option<String>,
     #[serde(default)]
     pub guest: bool,
+    #[serde(default)]
+    pub stream: Option<serde_json::Value>,
 }
 
 /// `Paired` trusts the device from then on; `Guest` admits it for this connection only, until the link changes.
@@ -295,6 +297,7 @@ mod tests {
             name: "Duo".into(),
             secret: secret.map(Into::into),
             guest: false,
+            stream: None,
         }
     }
 

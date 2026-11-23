@@ -313,6 +313,7 @@ async fn handle_incoming(shared: Arc<Shared>, incoming: Incoming) -> Result<(), 
         "name": hello.name,
         "paired": paired,
         "guest": guest,
+        "stream": hello.stream,
         "path": path.as_ref().map(|p| p.kind),
         "rttMs": path.as_ref().map(|p| p.rtt_ms),
     }));

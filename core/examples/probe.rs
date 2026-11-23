@@ -121,6 +121,7 @@ fn main() {
             pairing_secret: secret.clone(),
             device_name: "Probe".into(),
             guest: args.guest,
+            stream: None,
             timeout_ms: 20_000,
         });
     }

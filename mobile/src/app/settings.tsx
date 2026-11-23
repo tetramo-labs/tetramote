@@ -17,7 +17,7 @@ import {translate} from "@/i18n"
 import {loadSecretKey} from "@/services/identity"
 import {isRelayUrl} from "@/services/relay"
 import {pickLinks, shareLinks} from "@/services/linkTransfer"
-import {restart} from "@/services/remote"
+import {applyStreamQuality, restart} from "@/services/remote"
 import {useHostsStore} from "@/stores/hosts"
 import {useSetting} from "@/stores/settings"
 
@@ -59,6 +59,7 @@ export default function SettingsScreen() {
   const [relay, setRelay] = useSetting("relay_url")
   const [inputMode, setInputMode] = useSetting("default_input_mode")
   const [speed, setSpeed] = useSetting("trackpad_speed")
+  const [quality, setQuality] = useSetting("stream_quality")
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
   const [startFullScreen, setStartFullScreen] = useSetting("start_full_screen")
@@ -148,6 +149,24 @@ export default function SettingsScreen() {
                 {value: "slow", tx: "settings:slow"},
                 {value: "normal", tx: "settings:normal"},
                 {value: "fast", tx: "settings:fast"},
+              ]}
+            />
+          }
+        />
+        <Row
+          labelTx="settings:streamQuality"
+          subtitleTx="settings:streamQualityHint"
+          trailing={
+            <Segmented
+              value={quality}
+              onChange={(value) => {
+                setQuality(value)
+                applyStreamQuality()
+              }}
+              options={[
+                {value: "responsive", tx: "settings:responsive"},
+                {value: "balanced", tx: "settings:balanced"},
+                {value: "sharp", tx: "settings:sharp"},
               ]}
             />
           }

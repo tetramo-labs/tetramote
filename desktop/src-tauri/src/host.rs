@@ -12,7 +12,8 @@ use tetra_media::{
     StreamConfig, StreamSink,
 };
 
-use crate::bitrate::{BitrateController, START_BPS};
+use crate::bitrate::BitrateController;
+use crate::quality;
 use crate::store::{now_ms, PairedDevice, Store};
 use crate::{clipboard, pairing, system};
 
@@ -137,6 +138,7 @@ struct Inner {
     sink: Option<Arc<Sink>>,
     last_denied_status: Option<Instant>,
     cursor: bool,
+    stream: Option<Value>,
 }
 
 pub type Notify = Box<dyn Fn(HostState) + Send + Sync>;
@@ -174,6 +176,7 @@ impl HostService {
                 sink: None,
                 last_denied_status: None,
                 cursor: true,
+                stream: None,
             }),
             stream: Arc::new(Mutex::new(None)),
             clipboard: Mutex::new(clipboard::Watcher::new()),
@@ -393,6 +396,7 @@ impl HostService {
                         name: name.clone(),
                     });
                     inner.cursor = true;
+                    inner.stream = Some(v["stream"].clone()).filter(Value::is_object);
                     inner.status = HostStatus::Connected {
                         name,
                         path: v["path"].as_str().map(String::from),
@@ -454,16 +458,24 @@ impl HostService {
         );
 
         *self.stream.lock().unwrap() = None;
+        let plan = quality::plan(self.inner.lock().unwrap().stream.as_ref());
         let sink = Arc::new(Sink {
             host: host.clone(),
             stream: self.stream.clone(),
-            bitrate: Mutex::new(BitrateController::new(Instant::now())),
+            bitrate: Mutex::new(BitrateController::within(
+                Instant::now(),
+                plan.start_bps,
+                plan.floor_bps,
+                plan.ceiling_bps,
+            )),
             audio: AtomicBool::new(true),
             service: Arc::downgrade(self),
         });
         let config = StreamConfig {
             display_id: wanted,
-            bitrate_bps: START_BPS,
+            max_long_edge: plan.max_long_edge,
+            fps: plan.fps,
+            bitrate_bps: plan.start_bps,
             cursor: self.inner.lock().unwrap().cursor,
             ..StreamConfig::default()
         };
@@ -543,6 +555,14 @@ impl HostService {
                 if let Some(text) = clipboard::read() {
                     send(host, &json!({"t": "clipboard", "text": text}));
                 }
+            }
+            Some("stream") => {
+                let display = {
+                    let mut inner = self.inner.lock().unwrap();
+                    inner.stream = Some(v.clone());
+                    inner.display.as_ref().map(|d| d.id)
+                };
+                self.begin_session(host, display);
             }
             Some("cursor") => {
                 self.inner.lock().unwrap().cursor = v["shown"].as_bool().unwrap_or(true);
