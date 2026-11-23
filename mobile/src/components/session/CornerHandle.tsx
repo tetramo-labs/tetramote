@@ -2,7 +2,7 @@ import {Ellipsis} from "lucide-react-native"
 import {useCallback, useEffect} from "react"
 import {useWindowDimensions} from "react-native"
 import {Gesture, GestureDetector} from "react-native-gesture-handler"
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from "react-native-reanimated"
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming} from "react-native-reanimated"
 
 import {Icon} from "@/components/ignite/Icon"
 import GlassView from "@/components/ui/GlassView"
@@ -15,7 +15,7 @@ const MARGIN = 12
 const FADE_AFTER_MS = 2000
 const FADE_MS = 600
 const SLIDE_MS = 320
-const SPRING = {damping: 18, stiffness: 220}
+const SNAP = {duration: 220, easing: Easing.out(Easing.cubic)}
 
 /**
  * Full screen's way back to the controls: the dots slide to their corner and
@@ -77,8 +77,8 @@ export function CornerHandle({origin, onOpen}: {origin: "bottom" | "right"; onOp
       const top = y.value + SIZE / 2 < height / 2
       const next: ControlsCorner = `${top ? "top" : "bottom"}-${left ? "left" : "right"}`
       const to = spot(next)
-      x.value = withSpring(to.x, SPRING)
-      y.value = withSpring(to.y, SPRING)
+      x.value = withTiming(to.x, SNAP)
+      y.value = withTiming(to.y, SNAP)
       setCorner(next)
       fadeLater()
     })
