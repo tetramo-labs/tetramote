@@ -35,6 +35,7 @@ export class ClickCounter {
 }
 
 export const HOLD_DRAG_MS = 800
+export const DIRECT_RIGHT_CLICK_MS = 350
 
 /** Decays a scroll fling into momentum steps; returns deltas per 16 ms frame. */
 export function momentumSteps(vx: number, vy: number, decay = 0.92, minStep = 0.5): {dx: number; dy: number}[] {
