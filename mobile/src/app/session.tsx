@@ -14,6 +14,7 @@ import {KeyboardInput, type KeyboardHandle} from "@/components/session/KeyboardI
 import {DEFAULT_ASPECT, RemoteSurface, useZoomControls} from "@/components/session/RemoteSurface"
 import {SessionOverlay} from "@/components/session/SessionOverlay"
 import {HingeObserver} from "@/components/session/HingeObserver"
+import {CornerHandle} from "@/components/session/CornerHandle"
 import {BottomRail, ControlsHandle, SessionToolbar, useSessionActions} from "@/components/session/SessionToolbar"
 import {StatusPill} from "@/components/session/StatusPill"
 import {TrackpadPanel} from "@/components/session/TrackpadPanel"
@@ -159,7 +160,7 @@ function SessionBody() {
   const inlineToolbar = (vertical: boolean) =>
     controls.visible ? (
       <SessionToolbar actions={actions} vertical={vertical} />
-    ) : (
+    ) : fullScreen ? null : (
       <ControlsHandle onPress={controls.show} />
     )
 
@@ -228,6 +229,9 @@ function SessionBody() {
               style={{left: 0, right: 0, bottom: insets.bottom + 8}}>
               {inlineToolbar(false)}
             </View>
+          )}
+          {fullScreen && !controls.visible && (
+            <CornerHandle origin={plan.toolbar === "side" ? "right" : "bottom"} onOpen={controls.show} />
           )}
         </>
       )}
