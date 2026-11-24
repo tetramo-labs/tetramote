@@ -7,6 +7,7 @@ import {
   Minimize2,
   Monitor,
   MousePointer2,
+  Settings,
   Volume2,
   VolumeX,
   X,
@@ -33,9 +34,10 @@ interface SessionActionHandlers {
   onDisplays: () => void
   onClipboard: () => void
   onResetZoom: () => void
+  onSettings: () => void
 }
 
-/** The session's controls in the order a Duo rail lists them: Close, then the main actions, then the rest. */
+/** The session's controls in the order a Duo rail lists them: Close, then the main actions, then the rest, with full screen last. */
 export function useSessionActions({
   zoomed,
   onUse,
@@ -44,6 +46,7 @@ export function useSessionActions({
   onDisplays,
   onClipboard,
   onResetZoom,
+  onSettings,
 }: SessionActionHandlers): RailAction[] {
   const inputMode = useSessionStore((s) => s.inputMode)
   const setInputMode = useSessionStore((s) => s.setInputMode)
@@ -65,12 +68,6 @@ export function useSessionActions({
       onPress: used(() => setInputMode(inputMode === "trackpad" ? "direct" : "trackpad")),
     },
     {key: "keyboard", icon: Keyboard, label: translate("session:keyboard"), onPress: used(onKeyboard)},
-    {
-      key: "fullScreen",
-      icon: fullScreen ? Minimize2 : Maximize2,
-      label: translate(fullScreen ? "session:exitFullScreen" : "session:fullScreen"),
-      onPress: used(() => setFullScreen(!fullScreen)),
-    },
     ...(displays > 1
       ? [{key: "displays", icon: Monitor, label: translate("session:displays"), onPress: used(onDisplays)}]
       : []),
@@ -81,9 +78,16 @@ export function useSessionActions({
       label: translate(audio ? "session:audioOn" : "session:audioOff"),
       onPress: used(() => setAudio(!audio)),
     },
+    {key: "settings", icon: Settings, label: translate("settings:title"), onPress: used(onSettings)},
     ...(zoomed
       ? [{key: "zoom", icon: ZoomOut, label: translate("session:resetZoom"), onPress: used(onResetZoom)}]
       : []),
+    {
+      key: "fullScreen",
+      icon: fullScreen ? Minimize2 : Maximize2,
+      label: translate(fullScreen ? "session:exitFullScreen" : "session:fullScreen"),
+      onPress: used(() => setFullScreen(!fullScreen)),
+    },
   ]
 }
 

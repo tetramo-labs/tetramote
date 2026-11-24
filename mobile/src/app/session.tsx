@@ -1,7 +1,8 @@
 import type {BottomSheetModal} from "@gorhom/bottom-sheet"
 import * as NavigationBar from "expo-navigation-bar"
+import {useFocusEffect} from "expo-router"
 import {StatusBar} from "expo-status-bar"
-import {useEffect, useRef, useState, type ReactNode} from "react"
+import {useCallback, useEffect, useRef, useState, type ReactNode} from "react"
 import {BackHandler, Platform, Pressable, useWindowDimensions, View, type ViewStyle} from "react-native"
 import Animated, {useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated"
 import {ReservedRegionsProvider, useReservedRegions} from "react-native-reserved-regions"
@@ -82,6 +83,7 @@ function SessionBody() {
   const layout = useLayout()
   const regions = useReservedRegions()
   const goHome = useNavigationStore((s) => s.goHome)
+  const push = useNavigationStore((s) => s.push)
   const video = useSessionStore((s) => s.video)
   const phase = useSessionStore((s) => s.phase)
   const fullScreen = useSessionStore((s) => s.fullScreen)
@@ -104,13 +106,16 @@ function SessionBody() {
     goHome()
   }
 
-  useEffect(() => {
-    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      leave()
-      return true
-    })
-    return () => sub.remove()
-  })
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        disconnect()
+        goHome()
+        return true
+      })
+      return () => sub.remove()
+    }, [goHome]),
+  )
 
   useEffect(() => () => disconnect(), [])
 
@@ -152,6 +157,7 @@ function SessionBody() {
       clipboardSheet.current?.present()
     },
     onResetZoom: resetZoom,
+    onSettings: () => push("/settings"),
   })
   useRailActions(plan.toolbar === "rail" ? actions : [], {hidden: !controls.visible, reveal: controls.show})
 
@@ -161,7 +167,7 @@ function SessionBody() {
       <PermissionBanner />
     </Fade>
   )
-  const statusGap = plan.kind === "stacked" && plan.gap && plan.gap.height >= STATUS_GAP_MIN ? plan.gap : null
+  const statusGap = plan.gap && plan.gap.height >= STATUS_GAP_MIN ? plan.gap : null
   const inlineToolbar = (vertical: boolean) =>
     controls.visible ? (
       <SessionToolbar actions={actions} vertical={vertical} />
@@ -223,12 +229,14 @@ function SessionBody() {
         </View>
       ) : (
         <>
-          <View
-            pointerEvents="box-none"
-            className="absolute"
-            style={{top: insets.top + 8, left: layout.insetLeft + 12}}>
-            {status(false)}
-          </View>
+          {!statusGap && (
+            <View
+              pointerEvents="box-none"
+              className="absolute"
+              style={{top: insets.top + 8, left: layout.insetLeft + 12}}>
+              {status(false)}
+            </View>
+          )}
           {plan.toolbar === "side" && (
             <View
               pointerEvents="box-none"

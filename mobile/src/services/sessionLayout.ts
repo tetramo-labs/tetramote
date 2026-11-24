@@ -24,13 +24,14 @@ export type SessionLayout =
       trackpadAspect?: number
       gap?: Rect
     }
-  | {kind: "overlay"; video: Rect; toolbar: "rail" | "side" | "floating"}
+  | {kind: "overlay"; video: Rect; toolbar: "rail" | "side" | "floating"; gap?: Rect}
 
 export const MIN_PANEL_HEIGHT = 180
 export const PANEL_GAP = 12
 export const SIDE_TOOLBAR_WIDTH = 64
 export const TRACKPAD_ASPECT = 16 / 9
 export const TRACKPAD_INSET = 12
+export const FLOATING_TOOLBAR_SPACE = 66
 
 export interface SessionLayoutInput {
   width: number
@@ -75,6 +76,13 @@ function horizontalFold(fold: Rect | null, content: Rect): Rect | null {
   return spans && thin && inside ? fold : null
 }
 
+/** The room under an overlaid screen, down to `bottom`, short of a floating toolbar. */
+function overlayGap(video: Rect, bottom: number, toolbar: "rail" | "side" | "floating"): Rect | undefined {
+  const top = video.y + video.height
+  const height = bottom - top - (toolbar === "floating" ? FLOATING_TOOLBAR_SPACE : 0)
+  return height > 0 ? {x: video.x, y: top, width: video.width, height} : undefined
+}
+
 function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; panel: Rect; gap: Rect} {
   const top: Rect = {x: content.x, y: content.y, width: content.width, height: crease.y - content.y}
   const panelTop = crease.y + crease.height
@@ -93,8 +101,9 @@ function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; pan
  * when there is one, and then a laptop with no fold to split at (the folded
  * Duo) gets a 16:9 trackpad centred under the screen; without a rail the
  * panel centres a 16:9 trackpad above its toolbar (trackpadAspect). Full screen fits the
- * screen to the whole window, edge to edge, with floating controls. Decided
- * from sizes alone, never the device or orientation.
+ * screen to the whole window, edge to edge, with floating controls. `gap` is
+ * the room under the screen, where the connection details are centred when it
+ * is tall enough. Decided from sizes alone, never the device or orientation.
  */
 export function sessionLayout({
   width,
@@ -108,7 +117,9 @@ export function sessionLayout({
 }: SessionLayoutInput): SessionLayout {
   if (fullScreen) {
     const video = fitInside({x: 0, y: 0, width, height}, aspect)
-    return {kind: "overlay", video, toolbar: (width - video.width) / 2 >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"}
+    const toolbar = (width - video.width) / 2 >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"
+    const gap = overlayGap(video, height - insets.bottom, toolbar)
+    return {kind: "overlay", video, toolbar, ...(gap && {gap})}
   }
   const content: Rect = {
     x: insets.left,
@@ -146,5 +157,6 @@ export function sessionLayout({
   const video = fitInside(content, aspect)
   const spare = (content.width - video.width) / 2
   const toolbar = rail ? "rail" : spare >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"
-  return {kind: "overlay", video, toolbar}
+  const gap = overlayGap(video, content.y + content.height, toolbar)
+  return {kind: "overlay", video, toolbar, ...(gap && {gap})}
 }

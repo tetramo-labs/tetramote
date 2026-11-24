@@ -7,6 +7,7 @@ import {PressableIcon} from "@/components/ignite/Icon"
 import {Text} from "@/components/ignite/Text"
 import GlassView from "@/components/ui/GlassView"
 import {useAppTheme} from "@/contexts/ThemeContext"
+import {useLayout} from "@/hooks/useLayout"
 import {flagsFor, KEY, keyPress, shortcutFor, type Modifier} from "@/services/keys"
 import {sendInput} from "@/services/remote"
 
@@ -40,6 +41,7 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   ref,
 ) {
   const {theme, themeContext} = useAppTheme()
+  const {insetLeft, insetRight} = useLayout()
   const input = useRef<ComponentRef<typeof TextInput>>(null)
   const [visible, setVisible] = useState(false)
   const [modifiers, setModifiers] = useState<Modifier[]>([])
@@ -79,7 +81,13 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   }
 
   const bar = (
-    <GlassView className="mx-2 mb-2 rounded-2xl" style={{backgroundColor: theme.colors.primary_foreground + "E6"}}>
+    <GlassView
+      className="mb-2 rounded-2xl"
+      style={{
+        backgroundColor: theme.colors.primary_foreground + "E6",
+        marginLeft: insetLeft + 8,
+        marginRight: insetRight + 8,
+      }}>
       <View className="flex-row items-center">
         <ScrollView
           horizontal

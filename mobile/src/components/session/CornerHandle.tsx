@@ -3,11 +3,14 @@ import {useCallback, useEffect, useRef} from "react"
 import {useWindowDimensions} from "react-native"
 import {Gesture, GestureDetector} from "react-native-gesture-handler"
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming} from "react-native-reanimated"
+import {useReservedRegions} from "react-native-reserved-regions"
 
 import {Icon} from "@/components/ignite/Icon"
 import GlassView from "@/components/ui/GlassView"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
 import {translate} from "@/i18n"
+import {cornerSpot} from "@/services/cornerSpot"
+import type {Rect} from "@/services/sessionLayout"
 import {useSetting, type ControlsCorner} from "@/stores/settings"
 
 const SIZE = 42
@@ -19,10 +22,10 @@ const SLIDE_MS = 320
 const SNAP = {duration: 220, easing: Easing.out(Easing.cubic)}
 
 /**
- * Full screen's way back to the controls: the dots slide to their corner and
- * fade out; each new `reveal` count (a touch outside the screen) shows them again,
- * and a tap on them opens the toolbar.
- * Dragged anywhere, they snap to the nearest corner, which is remembered.
+ * Full screen's way back to the controls: the dots slide to their corner (see
+ * cornerSpot) and fade out; each new `reveal` count (a touch outside the
+ * screen) shows them again, and a tap on them opens the toolbar. Dragged
+ * anywhere, they snap to the nearest corner, which is remembered.
  */
 export function CornerHandle({
   origin,
@@ -35,17 +38,25 @@ export function CornerHandle({
 }) {
   const {width, height} = useWindowDimensions()
   const insets = useSaferAreaInsets()
+  const regions = useReservedRegions()
+  const occlusionKey =
+    regions.length > 0 ? JSON.stringify(regions.flatMap((r) => (r.kind === "occlusion" ? [r.frame] : []))) : null
   const [corner, setCorner] = useSetting("controls_corner")
   const x = useSharedValue(origin === "bottom" ? (width - SIZE) / 2 : width - insets.right - MARGIN - SIZE)
   const y = useSharedValue(origin === "bottom" ? height - insets.bottom - MARGIN - SIZE : (height - SIZE) / 2)
   const opacity = useSharedValue(1)
 
   const spot = useCallback(
-    (c: ControlsCorner) => ({
-      x: c.endsWith("left") ? insets.left + MARGIN : width - insets.right - MARGIN - SIZE,
-      y: c.startsWith("top") ? insets.top + MARGIN : height - insets.bottom - MARGIN - SIZE,
-    }),
-    [insets.left, insets.right, insets.top, insets.bottom, width, height],
+    (c: ControlsCorner) =>
+      cornerSpot(c, {
+        width,
+        height,
+        insets: {top: insets.top, bottom: insets.bottom, left: insets.left, right: insets.right},
+        occlusions: occlusionKey ? (JSON.parse(occlusionKey) as Rect[]) : null,
+        size: SIZE,
+        margin: MARGIN,
+      }),
+    [insets.left, insets.right, insets.top, insets.bottom, width, height, occlusionKey],
   )
 
   const fadeLater = useCallback(() => {
