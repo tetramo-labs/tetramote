@@ -24,7 +24,6 @@ try {
     androidNote,
     steps,
     features,
-    privacy,
     downloads,
     faq,
   } = await vite.ssrLoadModule("/src/App.jsx")
@@ -37,13 +36,13 @@ try {
   await writeFile(page, html.replace(mount, `<div id="root">${body}</div>`))
   await writeFile(
     new URL("index.md", dist),
-    markdown({lede, phoneNote, androidNote, steps, features, privacy, downloads, faq, REPO, LATEST, APP_STORE}),
+    markdown({lede, phoneNote, androidNote, steps, features, downloads, faq, REPO, LATEST, APP_STORE}),
   )
 } finally {
   await vite.close()
 }
 
-function markdown({lede, phoneNote, androidNote, steps, features, privacy, downloads, faq, REPO, LATEST, APP_STORE}) {
+function markdown({lede, phoneNote, androidNote, steps, features, downloads, faq, REPO, LATEST, APP_STORE}) {
   return `# Tetramote
 
 Control your computer from your phone. ${lede}
@@ -55,12 +54,6 @@ ${steps.map((step, i) => `${i + 1}. **${step.title}.** ${step.body}`).join("\n")
 ## What it does
 
 ${features.map((feature) => `- **${feature.title}.** ${feature.body}`).join("\n")}
-
-## There's no account and no Tetramote server
-
-Tetramote connects your devices with [iroh](https://iroh.computer). Every connection is end-to-end encrypted QUIC and goes direct whenever the networks allow it. When they don't, traffic passes through n0's public relays, or a relay you run yourself, which see only encrypted packets.
-
-${privacy.map((fact) => `- ${fact}`).join("\n")}
 
 ## Download
 

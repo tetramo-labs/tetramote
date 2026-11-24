@@ -55,13 +55,6 @@ export const features = [
   },
 ]
 
-export const privacy = [
-  "The link carries a 128-bit secret after the #, which browsers never send to a web server. Make a new link and the old one stops working.",
-  "Each computer keeps its key in the system keychain.",
-  "Remove a device in the computer's menu and its session ends right away.",
-  "The apps and the protocol are open source under the MIT license.",
-]
-
 export const downloads = [
   {
     id: "mac",
@@ -188,7 +181,7 @@ function Header() {
           {[
             ["#pairing", "How it works"],
             ["#features", "Features"],
-            ["#privacy", "Privacy"],
+            ["/privacy", "Privacy"],
             ["#faq", "FAQ"],
             [REPO, "GitHub"],
           ].map(([href, label]) => (
@@ -319,35 +312,6 @@ function Features() {
   )
 }
 
-function Privacy() {
-  return (
-    <section id="privacy" className={section} aria-labelledby="privacy-title">
-      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div>
-          <h2 id="privacy-title" className={h2}>
-            There's no account and no Tetramote server.
-          </h2>
-          <p className="mt-5 mb-7 text-lg text-muted">
-            Tetramote connects your devices with <a href="https://iroh.computer">iroh</a>. Every connection is
-            end-to-end encrypted QUIC and goes direct whenever the networks allow it. When they don't, traffic passes
-            through n0's public relays, or a relay you run yourself, which see only encrypted packets.
-          </p>
-          <a className={buttonSecondary} href={`${REPO}/blob/main/PROTOCOL.md`}>
-            Read the protocol <Arrow />
-          </a>
-        </div>
-        <ul className={group}>
-          {privacy.map((fact) => (
-            <li key={fact} className={`${groupItem} px-5 py-4`}>
-              {fact}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
-
 function Downloads({links, version}) {
   const row = `${groupItem} grid items-start gap-x-8 gap-y-2 p-6 lg:grid-cols-[170px_minmax(0,1fr)_auto]`
   const rowActions = `${actions} max-lg:mt-3 lg:justify-end`
@@ -466,7 +430,6 @@ export default function App() {
         <Hero links={links} platform={platform} version={version} />
         <Pairing />
         <Features />
-        <Privacy />
         <Downloads links={links} version={version} />
         <Faq />
       </main>
