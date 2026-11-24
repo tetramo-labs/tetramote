@@ -55,7 +55,7 @@ export function Row({
         )}
       </View>
       {trailing}
-      {below}
+      {below && <View className="items-start">{below}</View>}
     </Pressable>
   )
 }

@@ -1,6 +1,6 @@
 import {ChevronDown} from "lucide-react-native"
-import {forwardRef, useImperativeHandle, useRef, useState, type ComponentRef} from "react"
-import {Pressable, ScrollView, TextInput, View} from "react-native"
+import {forwardRef, useEffect, useImperativeHandle, useRef, useState, type ComponentRef} from "react"
+import {Keyboard, Pressable, ScrollView, TextInput, View} from "react-native"
 import {KeyboardStickyView} from "react-native-keyboard-controller"
 
 import {PressableIcon} from "@/components/ignite/Icon"
@@ -43,6 +43,11 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   const input = useRef<ComponentRef<typeof TextInput>>(null)
   const [visible, setVisible] = useState(false)
   const [modifiers, setModifiers] = useState<Modifier[]>([])
+
+  useEffect(() => {
+    const hidden = Keyboard.addListener("keyboardDidHide", () => input.current?.blur())
+    return () => hidden.remove()
+  }, [])
 
   useImperativeHandle(ref, () => ({
     toggle: () => (input.current?.isFocused() ? input.current.blur() : input.current?.focus()),
