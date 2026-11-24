@@ -63,7 +63,7 @@ export function Slider({
           style={{height: 6, marginHorizontal: THUMB / 2, backgroundColor: theme.colors.background}}>
           <View
             className="rounded-full"
-            style={{height: 6, width: left, backgroundColor: theme.colors.brand_primary}}
+            style={{height: 6, width: left, backgroundColor: theme.colors.brand_secondary}}
           />
         </View>
         <View

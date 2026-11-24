@@ -1,13 +1,13 @@
 import {ChevronDown} from "lucide-react-native"
-import {forwardRef, useEffect, useImperativeHandle, useRef, useState, type ComponentRef} from "react"
-import {Keyboard, Pressable, ScrollView, TextInput, View} from "react-native"
+import {forwardRef, useEffect, useImperativeHandle, useRef, useState, type ComponentRef, type ReactNode} from "react"
+import {Keyboard, Platform, Pressable, ScrollView, TextInput, View} from "react-native"
 import {KeyboardStickyView} from "react-native-keyboard-controller"
+import {FullWindowOverlay} from "react-native-screens"
 
 import {PressableIcon} from "@/components/ignite/Icon"
 import {Text} from "@/components/ignite/Text"
 import GlassView from "@/components/ui/GlassView"
 import {useAppTheme} from "@/contexts/ThemeContext"
-import {useLayout} from "@/hooks/useLayout"
 import {flagsFor, KEY, keyPress, shortcutFor, type Modifier} from "@/services/keys"
 import {sendInput} from "@/services/remote"
 
@@ -31,6 +31,11 @@ const BAR_KEYS: BarKey[] = [
   {label: "⌦", keyCode: KEY.forwardDelete},
 ]
 
+/** On iOS, lifts its children into a window over the app, above the Duo's rail buttons. */
+function AboveRail({children}: {children: ReactNode}) {
+  return Platform.OS === "ios" ? <FullWindowOverlay>{children}</FullWindowOverlay> : children
+}
+
 /**
  * A hidden text field drives the system keyboard: typed text goes to the Mac
  * as text records, and with a modifier held a character becomes a shortcut.
@@ -41,7 +46,6 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   ref,
 ) {
   const {theme, themeContext} = useAppTheme()
-  const {insetLeft, insetRight} = useLayout()
   const input = useRef<ComponentRef<typeof TextInput>>(null)
   const [visible, setVisible] = useState(false)
   const [modifiers, setModifiers] = useState<Modifier[]>([])
@@ -81,13 +85,7 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   }
 
   const bar = (
-    <GlassView
-      className="mb-2 rounded-2xl"
-      style={{
-        backgroundColor: theme.colors.primary_foreground + "E6",
-        marginLeft: insetLeft + 8,
-        marginRight: insetRight + 8,
-      }}>
+    <GlassView className="mx-2 mb-2 rounded-2xl" style={{backgroundColor: theme.colors.primary_foreground + "E6"}}>
       <View className="flex-row items-center">
         <ScrollView
           horizontal
@@ -140,14 +138,17 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
         onBlur={() => setVisible(false)}
         style={{position: "absolute", width: 1, height: 1, opacity: 0, left: -10}}
       />
-      {visible &&
-        (dockTop != null ? (
-          <View className="absolute left-0 right-0" style={{top: dockTop}}>
-            {bar}
-          </View>
-        ) : (
-          <KeyboardStickyView style={{position: "absolute", left: 0, right: 0, bottom: 0}}>{bar}</KeyboardStickyView>
-        ))}
+      {visible && (
+        <AboveRail>
+          {dockTop != null ? (
+            <View className="absolute left-0 right-0" style={{top: dockTop}}>
+              {bar}
+            </View>
+          ) : (
+            <KeyboardStickyView style={{position: "absolute", left: 0, right: 0, bottom: 0}}>{bar}</KeyboardStickyView>
+          )}
+        </AboveRail>
+      )}
     </>
   )
 })

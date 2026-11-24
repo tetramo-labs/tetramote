@@ -5,7 +5,7 @@ import {load, save} from "@/utils/storage"
 export type ThemePreference = "system" | "light" | "dark"
 export type InputMode = "trackpad" | "direct"
 export type TrackpadSpeed = "slow" | "normal" | "fast"
-export type StreamResolution = "auto" | "1280" | "1920" | "2560"
+export type StreamResolution = "auto" | "640" | "854" | "1280" | "1920" | "2560"
 export type ControlsCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right"
 
 export interface Settings {

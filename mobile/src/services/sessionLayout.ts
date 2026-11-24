@@ -101,9 +101,9 @@ function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; pan
  * when there is one, and then a laptop with no fold to split at (the folded
  * Duo) gets a 16:9 trackpad centred under the screen; without a rail the
  * panel centres a 16:9 trackpad above its toolbar (trackpadAspect). Full screen fits the
- * screen to the whole window, edge to edge, with floating controls. `gap` is
- * the room under the screen, where the connection details are centred when it
- * is tall enough. Decided from sizes alone, never the device or orientation.
+ * screen to the whole window, edge to edge, with floating controls. Otherwise
+ * `gap` is the room under the screen (to the window's edge when nothing sits
+ * below it), where the connection details are centred when it is tall enough. Decided from sizes alone, never the device or orientation.
  */
 export function sessionLayout({
   width,
@@ -117,9 +117,7 @@ export function sessionLayout({
 }: SessionLayoutInput): SessionLayout {
   if (fullScreen) {
     const video = fitInside({x: 0, y: 0, width, height}, aspect)
-    const toolbar = (width - video.width) / 2 >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"
-    const gap = overlayGap(video, height - insets.bottom, toolbar)
-    return {kind: "overlay", video, toolbar, ...(gap && {gap})}
+    return {kind: "overlay", video, toolbar: (width - video.width) / 2 >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"}
   }
   const content: Rect = {
     x: insets.left,
@@ -157,6 +155,6 @@ export function sessionLayout({
   const video = fitInside(content, aspect)
   const spare = (content.width - video.width) / 2
   const toolbar = rail ? "rail" : spare >= SIDE_TOOLBAR_WIDTH ? "side" : "floating"
-  const gap = overlayGap(video, content.y + content.height, toolbar)
+  const gap = overlayGap(video, height, toolbar)
   return {kind: "overlay", video, toolbar, ...(gap && {gap})}
 }

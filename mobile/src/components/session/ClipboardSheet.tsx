@@ -33,7 +33,7 @@ export const ClipboardSheet = forwardRef<BottomSheetModal>(function ClipboardShe
   }
 
   return (
-    <Sheet ref={ref}>
+    <Sheet ref={ref} fullWidth>
       <Text tx="session:clipboardTitle" preset="subheading" className="text-foreground" />
       <View className="rounded-2xl px-4 py-3 gap-1" style={{backgroundColor: theme.colors.primary_foreground}}>
         <Text tx="session:macClipboard" size="xs" className="text-muted-foreground" />

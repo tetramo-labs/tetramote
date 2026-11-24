@@ -1,7 +1,5 @@
-import {remote} from "@tetramote/remote"
-import * as Clipboard from "expo-clipboard"
 import * as Device from "expo-device"
-import {useEffect, useState} from "react"
+import {useState} from "react"
 import {Alert, TextInput, View, type ViewStyle} from "react-native"
 import Toast from "react-native-toast-message"
 
@@ -9,16 +7,15 @@ import {Button} from "@/components/ignite/Button"
 import {Header} from "@/components/ignite/Header"
 import {Screen} from "@/components/ignite/Screen"
 import {Text} from "@/components/ignite/Text"
+import {useStreamRows} from "@/components/settings/useStreamRows"
 import {Group} from "@/components/ui/Group"
 import {Row, ToggleRow} from "@/components/ui/Rows"
 import {Segmented} from "@/components/ui/Segmented"
-import {Slider} from "@/components/ui/Slider"
 import {useAppTheme} from "@/contexts/ThemeContext"
 import {translate} from "@/i18n"
-import {loadSecretKey} from "@/services/identity"
 import {isRelayUrl} from "@/services/relay"
 import {pickLinks, shareLinks} from "@/services/linkTransfer"
-import {applyStreamSettings, restart} from "@/services/remote"
+import {restart} from "@/services/remote"
 import {useHostsStore} from "@/stores/hosts"
 import {useSetting} from "@/stores/settings"
 
@@ -60,10 +57,7 @@ export default function SettingsScreen() {
   const [relay, setRelay] = useSetting("relay_url")
   const [inputMode, setInputMode] = useSetting("default_input_mode")
   const [speed, setSpeed] = useSetting("trackpad_speed")
-  const [bitrateAuto, setBitrateAuto] = useSetting("stream_bitrate_auto")
-  const [bitrate, setBitrate] = useSetting("stream_bitrate_mbps")
-  const [bitratePreview, setBitratePreview] = useState<number | null>(null)
-  const [resolution, setResolution] = useSetting("stream_resolution")
+  const streamRows = useStreamRows()
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
   const [startFullScreen, setStartFullScreen] = useSetting("start_full_screen")
@@ -102,13 +96,6 @@ export default function SettingsScreen() {
     }
   }
   const [relayDraft, setRelayDraft] = useState(relay)
-  const [endpointId, setEndpointId] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadSecretKey()
-      .then((key) => setEndpointId(remote.endpointId(key)))
-      .catch(() => setEndpointId(null))
-  }, [])
 
   const saveRelay = async () => {
     const value = relayDraft.trim()
@@ -157,53 +144,7 @@ export default function SettingsScreen() {
             />
           }
         />
-        <Row
-          labelTx="settings:resolution"
-          subtitleTx="settings:resolutionHint"
-          below={
-            <Segmented
-              value={resolution}
-              onChange={(value) => {
-                setResolution(value)
-                applyStreamSettings()
-              }}
-              options={[
-                {value: "auto", tx: "settings:resolutionAuto"},
-                {value: "1280", tx: "settings:resolution720"},
-                {value: "1920", tx: "settings:resolution1080"},
-                {value: "2560", tx: "settings:resolution1440"},
-              ]}
-            />
-          }
-        />
-        <ToggleRow
-          labelTx="settings:bitrateAuto"
-          subtitleTx="settings:bitrateAutoHint"
-          value={bitrateAuto}
-          onValueChange={(value) => {
-            setBitrateAuto(value)
-            applyStreamSettings()
-          }}
-        />
-        {!bitrateAuto && (
-          <Row
-            labelTx="settings:bitrate"
-            subtitleTx="settings:bitrateValue"
-            subtitleOptions={{mbps: bitratePreview ?? bitrate}}
-            below={
-              <Slider
-                value={bitrate}
-                min={1}
-                max={25}
-                onPreview={setBitratePreview}
-                onChange={(value) => {
-                  setBitrate(value)
-                  applyStreamSettings()
-                }}
-              />
-            }
-          />
-        )}
+        {streamRows}
         <ToggleRow
           labelTx="settings:startFullScreen"
           subtitleTx="settings:startFullScreenHint"
@@ -218,7 +159,6 @@ export default function SettingsScreen() {
         />
         <ToggleRow
           labelTx="settings:connectionDetails"
-          subtitleTx="settings:connectionDetailsHint"
           value={connectionDetails}
           onValueChange={setConnectionDetails}
         />
@@ -249,15 +189,6 @@ export default function SettingsScreen() {
           onChangeText={setDeviceName}
           placeholder={Device.deviceName ?? Device.modelName ?? undefined}
         />
-        <Row
-          labelTx="settings:phoneId"
-          subtitle={endpointId ?? undefined}
-          onPress={() => {
-            if (!endpointId) return
-            Clipboard.setStringAsync(endpointId)
-            Toast.show({type: "success", text1: translate("common:copied"), visibilityTime: 1200})
-          }}
-        />
       </Group>
 
       <Group titleTx="settings:computers">
@@ -275,7 +206,6 @@ export default function SettingsScreen() {
           onSubmit={saveRelay}
         />
       </Group>
-      <Text tx="settings:relayHint" size="xs" className="text-muted-foreground px-4 mt-2" />
       {relayDraft.trim() !== relay && (
         <Button tx="common:save" compact style={{alignSelf: "flex-start", marginTop: 8}} onPress={saveRelay} />
       )}

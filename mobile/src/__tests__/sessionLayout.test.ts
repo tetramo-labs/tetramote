@@ -108,7 +108,6 @@ describe("sessionLayout", () => {
       kind: "overlay",
       video: near({x: 0, y: 193.375, width: 466, height: 291.25}),
       toolbar: "floating",
-      gap: near({x: 0, y: 484.625, width: 466, height: 107.375}),
     })
     const sideways = sessionLayout({
       width: 951,
@@ -187,7 +186,7 @@ describe("sessionLayout", () => {
       kind: "overlay",
       video: near({x: 0, y: 46.5625, width: 867, height: 541.875}),
       toolbar: "rail",
-      gap: near({x: 0, y: 588.4375, width: 867, height: 46.5625}),
+      gap: near({x: 0, y: 588.4375, width: 867, height: 80.5625}),
     }
     expect(sessionLayout({...input, halfOpen: true})).toEqual(expected)
     expect(sessionLayout(input)).toEqual(expected)

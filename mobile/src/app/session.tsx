@@ -18,6 +18,7 @@ import {HingeObserver} from "@/components/session/HingeObserver"
 import {CornerHandle} from "@/components/session/CornerHandle"
 import {BottomRail, ControlsHandle, SessionToolbar, useSessionActions} from "@/components/session/SessionToolbar"
 import {StatusPill} from "@/components/session/StatusPill"
+import {StreamSheet} from "@/components/session/StreamSheet"
 import {TrackpadPanel} from "@/components/session/TrackpadPanel"
 import GlassView from "@/components/ui/GlassView"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
@@ -26,7 +27,7 @@ import {translate} from "@/i18n"
 import {useAutoHide} from "@/hooks/useAutoHide"
 import {useLayout} from "@/hooks/useLayout"
 import {disconnect, send} from "@/services/remote"
-import {sessionLayout, type Rect} from "@/services/sessionLayout"
+import {FLOATING_TOOLBAR_SPACE, sessionLayout, type Rect} from "@/services/sessionLayout"
 import {useNavigationStore} from "@/stores/navigation"
 import {useRailActions} from "@/stores/railToolbar"
 import {useSessionStore} from "@/stores/session"
@@ -93,6 +94,7 @@ function SessionBody() {
   const keyboard = useRef<KeyboardHandle>(null)
   const displaySheet = useRef<BottomSheetModal>(null)
   const clipboardSheet = useRef<BottomSheetModal>(null)
+  const streamSheet = useRef<BottomSheetModal>(null)
   const [zoomed, setZoomed] = useState(false)
   const [halfOpen, setHalfOpen] = useState(false)
   const [revealDots, setRevealDots] = useState(0)
@@ -163,7 +165,7 @@ function SessionBody() {
 
   const status = (centered: boolean) => (
     <Fade visible={controls.visible} style={{gap: 8, alignItems: centered ? "center" : "flex-start"}}>
-      {connectionDetails && <StatusPill />}
+      {connectionDetails && <StatusPill onPress={() => streamSheet.current?.present()} />}
       <PermissionBanner />
     </Fade>
   )
@@ -229,13 +231,25 @@ function SessionBody() {
         </View>
       ) : (
         <>
-          {!statusGap && (
+          {fullScreen ? (
             <View
               pointerEvents="box-none"
               className="absolute"
-              style={{top: insets.top + 8, left: layout.insetLeft + 12}}>
+              style={{
+                bottom: insets.bottom + 12 + (plan.toolbar === "floating" ? FLOATING_TOOLBAR_SPACE : 0),
+                left: insets.left + 12,
+              }}>
               {status(false)}
             </View>
+          ) : (
+            !statusGap && (
+              <View
+                pointerEvents="box-none"
+                className="absolute"
+                style={{top: insets.top + 8, left: layout.insetLeft + 12}}>
+                {status(false)}
+              </View>
+            )
           )}
           {plan.toolbar === "side" && (
             <View
@@ -274,6 +288,7 @@ function SessionBody() {
       <KeyboardInput ref={keyboard} dockTop={laptop ? plan.panel.y : null} />
       <DisplaySheet ref={displaySheet} />
       <ClipboardSheet ref={clipboardSheet} />
+      <StreamSheet ref={streamSheet} />
     </View>
   )
 }
