@@ -1,7 +1,7 @@
 import * as NavigationBar from "expo-navigation-bar"
 import * as SystemUI from "expo-system-ui"
 import {createContext, useContext, useEffect, useMemo, type ReactNode} from "react"
-import {Platform, useColorScheme, type StyleProp} from "react-native"
+import {Appearance, Platform, useColorScheme, type StyleProp} from "react-native"
 import {Uniwind} from "uniwind"
 
 import {useSetting} from "@/stores/settings"
@@ -22,6 +22,7 @@ export function ThemeProvider({children}: {children: ReactNode}) {
 
   useEffect(() => {
     Uniwind.setTheme(preference === "system" ? "system" : preference)
+    Appearance.setColorScheme(preference === "system" ? "unspecified" : preference)
   }, [preference])
 
   useEffect(() => {

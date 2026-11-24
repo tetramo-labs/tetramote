@@ -119,10 +119,8 @@ const en = {
     fast: "Fast",
     playAudio: "Play the computer's sound",
     startFullScreen: "Open sessions in full screen",
-    startFullScreenHint:
-      "The computer's screen fills the display. The controls sit on top of it and hide after a few seconds.",
     autoHide: "Hide controls automatically",
-    autoHideHint: "They fade after a few seconds. Tap with three fingers to bring them back.",
+    autoHideHint: "After controls fade, tap with three fingers to bring them back",
     connectionDetails: "Show connection details",
     appearance: "Appearance",
     system: "System",

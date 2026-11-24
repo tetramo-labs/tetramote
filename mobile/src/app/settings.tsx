@@ -145,12 +145,7 @@ export default function SettingsScreen() {
           }
         />
         {streamRows}
-        <ToggleRow
-          labelTx="settings:startFullScreen"
-          subtitleTx="settings:startFullScreenHint"
-          value={startFullScreen}
-          onValueChange={setStartFullScreen}
-        />
+        <ToggleRow labelTx="settings:startFullScreen" value={startFullScreen} onValueChange={setStartFullScreen} />
         <ToggleRow
           labelTx="settings:autoHide"
           subtitleTx="settings:autoHideHint"
