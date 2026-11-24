@@ -16,6 +16,7 @@ else createRoot(root).render(app)
 
 import("posthog-js").then(({default: posthog}) =>
   posthog.init("phc_CgPN6GEjcAmbeVNni29PgWcoRnSM3MUrCu8FTxRDtXCh", {
+    before_send: (event) => event && {...event, properties: {...event.properties, surface: "site"}},
     api_host: "https://z.tetramo.com",
     ui_host: "https://us.posthog.com",
     defaults: "2026-08-30",

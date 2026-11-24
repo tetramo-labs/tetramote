@@ -12,6 +12,7 @@ const posthog = new PostHog("phc_CgPN6GEjcAmbeVNni29PgWcoRnSM3MUrCu8FTxRDtXCh", 
   personProfiles: "never",
   defaultOptIn: getSetting("share_analytics"),
   enableSessionReplay: false,
+  before_send: (event) => event && {...event, properties: {...event.properties, surface: "mobile"}},
 })
 
 type Properties = Record<string, string | number | boolean>
