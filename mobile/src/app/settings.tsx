@@ -12,12 +12,13 @@ import {Text} from "@/components/ignite/Text"
 import {Group} from "@/components/ui/Group"
 import {Row, ToggleRow} from "@/components/ui/Rows"
 import {Segmented} from "@/components/ui/Segmented"
+import {Slider} from "@/components/ui/Slider"
 import {useAppTheme} from "@/contexts/ThemeContext"
 import {translate} from "@/i18n"
 import {loadSecretKey} from "@/services/identity"
 import {isRelayUrl} from "@/services/relay"
 import {pickLinks, shareLinks} from "@/services/linkTransfer"
-import {applyStreamQuality, restart} from "@/services/remote"
+import {applyStreamSettings, restart} from "@/services/remote"
 import {useHostsStore} from "@/stores/hosts"
 import {useSetting} from "@/stores/settings"
 
@@ -59,7 +60,9 @@ export default function SettingsScreen() {
   const [relay, setRelay] = useSetting("relay_url")
   const [inputMode, setInputMode] = useSetting("default_input_mode")
   const [speed, setSpeed] = useSetting("trackpad_speed")
-  const [quality, setQuality] = useSetting("stream_quality")
+  const [bitrateAuto, setBitrateAuto] = useSetting("stream_bitrate_auto")
+  const [bitrate, setBitrate] = useSetting("stream_bitrate_mbps")
+  const [bitratePreview, setBitratePreview] = useState<number | null>(null)
   const [resolution, setResolution] = useSetting("stream_resolution")
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
@@ -155,24 +158,6 @@ export default function SettingsScreen() {
           }
         />
         <Row
-          labelTx="settings:streamQuality"
-          subtitleTx="settings:streamQualityHint"
-          below={
-            <Segmented
-              value={quality}
-              onChange={(value) => {
-                setQuality(value)
-                applyStreamQuality()
-              }}
-              options={[
-                {value: "responsive", tx: "settings:responsive"},
-                {value: "balanced", tx: "settings:balanced"},
-                {value: "sharp", tx: "settings:sharp"},
-              ]}
-            />
-          }
-        />
-        <Row
           labelTx="settings:resolution"
           subtitleTx="settings:resolutionHint"
           below={
@@ -180,7 +165,7 @@ export default function SettingsScreen() {
               value={resolution}
               onChange={(value) => {
                 setResolution(value)
-                applyStreamQuality()
+                applyStreamSettings()
               }}
               options={[
                 {value: "auto", tx: "settings:resolutionAuto"},
@@ -191,6 +176,34 @@ export default function SettingsScreen() {
             />
           }
         />
+        <ToggleRow
+          labelTx="settings:bitrateAuto"
+          subtitleTx="settings:bitrateAutoHint"
+          value={bitrateAuto}
+          onValueChange={(value) => {
+            setBitrateAuto(value)
+            applyStreamSettings()
+          }}
+        />
+        {!bitrateAuto && (
+          <Row
+            labelTx="settings:bitrate"
+            subtitleTx="settings:bitrateValue"
+            subtitleOptions={{mbps: bitratePreview ?? bitrate}}
+            below={
+              <Slider
+                value={bitrate}
+                min={1}
+                max={25}
+                onPreview={setBitratePreview}
+                onChange={(value) => {
+                  setBitrate(value)
+                  applyStreamSettings()
+                }}
+              />
+            }
+          />
+        )}
         <ToggleRow
           labelTx="settings:startFullScreen"
           subtitleTx="settings:startFullScreenHint"

@@ -121,9 +121,9 @@ function streamPrefs(): StreamPrefs {
   const {width, height} = Dimensions.get("screen")
   const resolution = getSetting("stream_resolution")
   return {
-    quality: getSetting("stream_quality"),
     maxLongEdge: Math.round(Math.max(width, height) * PixelRatio.get()),
     ...(resolution === "auto" ? {} : {resolution: Number(resolution)}),
+    ...(getSetting("stream_bitrate_auto") ? {} : {bitrate: getSetting("stream_bitrate_mbps") * 1_000_000}),
   }
 }
 
@@ -137,7 +137,7 @@ function dial(ticket: string, endpointId: string | null, pairingSecret: string |
   })
 }
 
-export function applyStreamQuality() {
+export function applyStreamSettings() {
   if (useSessionStore.getState().phase === "connected") send({t: "stream", ...streamPrefs()})
 }
 

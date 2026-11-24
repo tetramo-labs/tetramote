@@ -12,6 +12,7 @@ interface RowProps {
   label?: string
   labelOptions?: TOptions
   subtitleTx?: TxKeyPath
+  subtitleOptions?: TOptions
   subtitle?: string
   onPress?: () => void
   destructive?: boolean
@@ -25,6 +26,7 @@ export function Row({
   label,
   labelOptions,
   subtitleTx,
+  subtitleOptions,
   subtitle,
   onPress,
   destructive,
@@ -51,7 +53,13 @@ export function Row({
           style={destructive ? {color: theme.colors.destructive} : undefined}
         />
         {(subtitleTx || subtitle) && (
-          <Text tx={subtitleTx} text={subtitle} size="xs" className="text-muted-foreground" />
+          <Text
+            tx={subtitleTx}
+            txOptions={subtitleOptions}
+            text={subtitle}
+            size="xs"
+            className="text-muted-foreground"
+          />
         )}
       </View>
       {trailing}

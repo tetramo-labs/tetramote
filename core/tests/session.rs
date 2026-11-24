@@ -63,7 +63,7 @@ fn request(host: &Host, secret: Option<&str>) -> ConnectRequest {
         pairing_secret: secret.map(Into::into),
         device_name: "Duo".into(),
         guest: false,
-        stream: Some(serde_json::json!({"quality": "balanced", "maxLongEdge": 1398})),
+        stream: Some(serde_json::json!({"maxLongEdge": 1398, "bitrate": 8_000_000})),
         timeout_ms: 5000,
     }
 }
@@ -95,7 +95,7 @@ async fn pairs_then_streams_video_audio_input_and_control() {
     let peer = wait_for(&host_rx, |k, b| state_type(k, b, "peerConnected"));
     assert_eq!(
         json(&peer[1..])["stream"],
-        serde_json::json!({"quality": "balanced", "maxLongEdge": 1398})
+        serde_json::json!({"maxLongEdge": 1398, "bitrate": 8_000_000})
     );
 
     assert_eq!(host.send_video(10, 0, b"before-key"), 0);
