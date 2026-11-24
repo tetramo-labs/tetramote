@@ -1,5 +1,5 @@
 import {Ellipsis} from "lucide-react-native"
-import {useCallback, useEffect} from "react"
+import {useCallback, useEffect, useRef} from "react"
 import {useWindowDimensions} from "react-native"
 import {Gesture, GestureDetector} from "react-native-gesture-handler"
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming} from "react-native-reanimated"
@@ -10,7 +10,8 @@ import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
 import {translate} from "@/i18n"
 import {useSetting, type ControlsCorner} from "@/stores/settings"
 
-const SIZE = 34
+const SIZE = 42
+const SLOP = 24
 const MARGIN = 12
 const FADE_AFTER_MS = 2000
 const FADE_MS = 600
@@ -19,10 +20,19 @@ const SNAP = {duration: 220, easing: Easing.out(Easing.cubic)}
 
 /**
  * Full screen's way back to the controls: the dots slide to their corner and
- * fade out; a tap there shows them again and a second tap opens the toolbar.
+ * fade out; each new `reveal` count (a touch outside the screen) shows them again,
+ * and a tap on them opens the toolbar.
  * Dragged anywhere, they snap to the nearest corner, which is remembered.
  */
-export function CornerHandle({origin, onOpen}: {origin: "bottom" | "right"; onOpen: () => void}) {
+export function CornerHandle({
+  origin,
+  reveal,
+  onOpen,
+}: {
+  origin: "bottom" | "right"
+  reveal: number
+  onOpen: () => void
+}) {
   const {width, height} = useWindowDimensions()
   const insets = useSaferAreaInsets()
   const [corner, setCorner] = useSetting("controls_corner")
@@ -53,9 +63,16 @@ export function CornerHandle({origin, onOpen}: {origin: "bottom" | "right"; onOp
     return () => cancelAnimationFrame(frame)
   }, [corner, spot, fadeLater, x, y])
 
+  const revealed = useRef(reveal)
+  useEffect(() => {
+    if (revealed.current === reveal) return
+    revealed.current = reveal
+    fadeLater()
+  }, [reveal, fadeLater])
+
   const tap = Gesture.Tap()
     .runOnJS(true)
-    .hitSlop(24)
+    .hitSlop(SLOP)
     .onEnd((_e, success) => {
       if (!success) return
       if (opacity.value > 0.5) onOpen()
@@ -64,7 +81,7 @@ export function CornerHandle({origin, onOpen}: {origin: "bottom" | "right"; onOp
 
   const drag = Gesture.Pan()
     .runOnJS(true)
-    .hitSlop(24)
+    .hitSlop(SLOP)
     .onStart(() => {
       opacity.value = 1
     })
@@ -96,9 +113,9 @@ export function CornerHandle({origin, onOpen}: {origin: "bottom" | "right"; onOp
       <Animated.View style={place} accessibilityRole="button" accessibilityLabel={translate("session:showControls")}>
         <Animated.View style={fade}>
           <GlassView
-            className="rounded-full items-center justify-center"
-            style={{width: SIZE, height: SIZE, backgroundColor: "rgba(46,46,46,0.85)"}}>
-            <Icon icon={Ellipsis} size={18} color="#fafafa" />
+            className="items-center justify-center"
+            style={{width: SIZE, height: SIZE, borderRadius: SIZE / 2, backgroundColor: "rgba(46,46,46,0.85)"}}>
+            <Icon icon={Ellipsis} size={22} color="#fafafa" />
           </GlassView>
         </Animated.View>
       </Animated.View>

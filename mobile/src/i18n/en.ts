@@ -54,6 +54,7 @@ const en = {
     relay: "Relay",
     ms: "{{ms}} ms",
     fps: "{{fps}} fps",
+    mbps: "{{mbps}} Mbps",
     disconnect: "Disconnect",
     trackpad: "Trackpad",
     direct_touch: "Touch",

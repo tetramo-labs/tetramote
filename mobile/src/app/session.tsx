@@ -2,7 +2,7 @@ import type {BottomSheetModal} from "@gorhom/bottom-sheet"
 import * as NavigationBar from "expo-navigation-bar"
 import {StatusBar} from "expo-status-bar"
 import {useEffect, useRef, useState, type ReactNode} from "react"
-import {BackHandler, Platform, useWindowDimensions, View, type ViewStyle} from "react-native"
+import {BackHandler, Platform, Pressable, useWindowDimensions, View, type ViewStyle} from "react-native"
 import Animated, {useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated"
 import {ReservedRegionsProvider, useReservedRegions} from "react-native-reserved-regions"
 import {scheduleOnRN} from "react-native-worklets"
@@ -21,6 +21,7 @@ import {TrackpadPanel} from "@/components/session/TrackpadPanel"
 import GlassView from "@/components/ui/GlassView"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
 import {useAppTheme} from "@/contexts/ThemeContext"
+import {translate} from "@/i18n"
 import {useAutoHide} from "@/hooks/useAutoHide"
 import {useLayout} from "@/hooks/useLayout"
 import {disconnect, send} from "@/services/remote"
@@ -29,6 +30,8 @@ import {useNavigationStore} from "@/stores/navigation"
 import {useRailActions} from "@/stores/railToolbar"
 import {useSessionStore} from "@/stores/session"
 import {useSetting} from "@/stores/settings"
+
+const STATUS_GAP_MIN = 32
 
 const rectStyle = (r: Rect): ViewStyle => ({
   position: "absolute",
@@ -90,6 +93,7 @@ function SessionBody() {
   const clipboardSheet = useRef<BottomSheetModal>(null)
   const [zoomed, setZoomed] = useState(false)
   const [halfOpen, setHalfOpen] = useState(false)
+  const [revealDots, setRevealDots] = useState(0)
 
   useDerivedValue(() => {
     scheduleOnRN(setZoomed, zoomControls.zoom.value > 1.01)
@@ -151,12 +155,13 @@ function SessionBody() {
   })
   useRailActions(plan.toolbar === "rail" ? actions : [], {hidden: !controls.visible, reveal: controls.show})
 
-  const status = (
-    <Fade visible={controls.visible} style={{gap: 8, alignItems: "flex-start"}}>
+  const status = (centered: boolean) => (
+    <Fade visible={controls.visible} style={{gap: 8, alignItems: centered ? "center" : "flex-start"}}>
       {connectionDetails && <StatusPill />}
       <PermissionBanner />
     </Fade>
   )
+  const statusGap = plan.kind === "stacked" && plan.gap && plan.gap.height >= STATUS_GAP_MIN ? plan.gap : null
   const inlineToolbar = (vertical: boolean) =>
     controls.visible ? (
       <SessionToolbar actions={actions} vertical={vertical} />
@@ -171,15 +176,24 @@ function SessionBody() {
         hidden={fullScreen || laptop || !layout.rail}
         verticalBarBehaviorIOS={fullScreen || laptop ? "disabled" : "automatic"}
       />
+      {fullScreen && !controls.visible && (
+        <Pressable
+          className="absolute inset-0"
+          accessibilityLabel={translate("session:showControls")}
+          onPress={() => setRevealDots((n) => n + 1)}
+        />
+      )}
       <View style={rectStyle(plan.video)}>
         <RemoteSurface zoomControls={zoomControls} onThreeFingerTap={controls.toggle} />
       </View>
 
       {plan.kind === "stacked" && plan.trackpad ? (
         <>
-          <View pointerEvents="box-none" className="px-3" style={rectStyle(plan.panel)}>
-            {status}
-          </View>
+          {!statusGap && (
+            <View pointerEvents="box-none" className="px-3" style={rectStyle(plan.panel)}>
+              {status(false)}
+            </View>
+          )}
           <View style={rectStyle(plan.trackpad)}>
             <TrackpadPanel
               bare
@@ -193,10 +207,11 @@ function SessionBody() {
         <View style={rectStyle(plan.panel)}>
           <TrackpadPanel
             aspect={plan.trackpadAspect}
+            headerSpace={connectionDetails ? STATUS_GAP_MIN : 0}
             screenWidth={plan.video.width}
             zoomControls={zoomControls}
             onThreeFingerTap={controls.toggle}
-            header={status}
+            header={statusGap ? undefined : status(plan.trackpadAspect !== undefined)}
             footer={
               laptop && controls.visible ? (
                 <BottomRail actions={actions} />
@@ -212,7 +227,7 @@ function SessionBody() {
             pointerEvents="box-none"
             className="absolute"
             style={{top: insets.top + 8, left: layout.insetLeft + 12}}>
-            {status}
+            {status(false)}
           </View>
           {plan.toolbar === "side" && (
             <View
@@ -231,9 +246,19 @@ function SessionBody() {
             </View>
           )}
           {fullScreen && !controls.visible && (
-            <CornerHandle origin={plan.toolbar === "side" ? "right" : "bottom"} onOpen={controls.show} />
+            <CornerHandle
+              origin={plan.toolbar === "side" ? "right" : "bottom"}
+              reveal={revealDots}
+              onOpen={controls.show}
+            />
           )}
         </>
+      )}
+
+      {statusGap && (
+        <View pointerEvents="box-none" className="items-center justify-center" style={rectStyle(statusGap)}>
+          {status(true)}
+        </View>
       )}
 
       <HingeObserver onHalfOpenChange={setHalfOpen} />

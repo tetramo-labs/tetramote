@@ -25,6 +25,7 @@ describe("sessionLayout", () => {
       panel: {x: 0, y: 250.75, width: 382, height: 407.25},
       toolbar: "rail",
       trackpad: {x: 12, y: 357.6875, width: 358, height: 201.375},
+      gap: {x: 0, y: 238.75, width: 382, height: 118.9375},
     })
   })
 
@@ -148,6 +149,7 @@ describe("sessionLayout", () => {
       video: near({x: 0, y: 28.6875, width: 669, height: 418.125}),
       panel: {x: 0, y: 475.5, width: 669, height: 441.5},
       toolbar: "bottomRail",
+      gap: near({x: 0, y: 446.8125, width: 669, height: 28.6875}),
     })
   })
 
@@ -166,6 +168,7 @@ describe("sessionLayout", () => {
       video: near({x: 0, y: 25.9375, width: 669, height: 418.125}),
       panel: {x: 0, y: 482, width: 669, height: 435},
       toolbar: "bottomRail",
+      gap: near({x: 0, y: 444.0625, width: 669, height: 25.9375}),
     })
   })
 

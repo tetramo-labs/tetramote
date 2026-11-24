@@ -133,8 +133,8 @@ export function ControlsHandle({onPress}: {onPress: () => void}) {
         color={ICON}
         onPress={onPress}
         accessibilityLabel={translate("session:showControls")}
-        diameter={34}
-        size={18}
+        diameter={42}
+        size={22}
       />
     </GlassView>
   )

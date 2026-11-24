@@ -9,11 +9,13 @@ export function StatusPill() {
   const path = useSessionStore((s) => s.path)
   const rttMs = useSessionStore((s) => s.rttMs)
   const fps = useSessionStore((s) => s.stats?.fps)
+  const kbps = useSessionStore((s) => s.stats?.kbps)
   if (!path) return null
   const parts = [
     translate(path === "direct" ? "session:direct" : "session:relay"),
     rttMs !== null ? translate("session:ms", {ms: rttMs}) : null,
     fps !== undefined ? translate("session:fps", {fps: Math.round(fps)}) : null,
+    kbps !== undefined ? translate("session:mbps", {mbps: (kbps / 1000).toFixed(1)}) : null,
   ].filter(Boolean)
   return (
     <GlassView className="rounded-full" style={{backgroundColor: "rgba(46,46,46,0.85)"}}>

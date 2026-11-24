@@ -22,6 +22,7 @@ export type SessionLayout =
       toolbar: "rail" | "panel" | "bottomRail"
       trackpad?: Rect
       trackpadAspect?: number
+      gap?: Rect
     }
   | {kind: "overlay"; video: Rect; toolbar: "rail" | "side" | "floating"}
 
@@ -74,11 +75,14 @@ function horizontalFold(fold: Rect | null, content: Rect): Rect | null {
   return spans && thin && inside ? fold : null
 }
 
-function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; panel: Rect} {
+function splitAt(content: Rect, crease: Rect, aspect: number): {video: Rect; panel: Rect; gap: Rect} {
   const top: Rect = {x: content.x, y: content.y, width: content.width, height: crease.y - content.y}
   const panelTop = crease.y + crease.height
   const panel: Rect = {x: content.x, y: panelTop, width: content.width, height: content.y + content.height - panelTop}
-  return {video: fitInside(top, aspect), panel}
+  const video = fitInside(top, aspect)
+  const videoBottom = video.y + video.height
+  const gap: Rect = {x: content.x, y: videoBottom, width: content.width, height: Math.max(0, crease.y - videoBottom)}
+  return {video, panel, gap}
 }
 
 /**
@@ -130,7 +134,13 @@ export function sessionLayout({
     const panel: Rect = {x: content.x, y: content.y + videoHeight + PANEL_GAP, width: content.width, height: below}
     if (!rail) return {kind: "stacked", video, panel, toolbar: stackedToolbar, trackpadAspect: TRACKPAD_ASPECT}
     const trackpad = centredTrackpad(panel, video.y + video.height, height)
-    return {kind: "stacked", video, panel, toolbar: stackedToolbar, trackpad}
+    const gap: Rect = {
+      x: content.x,
+      y: video.y + video.height,
+      width: content.width,
+      height: trackpad.y - (video.y + video.height),
+    }
+    return {kind: "stacked", video, panel, toolbar: stackedToolbar, trackpad, gap}
   }
 
   const video = fitInside(content, aspect)
