@@ -1,7 +1,8 @@
 #!/usr/bin/env zx
 // zx scripts/frame-screenshots.mjs [--sets iphone-6.9,iphone-duo]
 // Composites screenshots/raw/ (from screenshots-ios.mjs) into store shots in screenshots/framed/<set>/ with
-// ImageMagick. Every canvas is the raw capture's own size, which is the size App Store Connect takes for that slot.
+// ImageMagick. A canvas is the raw capture's own size, which App Store Connect takes for that slot, unless the set
+// names one (Google Play takes at most 2:1, so the Android set is 1080x1920).
 import {$, argv, cd, chalk, fs, os, path} from "zx"
 
 $.verbose = false
@@ -46,6 +47,32 @@ const SETS = [
     ],
   },
   {
+    slug: "android-phone",
+    canvas: [1080, 1920],
+    slides: [
+      {
+        raw: "android-phone/01-session.png",
+        out: "01-session.png",
+        caption: "Your computer,\non your phone",
+        radius: 0.06,
+      },
+      {
+        raw: "android-phone/02-keyboard.png",
+        out: "02-keyboard.png",
+        caption: "A full keyboard,\nshortcuts too",
+        radius: 0.06,
+      },
+      {raw: "android-phone/03-home.png", out: "03-home.png", caption: "Your computers,\none tap away", radius: 0.06},
+      {raw: "android-phone/04-pair.png", out: "04-pair.png", caption: "Pair once\nwith a code", radius: 0.06},
+      {
+        raw: "android-phone/05-settings.png",
+        out: "05-settings.png",
+        caption: "Fast or sharp,\nyour choice",
+        radius: 0.06,
+      },
+    ],
+  },
+  {
     slug: "iphone-duo",
     slides: [
       {raw: "iphone-duo-cover/01-session.png", out: "01-folded.png", caption: "Optimized for\niPhone Duo", radius: 0.1},
@@ -73,9 +100,10 @@ function background(w, h) {
   ]
 }
 
-async function frame(slide, font, outFile, tmp) {
+async function frame(slide, font, outFile, tmp, canvas) {
   const rawFile = path.join(RAW_DIR, slide.raw)
-  const [w, h] = await imageSize(rawFile)
+  const [rw, rh] = await imageSize(rawFile)
+  const [w, h] = canvas ?? [rw, rh]
   const landscape = w > h
   const caption = landscape ? slide.caption.replace(/\n/g, " ") : slide.caption
   const lines = caption.split("\n").length
@@ -83,8 +111,8 @@ async function frame(slide, font, outFile, tmp) {
   const captionTop = Math.round(h * 0.05)
   const shotTop = Math.round(captionTop + lines * pointsize * 1.25 + pointsize * 0.8)
   const bezel = Math.round(Math.min(w, h) * 0.014)
-  const scale = Math.min((w - 2 * Math.round(w * 0.08) - 2 * bezel) / w, (h - shotTop - h * 0.04 - 2 * bezel) / h)
-  const [sw, sh] = [Math.round(w * scale), Math.round(h * scale)]
+  const scale = Math.min((w - 2 * Math.round(w * 0.08) - 2 * bezel) / rw, (h - shotTop - h * 0.04 - 2 * bezel) / rh)
+  const [sw, sh] = [Math.round(rw * scale), Math.round(rh * scale)]
   const radius = Math.round(Math.min(sw, sh) * slide.radius)
   const [fw, fh, fr] = [sw + 2 * bezel, sh + 2 * bezel, radius + bezel]
 
@@ -147,7 +175,7 @@ for (const set of sets) {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "tetramote-frame-"))
   try {
     for (const slide of set.slides) {
-      const [w, h] = await frame(slide, font, path.join(outDir, slide.out), tmp)
+      const [w, h] = await frame(slide, font, path.join(outDir, slide.out), tmp, set.canvas)
       console.log(chalk.green(`  ${slide.out} @ ${w}x${h}`))
     }
   } catch (err) {
