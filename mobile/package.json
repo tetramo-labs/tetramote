@@ -14,6 +14,7 @@
     "screenshots": "zx ./scripts/screenshots-ios.mjs",
     "frame-screenshots": "zx ./scripts/frame-screenshots.mjs",
     "android": "zx ./scripts/android.mjs",
+    "android-release": "zx ./scripts/android-release.mjs",
     "build:core": "../scripts/build-core.sh",
     "compile": "tsc --noEmit -p . --pretty",
     "lint": "eslint . --fix",
