@@ -103,10 +103,10 @@ const en = {
     defaultInput: "Start in",
     trackpadSpeed: "Trackpad speed",
     bitrateAuto: "Automatic bitrate",
-    bitrateAutoHint: "Adapts to your connection. Turn off to pick a bitrate yourself.",
+    bitrateAutoHint: "Adapts to your connection",
     bitrate: "Max bitrate",
     bitrateValue:
-      "Up to {{mbps}} Mbps. Higher looks sharper and needs a faster connection; the stream steps down when the network can't keep up.",
+      "Up to {{mbps}} Mbps\nHigher looks sharper and needs a faster connection, and the stream steps down when the network can't keep up",
     resolution: "Resolution",
     resolutionHint: "Auto matches this phone's screen, up to 1080p.",
     resolutionAuto: "Auto",
