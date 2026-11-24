@@ -10,6 +10,7 @@
     "test": "bun run build && node --test"
   },
   "dependencies": {
+    "posthog-js": "^1.454.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

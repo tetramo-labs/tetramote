@@ -21,6 +21,7 @@ export interface Settings {
   auto_hide_controls: boolean
   start_full_screen: boolean
   show_connection_details: boolean
+  share_analytics: boolean
   device_name: string
 }
 
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   auto_hide_controls: false,
   start_full_screen: false,
   show_connection_details: false,
+  share_analytics: true,
   device_name: "",
 }
 

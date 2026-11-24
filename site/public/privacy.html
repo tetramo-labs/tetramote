@@ -7,7 +7,7 @@
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#171717" />
     <meta name="color-scheme" content="light dark" />
         <title>Privacy policy · Tetramote</title>
-    <meta name="description" content="What Tetramote collects (nothing) and where your session data goes." />
+    <meta name="description" content="What Tetramote collects (anonymous usage statistics, which you can turn off) and where your session data goes." />
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -71,10 +71,13 @@
   <body>
     <main>
       <h1>Privacy policy</h1>
-      <p>Last updated November 20, 2026. Tetramote is made by Tetramo, Inc.</p>
+      <p>Last updated November 24, 2026. Tetramote is made by Tetramo, Inc.</p>
 
       <h2>What we collect</h2>
-      <p>Nothing. Tetramote has no accounts, no analytics, no advertising and no crash reporting, and Tetramo runs no server that sees your sessions.</p>
+      <p>Anonymous usage statistics, and nothing from your sessions. Tetramote has no accounts and no advertising, and Tetramo runs no server that sees your sessions.</p>
+      <p>The phone app counts which of its screens you open and how sessions go: when one connects, whether it went direct or through a relay, how long it lasted and why a connection failed. Each event carries a random ID made by the app, the app version, the phone model and the operating system. It never carries the names, addresses or keys of your devices, anything you type, your clipboard, or anything on the computer's screen. There are no profiles of people and no recordings of the app. Turn this off any time with Share usage statistics in the app's settings.</p>
+      <p>tetramote.com counts page visits and the links and buttons clicked on it, under a random ID kept in your browser's local storage.</p>
+      <p>These statistics go to <a href="https://posthog.com">PostHog</a> in the United States, through z.tetramo.com. PostHog sees the IP address each event comes from and uses it to estimate the country and city. The statistics are only used to understand how Tetramote is used and to improve it. They are never sold or used for advertising.</p>
 
       <h2>How a session travels</h2>
       <p>Your phone, browser or computer connects straight to the computer you control with <a href="https://iroh.computer">iroh</a>. The screen, sound, clipboard and your input are end to end encrypted between the two devices. When a direct connection isn't possible, the encrypted traffic passes through a relay: n0's public relays by default, or one you set. A relay forwards the encrypted packets and sees the two devices' IP addresses, but it can't read the session.</p>

@@ -15,6 +15,7 @@ import {useAppTheme} from "@/contexts/ThemeContext"
 import {translate} from "@/i18n"
 import {isRelayUrl} from "@/services/relay"
 import {pickLinks, shareLinks} from "@/services/linkTransfer"
+import {setAnalyticsEnabled} from "@/services/analytics"
 import {restart} from "@/services/remote"
 import {useHostsStore} from "@/stores/hosts"
 import {useSetting} from "@/stores/settings"
@@ -62,6 +63,7 @@ export default function SettingsScreen() {
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
   const [startFullScreen, setStartFullScreen] = useSetting("start_full_screen")
   const [connectionDetails, setConnectionDetails] = useSetting("show_connection_details")
+  const [shareAnalytics, setShareAnalytics] = useSetting("share_analytics")
   const [deviceName, setDeviceName] = useSetting("device_name")
   const forgetAll = useHostsStore((s) => s.forgetAll)
   const importCodes = useHostsStore((s) => s.importCodes)
@@ -183,6 +185,15 @@ export default function SettingsScreen() {
           value={deviceName}
           onChangeText={setDeviceName}
           placeholder={Device.deviceName ?? Device.modelName ?? undefined}
+        />
+        <ToggleRow
+          labelTx="settings:shareAnalytics"
+          subtitleTx="settings:shareAnalyticsHint"
+          value={shareAnalytics}
+          onValueChange={(value) => {
+            setShareAnalytics(value)
+            setAnalyticsEnabled(value)
+          }}
         />
       </Group>
 

@@ -122,6 +122,9 @@ const en = {
     autoHide: "Hide controls automatically",
     autoHideHint: "After controls fade, tap with three fingers to bring them back",
     connectionDetails: "Show connection details",
+    shareAnalytics: "Share usage statistics",
+    shareAnalyticsHint:
+      "Anonymous counts of how the app is used, like how sessions connect and how long they last, help improve Tetramote",
     appearance: "Appearance",
     system: "System",
     light: "Light",

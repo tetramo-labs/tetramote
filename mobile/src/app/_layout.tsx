@@ -2,7 +2,7 @@ import "@/global.css"
 import "@/i18n"
 
 import {useFonts} from "expo-font"
-import {Stack} from "expo-router"
+import {Stack, usePathname} from "expo-router"
 import * as SplashScreen from "expo-splash-screen"
 import {useEffect} from "react"
 
@@ -10,6 +10,7 @@ import {RailToolbarHost} from "@/components/ui/RailToolbar"
 import {SafeToast} from "@/components/ui/SafeToast"
 import {AllProviders} from "@/contexts/AllProviders"
 import {useAppTheme} from "@/contexts/ThemeContext"
+import {trackScreen} from "@/services/analytics"
 import {ensureStarted} from "@/services/remote"
 import {customFontsToLoad} from "@/theme/typography"
 
@@ -32,6 +33,7 @@ function AppStack() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(customFontsToLoad)
+  const pathname = usePathname()
 
   useEffect(() => {
     if (fontsLoaded || fontError) SplashScreen.hideAsync()
@@ -40,6 +42,10 @@ export default function RootLayout() {
   useEffect(() => {
     ensureStarted().catch(() => undefined)
   }, [])
+
+  useEffect(() => {
+    trackScreen(pathname)
+  }, [pathname])
 
   if (!fontsLoaded && !fontError) return null
 

@@ -11,6 +11,7 @@ import * as Device from "expo-device"
 import {Dimensions, PixelRatio} from "react-native"
 
 import {translate, type TxKeyPath} from "@/i18n"
+import {track} from "@/services/analytics"
 import {loadSecretKey} from "@/services/identity"
 import type {PairingCode} from "@/services/pairingUrl"
 import {useHostsStore, type PairedMac} from "@/stores/hosts"
@@ -25,21 +26,28 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null
 let reconnectAttempt = 0
 let wantSession = false
 let connectedOnce = false
+let connectedAt: number | null = null
 
 function deviceName(): string {
   return getSetting("device_name").trim() || Device.deviceName || Device.modelName || "Phone"
 }
 
+const KNOWN_ERRORS: Record<string, TxKeyPath> = {
+  notPaired: "errors:notPaired",
+  badSecret: "errors:badSecret",
+  version: "errors:version",
+  badHello: "errors:badHello",
+  timedOut: "errors:timedOut",
+}
+
 function errorText(reason: string): string {
-  const known: Record<string, TxKeyPath> = {
-    notPaired: "errors:notPaired",
-    badSecret: "errors:badSecret",
-    version: "errors:version",
-    badHello: "errors:badHello",
-    timedOut: "errors:timedOut",
-  }
-  const key = known[reason]
+  const key = KNOWN_ERRORS[reason]
   return key ? translate(key) : translate("errors:generic", {message: reason})
+}
+
+function failed(reason: string) {
+  track("connection failed", {reason: reason in KNOWN_ERRORS ? reason : "other"})
+  useSessionStore.getState().setPhase("failed", errorText(reason))
 }
 
 function parse<T>(json: string): T | null {
@@ -71,6 +79,8 @@ function handleState(state: RemoteState) {
       if (session.phase !== "reconnecting") session.setPhase("connecting")
       break
     case "connected": {
+      track("session connected", {path: state.path ?? "unknown", reconnect: session.phase === "reconnecting"})
+      connectedAt ??= Date.now()
       reconnectAttempt = 0
       connectedOnce = true
       const target = session.target
@@ -94,12 +104,12 @@ function handleState(state: RemoteState) {
       break
     case "rejected":
       wantSession = false
-      session.setPhase("failed", errorText(state.reason))
+      failed(state.reason)
       break
     case "disconnected":
       if (state.reason === "local") break
       if (wantSession && connectedOnce && session.target?.id) scheduleReconnect()
-      else session.setPhase("failed", errorText(state.reason))
+      else failed(state.reason)
       break
   }
 }
@@ -199,6 +209,8 @@ export function retry() {
 }
 
 export function disconnect() {
+  if (connectedAt !== null) track("session ended", {seconds: Math.round((Date.now() - connectedAt) / 1000)})
+  connectedAt = null
   wantSession = false
   if (reconnectTimer) clearTimeout(reconnectTimer)
   reconnectTimer = null
