@@ -133,6 +133,7 @@ function streamPrefs(): StreamPrefs {
   return {
     maxLongEdge: Math.round(Math.max(width, height) * PixelRatio.get()),
     ...(resolution === "auto" ? {} : {resolution: Number(resolution)}),
+    fps: Number(getSetting("stream_fps")),
     ...(getSetting("stream_bitrate_auto") ? {} : {bitrate: getSetting("stream_bitrate_mbps") * 1_000_000}),
   }
 }

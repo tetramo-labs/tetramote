@@ -6,9 +6,10 @@ import {Slider} from "@/components/ui/Slider"
 import {applyStreamSettings} from "@/services/remote"
 import {useSetting} from "@/stores/settings"
 
-/** The resolution and bitrate rows, as Group children, applied to a live session as they change. */
+/** The resolution, frame rate and bitrate rows, as Group children, applied to a live session as they change. */
 export function useStreamRows(): ReactElement[] {
   const [resolution, setResolution] = useSetting("stream_resolution")
+  const [fps, setFps] = useSetting("stream_fps")
   const [bitrateAuto, setBitrateAuto] = useSetting("stream_bitrate_auto")
   const [bitrate, setBitrate] = useSetting("stream_bitrate_mbps")
   const [bitratePreview, setBitratePreview] = useState<number | null>(null)
@@ -17,7 +18,6 @@ export function useStreamRows(): ReactElement[] {
     <Row
       key="resolution"
       labelTx="settings:resolution"
-      subtitleTx="settings:resolutionHint"
       below={
         <Segmented
           value={resolution}
@@ -32,6 +32,26 @@ export function useStreamRows(): ReactElement[] {
             {value: "1280", tx: "settings:resolution720"},
             {value: "1920", tx: "settings:resolution1080"},
             {value: "2560", tx: "settings:resolution1440"},
+          ]}
+        />
+      }
+    />,
+    <Row
+      key="fps"
+      labelTx="settings:maxFps"
+      below={
+        <Segmented
+          value={fps}
+          onChange={(value) => {
+            setFps(value)
+            applyStreamSettings()
+          }}
+          options={[
+            {value: "5", tx: "settings:fps5"},
+            {value: "15", tx: "settings:fps15"},
+            {value: "30", tx: "settings:fps30"},
+            {value: "60", tx: "settings:fps60"},
+            {value: "120", tx: "settings:fps120"},
           ]}
         />
       }

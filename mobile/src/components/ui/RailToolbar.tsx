@@ -1,5 +1,5 @@
 import {BottomSheetModal} from "@gorhom/bottom-sheet"
-import {Ellipsis, MoreVertical} from "lucide-react-native"
+import {MoreVertical} from "lucide-react-native"
 import {useRef, type RefObject} from "react"
 import {Pressable, View} from "react-native"
 import {ReservedRegionsProvider, useReservedRegions} from "react-native-reserved-regions"
@@ -63,19 +63,14 @@ function RailButtons({layout, bottomInset}: {layout: Layout; bottomInset: number
     label: translate("common:more"),
     onPress: () => sheet.current?.present(),
   }
-  const buttons: RailAction[] = entry.hidden
-    ? [{key: "reveal", icon: Ellipsis, label: translate("session:showControls"), onPress: () => entry.reveal?.()}]
-    : overflow.length > 0
-      ? [...shown, more]
-      : shown
+  const buttons: RailAction[] = overflow.length > 0 ? [...shown, more] : shown
   return (
     <Animated.View
-      key={entry.hidden ? "hidden" : "shown"}
       entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(150)}
       pointerEvents="box-none"
       className="absolute"
-      style={{top, gap: RAIL_GAP, opacity: entry.hidden ? 0.6 : 1, ...side}}>
+      style={{top, gap: RAIL_GAP, ...side}}>
       {buttons.map((a) => (
         <PressableIcon
           key={a.key}

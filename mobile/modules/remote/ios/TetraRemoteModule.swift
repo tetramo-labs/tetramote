@@ -10,6 +10,7 @@ struct ConnectRequest: Record {
   @Field var endpointId: String = ""
   @Field var pairingSecret: String?
   @Field var deviceName: String = ""
+  @Field var stream: [String: Any]?
 }
 
 public class TetraRemoteModule: Module {
@@ -58,6 +59,7 @@ public class TetraRemoteModule: Module {
         "endpointId": request.endpointId,
         "pairingSecret": request.pairingSecret.map { $0 as Any } ?? NSNull(),
         "deviceName": request.deviceName,
+        "stream": request.stream.map { $0 as Any } ?? NSNull(),
       ])
     }
 

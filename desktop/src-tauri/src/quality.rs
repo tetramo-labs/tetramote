@@ -22,6 +22,8 @@ const NATIVE: StreamPlan = StreamPlan {
 const MIN_LONG_EDGE: u64 = 640;
 const MAX_LONG_EDGE: u64 = 3840;
 const AUTO_LONG_EDGE: u32 = 1920;
+const MIN_FPS: u64 = 1;
+const MAX_FPS: u64 = 120;
 const MIN_BPS: u64 = 500_000;
 const MAX_BPS: u64 = 50_000_000;
 
@@ -42,9 +44,12 @@ pub fn plan(prefs: Option<&Value>) -> StreamPlan {
         }
         None => (6_000_000, 1_500_000, 20_000_000),
     };
+    let fps = prefs["fps"]
+        .as_u64()
+        .map_or(NATIVE.fps, |fps| fps.clamp(MIN_FPS, MAX_FPS) as u32);
     StreamPlan {
         max_long_edge,
-        fps: 60,
+        fps,
         start_bps,
         floor_bps,
         ceiling_bps,
@@ -55,6 +60,14 @@ pub fn plan(prefs: Option<&Value>) -> StreamPlan {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn caps_the_frame_rate_when_asked() {
+        assert_eq!(plan(Some(&json!({"maxLongEdge": 1146}))).fps, 60);
+        assert_eq!(plan(Some(&json!({"fps": 15}))).fps, 15);
+        assert_eq!(plan(Some(&json!({"fps": 500}))).fps, 120);
+        assert_eq!(plan(Some(&json!({"fps": 0}))).fps, 1);
+    }
 
     #[test]
     fn keeps_the_native_stream_without_preferences() {

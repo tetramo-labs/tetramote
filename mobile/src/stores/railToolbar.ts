@@ -14,8 +14,6 @@ export interface RailEntry {
   key: string
   order: number
   actions: RailAction[]
-  hidden: boolean
-  reveal?: () => void
 }
 
 interface RailToolbarState {
@@ -41,18 +39,17 @@ export const useRailToolbarStore = create<RailToolbarState>()((set) => ({
 
 /**
  * Shows `actions` in the rail while mounted. An empty list still claims the
- * rail, keeping screens underneath out of it; null takes no part. `hidden`
- * leaves only a handle that calls `reveal`.
+ * rail, keeping screens underneath out of it; null takes no part.
  */
 let nextOrder = 0
 
-export function useRailActions(actions: RailAction[] | null, options: {hidden?: boolean; reveal?: () => void} = {}) {
+export function useRailActions(actions: RailAction[] | null) {
   const key = useId()
   const [order] = useState(() => nextOrder++)
   const setEntry = useRailToolbarStore((s) => s.set)
   const remove = useRailToolbarStore((s) => s.remove)
   useEffect(() => {
-    if (actions) setEntry({key, order, actions, hidden: options.hidden ?? false, reveal: options.reveal})
+    if (actions) setEntry({key, order, actions})
     else remove(key)
   })
   useEffect(() => () => remove(key), [key, remove])

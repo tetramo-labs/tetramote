@@ -64,6 +64,7 @@ export interface StreamPrefs {
   maxLongEdge: number
   resolution?: number
   bitrate?: number
+  fps?: number
 }
 
 export interface ConnectRequest {

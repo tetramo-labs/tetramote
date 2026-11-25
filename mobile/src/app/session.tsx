@@ -89,7 +89,6 @@ function SessionBody() {
   const phase = useSessionStore((s) => s.phase)
   const fullScreen = useSessionStore((s) => s.fullScreen)
   const [autoHide] = useSetting("auto_hide_controls")
-  const controls = useAutoHide((autoHide || fullScreen) && phase === "connected")
   const zoomControls = useZoomControls()
   const keyboard = useRef<KeyboardHandle>(null)
   const displaySheet = useRef<BottomSheetModal>(null)
@@ -147,6 +146,9 @@ function SessionBody() {
     fullScreen,
   })
   const laptop = plan.toolbar === "bottomRail"
+  const roomBelow = height - insets.bottom - (plan.video.y + plan.video.height)
+  const overScreen = plan.toolbar === "floating" && roomBelow < FLOATING_TOOLBAR_SPACE
+  const controls = useAutoHide((autoHide || fullScreen) && overScreen && phase === "connected")
 
   const actions = useSessionActions({
     zoomed,
@@ -161,7 +163,7 @@ function SessionBody() {
     onResetZoom: resetZoom,
     onSettings: () => push("/settings"),
   })
-  useRailActions(plan.toolbar === "rail" ? actions : [], {hidden: !controls.visible, reveal: controls.show})
+  useRailActions(plan.toolbar === "rail" ? actions : [])
 
   const status = (centered: boolean) => (
     <Fade visible={controls.visible} style={{gap: 8, alignItems: centered ? "center" : "flex-start"}}>

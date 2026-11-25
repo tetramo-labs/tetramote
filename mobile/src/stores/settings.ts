@@ -6,6 +6,7 @@ export type ThemePreference = "system" | "light" | "dark"
 export type InputMode = "trackpad" | "direct"
 export type TrackpadSpeed = "slow" | "normal" | "fast"
 export type StreamResolution = "auto" | "640" | "854" | "1280" | "1920" | "2560"
+export type StreamFps = "5" | "15" | "30" | "60" | "120"
 export type ControlsCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right"
 
 export interface Settings {
@@ -16,6 +17,7 @@ export interface Settings {
   stream_bitrate_auto: boolean
   stream_bitrate_mbps: number
   stream_resolution: StreamResolution
+  stream_fps: StreamFps
   controls_corner: ControlsCorner
   play_audio: boolean
   auto_hide_controls: boolean
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: Settings = {
   stream_bitrate_auto: true,
   stream_bitrate_mbps: 8,
   stream_resolution: "auto",
+  stream_fps: "60",
   controls_corner: "bottom-right",
   play_audio: true,
   auto_hide_controls: false,

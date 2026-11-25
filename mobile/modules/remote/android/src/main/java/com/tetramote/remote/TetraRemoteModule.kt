@@ -25,6 +25,8 @@ class ConnectRequest : Record {
     @Field val pairingSecret: String? = null
 
     @Field val deviceName: String = ""
+
+    @Field val stream: Map<String, Any?>? = null
 }
 
 class TetraRemoteModule : Module() {
@@ -68,6 +70,7 @@ class TetraRemoteModule : Module() {
                 .put("endpointId", request.endpointId)
                 .put("pairingSecret", request.pairingSecret ?: JSONObject.NULL)
                 .put("deviceName", request.deviceName)
+                .put("stream", request.stream?.let { JSONObject(it) } ?: JSONObject.NULL)
             val result = requireLoaded().clientConnect(requireHandle(), json.toString())
             if (result == TetraNative.ERR_INVALID) {
                 throw CodedException("ERR_TETRA_CONNECT", "The connect request was malformed; pair the Mac again.", null)

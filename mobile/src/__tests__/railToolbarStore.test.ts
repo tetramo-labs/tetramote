@@ -5,7 +5,6 @@ import {useRailToolbarStore, type RailEntry} from "@/stores/railToolbar"
 const entry = (key: string, order: number, label: string): RailEntry => ({
   key,
   order,
-  hidden: false,
   actions: [{key: label, icon: Monitor, label, onPress: () => undefined}],
 })
 
@@ -29,7 +28,7 @@ describe("rail toolbar store", () => {
   it("lets a screen claim the rail with no buttons", () => {
     const {set} = useRailToolbarStore.getState()
     set(entry("home", 0, "Settings"))
-    set({key: "session", order: 1, hidden: false, actions: []})
+    set({key: "session", order: 1, actions: []})
     expect(top()).toBe("session")
     expect(useRailToolbarStore.getState().entries[1].actions).toEqual([])
   })

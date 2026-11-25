@@ -47,7 +47,7 @@ device's connection replaces it, 3 when the device is removed, and 4 when the li
 
 | `t` | Direction | Fields |
 | --- | --- | --- |
-| `hello` | phone → Mac | `v` (2), `name` (device name), `secret` (the link's secret, when not yet trusted), `guest` (true from a browser), `stream` (optional: `maxLongEdge`, the viewer's display size in pixels; `resolution`, a long edge in pixels that overrides it; `bitrate`, a maximum in bits per second, without which the Mac adapts between 1.5 and 20 Mbps) |
+| `hello` | phone → Mac | `v` (2), `name` (device name), `secret` (the link's secret, when not yet trusted), `guest` (true from a browser), `stream` (optional: `maxLongEdge`, the viewer's display size in pixels; `resolution`, a long edge in pixels that overrides it; `bitrate`, a maximum in bits per second, without which the Mac adapts between 1.5 and 20 Mbps; `fps`, a maximum frame rate from 1 to 120, 60 when absent) |
 | `welcome` | Mac → phone | `v`, `hostName`, `paired` (true when this hello paired the phone) |
 | `rejected` | Mac → phone | `reason`: `notPaired`, `badSecret`, `version` or `badHello` |
 | `status` | Mac → phone | `screenRecording`, `accessibility` (Mac permissions granted) |
