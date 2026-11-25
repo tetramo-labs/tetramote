@@ -4,6 +4,7 @@ import {View, type LayoutChangeEvent} from "react-native"
 import {GestureDetector} from "react-native-gesture-handler"
 import Animated, {useAnimatedStyle, useSharedValue} from "react-native-reanimated"
 
+import {LocalPointer} from "@/components/session/LocalPointer"
 import {useInputGesture, type ZoomControls} from "@/components/session/useInputGesture"
 import {useSessionStore} from "@/stores/session"
 import {useSetting} from "@/stores/settings"
@@ -29,6 +30,10 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
   const video = useSessionStore((s) => s.video)
   const inputMode = useSessionStore((s) => s.inputMode)
   const [speed] = useSetting("trackpad_speed")
+  const [pointerMode] = useSetting("pointer_mode")
+  const [showLocalPointer] = useSetting("show_local_pointer")
+  const absolute = pointerMode === "absolute"
+  const painted = absolute && showLocalPointer && inputMode === "trackpad" && video !== null
   const [container, setContainer] = useState({width: 0, height: 0})
   const {zoom, offsetX, offsetY} = zoomControls
   const frame = fit(container.width, container.height, video ? video.width / video.height : DEFAULT_ASPECT)
@@ -44,6 +49,7 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
     container,
     frame,
     pointWidth: video?.pointWidth ?? 0,
+    absolute,
     zoomControls,
     onThreeFingerTap,
   })
@@ -65,6 +71,7 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
         collapsable={false}>
         <Animated.View style={[{width: frame.width, height: frame.height}, animated]}>
           <RemoteScreen style={{flex: 1}} />
+          {painted && <LocalPointer pointer={zoomControls.pointer} zoom={zoom} frame={frame} />}
         </Animated.View>
       </View>
     </GestureDetector>
@@ -77,5 +84,6 @@ export function useZoomControls(): ZoomControls {
     offsetX: useSharedValue(0),
     offsetY: useSharedValue(0),
     view: useSharedValue({frame: {width: 0, height: 0}, container: {width: 0, height: 0}}),
+    pointer: useSharedValue({x: 0.5, y: 0.5}),
   }
 }

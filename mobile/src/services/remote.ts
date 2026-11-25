@@ -134,6 +134,7 @@ function streamPrefs(): StreamPrefs {
     maxLongEdge: Math.round(Math.max(width, height) * PixelRatio.get()),
     ...(resolution === "auto" ? {} : {resolution: Number(resolution)}),
     fps: Number(getSetting("stream_fps")),
+    cursor: hostPointerShown(),
     ...(getSetting("stream_bitrate_auto") ? {} : {bitrate: getSetting("stream_bitrate_mbps") * 1_000_000}),
   }
 }
@@ -146,6 +147,16 @@ function dial(ticket: string, endpointId: string | null, pairingSecret: string |
     deviceName: deviceName(),
     stream: streamPrefs(),
   })
+}
+
+/** The host draws its own pointer unless the phone paints one: trackpad mode with an absolute, shown local pointer. */
+export function hostPointerShown(): boolean {
+  const painted = getSetting("pointer_mode") === "absolute" && getSetting("show_local_pointer")
+  return !(painted && useSessionStore.getState().inputMode === "trackpad")
+}
+
+export function applyPointer() {
+  if (useSessionStore.getState().phase === "connected") send({t: "cursor", shown: hostPointerShown()})
 }
 
 export function applyStreamSettings() {

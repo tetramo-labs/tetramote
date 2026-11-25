@@ -65,6 +65,7 @@ export interface StreamPrefs {
   resolution?: number
   bitrate?: number
   fps?: number
+  cursor?: boolean
 }
 
 export interface ConnectRequest {

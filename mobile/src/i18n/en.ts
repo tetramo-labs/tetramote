@@ -102,6 +102,10 @@ const en = {
     control: "Control",
     defaultInput: "Start in",
     trackpadSpeed: "Trackpad speed",
+    pointerMode: "Pointer",
+    absolute: "Absolute",
+    relative: "Relative",
+    localPointer: "Show local pointer",
     bitrateAuto: "Automatic bitrate",
     bitrate: "Max bitrate",
     bitrateValue:

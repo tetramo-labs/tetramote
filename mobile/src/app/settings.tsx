@@ -16,7 +16,7 @@ import {translate} from "@/i18n"
 import {isRelayUrl} from "@/services/relay"
 import {pickLinks, shareLinks} from "@/services/linkTransfer"
 import {setAnalyticsEnabled} from "@/services/analytics"
-import {restart} from "@/services/remote"
+import {applyPointer, restart} from "@/services/remote"
 import {useHostsStore} from "@/stores/hosts"
 import {useSetting} from "@/stores/settings"
 
@@ -58,6 +58,8 @@ export default function SettingsScreen() {
   const [relay, setRelay] = useSetting("relay_url")
   const [inputMode, setInputMode] = useSetting("default_input_mode")
   const [speed, setSpeed] = useSetting("trackpad_speed")
+  const [pointerMode, setPointerMode] = useSetting("pointer_mode")
+  const [showLocalPointer, setShowLocalPointer] = useSetting("show_local_pointer")
   const streamRows = useStreamRows()
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
@@ -146,6 +148,32 @@ export default function SettingsScreen() {
             />
           }
         />
+        <Row
+          labelTx="settings:pointerMode"
+          trailing={
+            <Segmented
+              value={pointerMode}
+              onChange={(value) => {
+                setPointerMode(value)
+                applyPointer()
+              }}
+              options={[
+                {value: "absolute", tx: "settings:absolute"},
+                {value: "relative", tx: "settings:relative"},
+              ]}
+            />
+          }
+        />
+        {pointerMode === "absolute" && (
+          <ToggleRow
+            labelTx="settings:localPointer"
+            value={showLocalPointer}
+            onValueChange={(value) => {
+              setShowLocalPointer(value)
+              applyPointer()
+            }}
+          />
+        )}
         {streamRows}
         <ToggleRow labelTx="settings:startFullScreen" value={startFullScreen} onValueChange={setStartFullScreen} />
         <ToggleRow

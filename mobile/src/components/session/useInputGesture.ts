@@ -1,4 +1,12 @@
-import {MOUSE_LEFT, MOUSE_RIGHT, SCROLL_BEGAN, SCROLL_CHANGED, SCROLL_ENDED, SCROLL_MOMENTUM} from "@tetramote/remote"
+import {
+  MOUSE_LEFT,
+  MOUSE_RIGHT,
+  SCROLL_BEGAN,
+  SCROLL_CHANGED,
+  SCROLL_ENDED,
+  SCROLL_MOMENTUM,
+  type InputEvent,
+} from "@tetramote/remote"
 import * as Haptics from "expo-haptics"
 import {useMemo, useRef} from "react"
 import {Gesture} from "react-native-gesture-handler"
@@ -25,6 +33,7 @@ export interface ZoomControls {
   offsetX: SharedValue<number>
   offsetY: SharedValue<number>
   view: SharedValue<{frame: Size; container: Size}>
+  pointer: SharedValue<{x: number; y: number}>
 }
 
 interface Size {
@@ -39,6 +48,7 @@ interface InputGestureOptions {
   container: Size
   frame: Size
   pointWidth: number
+  absolute: boolean
   zoomControls: ZoomControls
   onThreeFingerTap: () => void
 }
@@ -56,7 +66,10 @@ function clampOffset(offset: number, content: number, container: number, zoom: n
  * pointer) right-clicks: in touch mode after 350 ms, as a trackpad after
  * HOLD_DRAG_MS when it lifts, or it drags if it moves after the hold. The
  * trackpad panel always behaves as a trackpad, and its pinches zoom the screen
- * view about its center. Three fingers toggle the controls.
+ * view about its center. Three fingers toggle the controls. With `absolute`,
+ * the trackpad moves the phone's own pointer (zoomControls.pointer) and sends
+ * where it is, and every click, drag and scroll starts by putting the Mac's
+ * pointer there, so they land where the painted pointer is.
  */
 export function useInputGesture({
   surface,
@@ -65,6 +78,7 @@ export function useInputGesture({
   container,
   frame,
   pointWidth,
+  absolute,
   zoomControls,
   onThreeFingerTap,
 }: InputGestureOptions) {
@@ -76,7 +90,7 @@ export function useInputGesture({
   const twoFinger = useRef<{mode: "undecided" | "scroll" | "zoom"; travel: number}>({mode: "undecided", travel: 0})
   const pinchStart = useRef(1)
   const momentum = useRef<ReturnType<typeof setInterval> | null>(null)
-  const {zoom, offsetX, offsetY, view} = zoomControls
+  const {zoom, offsetX, offsetY, view, pointer} = zoomControls
   const direct = surface === "screen" && inputMode === "direct"
   const slop = direct ? 4 : 3
 
@@ -96,10 +110,26 @@ export function useInputGesture({
       if (momentum.current) clearInterval(momentum.current)
       momentum.current = null
     }
+    const owned = absolute && !direct
+    const place = (): InputEvent[] => (owned ? [{kind: "moveTo", x: pointer.value.x, y: pointer.value.y}] : [])
     const moveBy = (e: {changeX: number; changeY: number; velocityX: number; velocityY: number}) => {
       if (e.changeX === 0 && e.changeY === 0) return
       const k = gain() * acceleration(Math.hypot(e.velocityX, e.velocityY))
-      sendInput([{kind: "move", dx: e.changeX * k, dy: e.changeY * k}])
+      if (!owned) {
+        sendInput([{kind: "move", dx: e.changeX * k, dy: e.changeY * k}])
+        return
+      }
+      const shown = view.value.frame
+      if (pointWidth <= 0 || shown.width <= 0) return
+      const pointHeight = (pointWidth * shown.height) / shown.width
+      const x = Math.min(1, Math.max(0, pointer.value.x + (e.changeX * k) / pointWidth))
+      const y = Math.min(1, Math.max(0, pointer.value.y + (e.changeY * k) / pointHeight))
+      pointer.value = {x, y}
+      sendInput([{kind: "moveTo", x, y}])
+    }
+    const putPointer = (p: {x: number; y: number}) => {
+      pointer.value = p
+      sendInput([{kind: "moveTo", x: p.x, y: p.y}])
     }
     const release = () => {
       if (!dragging.current) return
@@ -108,6 +138,7 @@ export function useInputGesture({
     }
     const click = (button: number, count: number) =>
       sendInput([
+        ...place(),
         {kind: "button", button, down: true, clicks: count},
         {kind: "button", button, down: false, clicks: count},
       ])
@@ -137,10 +168,7 @@ export function useInputGesture({
         if (!success) return
         stopMomentum()
         const count = clicks.register(Date.now(), e.x, e.y)
-        if (direct) {
-          const p = toVideo(e.x, e.y)
-          sendInput([{kind: "moveTo", x: p.x, y: p.y}])
-        }
+        if (direct) putPointer(toVideo(e.x, e.y))
         click(MOUSE_LEFT, count)
       })
 
@@ -165,8 +193,7 @@ export function useInputGesture({
             stopMomentum()
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
             if (!direct) return
-            const p = toVideo(at.x, at.y)
-            sendInput([{kind: "moveTo", x: p.x, y: p.y}])
+            putPointer(toVideo(at.x, at.y))
             click(MOUSE_RIGHT, 1)
           },
           direct ? DIRECT_RIGHT_CLICK_MS : HOLD_DRAG_MS,
@@ -176,22 +203,18 @@ export function useInputGesture({
         stopHold()
         stopMomentum()
         if (!direct || held.current) return
-        const p = toVideo(e.x, e.y)
-        sendInput([
-          {kind: "moveTo", x: p.x, y: p.y},
-          {kind: "button", button: MOUSE_LEFT, down: true, clicks: 1},
-        ])
+        putPointer(toVideo(e.x, e.y))
+        sendInput([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
         dragging.current = true
       })
       .onChange((e) => {
         if (direct) {
           if (!dragging.current) return
-          const p = toVideo(e.x, e.y)
-          sendInput([{kind: "moveTo", x: p.x, y: p.y}])
+          putPointer(toVideo(e.x, e.y))
           return
         }
         if (held.current && !dragging.current && (e.changeX !== 0 || e.changeY !== 0)) {
-          sendInput([{kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
+          sendInput([...place(), {kind: "button", button: MOUSE_LEFT, down: true, clicks: 1}])
           dragging.current = true
           dragged.current = true
         }
@@ -210,14 +233,15 @@ export function useInputGesture({
       .runOnJS(true)
       .onStart(() => {
         stopMomentum()
-        if (twoFinger.current.mode === "scroll") sendInput([{kind: "scroll", dx: 0, dy: 0, phase: SCROLL_BEGAN}])
+        if (twoFinger.current.mode === "scroll")
+          sendInput([...place(), {kind: "scroll", dx: 0, dy: 0, phase: SCROLL_BEGAN}])
       })
       .onChange((e) => {
         const state = twoFinger.current
         state.travel += Math.hypot(e.changeX, e.changeY)
         if (state.mode === "undecided" && state.travel >= SCROLL_DECIDE_DISTANCE) {
           state.mode = "scroll"
-          sendInput([{kind: "scroll", dx: 0, dy: 0, phase: SCROLL_BEGAN}])
+          sendInput([...place(), {kind: "scroll", dx: 0, dy: 0, phase: SCROLL_BEGAN}])
         }
         if (state.mode === "scroll") sendInput([{kind: "scroll", dx: e.changeX, dy: e.changeY, phase: SCROLL_CHANGED}])
         if (state.mode === "zoom") clampTo(offsetX.value + e.changeX, offsetY.value + e.changeY, zoom.value)
@@ -260,6 +284,7 @@ export function useInputGesture({
       })
     return Gesture.Race(Gesture.Simultaneous(pinch, scrollPan), pointerPan, taps)
   }, [
+    absolute,
     clicks,
     container.height,
     container.width,
@@ -270,6 +295,7 @@ export function useInputGesture({
     offsetY,
     onThreeFingerTap,
     pointWidth,
+    pointer,
     slop,
     speed,
     surface,

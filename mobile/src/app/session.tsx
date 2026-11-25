@@ -26,14 +26,18 @@ import {useAppTheme} from "@/contexts/ThemeContext"
 import {translate} from "@/i18n"
 import {useAutoHide} from "@/hooks/useAutoHide"
 import {useLayout} from "@/hooks/useLayout"
-import {disconnect, send} from "@/services/remote"
-import {FLOATING_TOOLBAR_SPACE, sessionLayout, type Rect} from "@/services/sessionLayout"
+import {RAIL_BUTTON, RAIL_GAP} from "@/services/railLayout"
+import {applyPointer, disconnect, send} from "@/services/remote"
+import {FLOATING_TOOLBAR_SPACE, PANEL_GAP, sessionLayout, type Rect} from "@/services/sessionLayout"
 import {useNavigationStore} from "@/stores/navigation"
 import {useRailActions} from "@/stores/railToolbar"
 import {useSessionStore} from "@/stores/session"
 import {useSetting} from "@/stores/settings"
 
-const STATUS_GAP_MIN = 32
+const STATUS_PILL_HEIGHT = 30
+const PANEL_PADDING = 12
+const STATUS_PADDING = 10
+const STATUS_GAP_MIN = STATUS_PILL_HEIGHT + 2 * STATUS_PADDING
 
 const rectStyle = (r: Rect): ViewStyle => ({
   position: "absolute",
@@ -89,6 +93,10 @@ function SessionBody() {
   const phase = useSessionStore((s) => s.phase)
   const fullScreen = useSessionStore((s) => s.fullScreen)
   const [autoHide] = useSetting("auto_hide_controls")
+  const [pointerMode] = useSetting("pointer_mode")
+  const [showLocalPointer] = useSetting("show_local_pointer")
+  const inputMode = useSessionStore((s) => s.inputMode)
+  const pointerPainted = pointerMode === "absolute" && showLocalPointer && inputMode === "trackpad"
   const zoomControls = useZoomControls()
   const keyboard = useRef<KeyboardHandle>(null)
   const displaySheet = useRef<BottomSheetModal>(null)
@@ -119,6 +127,10 @@ function SessionBody() {
   )
 
   useEffect(() => () => disconnect(), [])
+
+  useEffect(() => {
+    applyPointer()
+  }, [pointerPainted, phase])
 
   useEffect(() => {
     if (Platform.OS !== "android") return
@@ -164,6 +176,9 @@ function SessionBody() {
     onSettings: () => push("/settings"),
   })
   useRailActions(plan.toolbar === "rail" ? actions : [])
+  const bottomRailFits =
+    plan.kind === "stacked" &&
+    actions.length * RAIL_BUTTON + (actions.length - 1) * RAIL_GAP <= plan.panel.width - 2 * PANEL_PADDING
 
   const status = (centered: boolean) => (
     <Fade visible={controls.visible} style={{gap: 8, alignItems: centered ? "center" : "flex-start"}}>
@@ -217,17 +232,18 @@ function SessionBody() {
         <View style={rectStyle(plan.panel)}>
           <TrackpadPanel
             aspect={plan.trackpadAspect}
-            headerSpace={connectionDetails ? STATUS_GAP_MIN : 0}
+            headerSpace={connectionDetails ? STATUS_GAP_MIN - PANEL_GAP : 0}
+            headerLift={PANEL_GAP}
             screenWidth={plan.video.width}
             zoomControls={zoomControls}
             onThreeFingerTap={controls.toggle}
             header={statusGap ? undefined : status(plan.trackpadAspect !== undefined)}
             footer={
-              laptop && controls.visible ? (
+              plan.toolbar === "rail" ? null : laptop || bottomRailFits ? (
                 <BottomRail actions={actions} />
-              ) : plan.toolbar !== "rail" ? (
+              ) : (
                 <View className="items-center">{inlineToolbar(false)}</View>
-              ) : null
+              )
             }
           />
         </View>

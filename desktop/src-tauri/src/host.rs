@@ -395,7 +395,7 @@ impl HostService {
                         id,
                         name: name.clone(),
                     });
-                    inner.cursor = true;
+                    inner.cursor = v["stream"]["cursor"].as_bool().unwrap_or(true);
                     inner.stream = Some(v["stream"].clone()).filter(Value::is_object);
                     inner.status = HostStatus::Connected {
                         name,

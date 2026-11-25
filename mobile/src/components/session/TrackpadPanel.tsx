@@ -19,6 +19,7 @@ interface TrackpadPanelProps {
   bare?: boolean
   aspect?: number
   headerSpace?: number
+  headerLift?: number
 }
 
 const ICON_RETURNS_AFTER_MS = 15_000
@@ -28,7 +29,8 @@ const ICON_RETURNS_AFTER_MS = 15_000
  * across it moves the pointer about as far as a swipe across the screen would.
  * A bare panel is only the trackpad, filling its parent edge to edge. With an
  * aspect, the trackpad is the largest such box centred above the footer that
- * leaves headerSpace above it, where the header is centred. The pointer icon
+ * leaves headerSpace above it, where the header is centred (reaching headerLift
+ * further up, over the gap above the panel). The pointer icon
  * fades while the trackpad is in use and returns after ICON_RETURNS_AFTER_MS.
  */
 export function TrackpadPanel({
@@ -40,6 +42,7 @@ export function TrackpadPanel({
   bare,
   aspect,
   headerSpace = 0,
+  headerLift = 0,
 }: TrackpadPanelProps) {
   const {theme} = useAppTheme()
   const video = useSessionStore((s) => s.video)
@@ -66,6 +69,7 @@ export function TrackpadPanel({
   const watcher = Gesture.Manual().runOnJS(true).onTouchesDown(touched)
   const iconStyle = useAnimatedStyle(() => ({opacity: iconOpacity.value}))
 
+  const [pointerMode] = useSetting("pointer_mode")
   const gesture = useInputGesture({
     surface: "trackpad",
     inputMode: "trackpad",
@@ -73,6 +77,7 @@ export function TrackpadPanel({
     container: size,
     frame: {width: screenWidth, height: size.height},
     pointWidth: video?.pointWidth ?? 0,
+    absolute: pointerMode === "absolute",
     zoomControls,
     onThreeFingerTap,
   })
@@ -113,8 +118,8 @@ export function TrackpadPanel({
           {header && fitted && (
             <View
               pointerEvents="box-none"
-              className="absolute left-0 right-0 top-0 items-center justify-center"
-              style={{height: (room.height - fitted.height) / 2}}>
+              className="absolute left-0 right-0 items-center justify-center"
+              style={{top: -headerLift, height: (room.height - fitted.height) / 2 + headerLift}}>
               {header}
             </View>
           )}
