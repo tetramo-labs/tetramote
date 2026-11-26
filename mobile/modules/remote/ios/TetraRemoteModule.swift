@@ -19,12 +19,19 @@ public class TetraRemoteModule: Module {
   public func definition() -> ModuleDefinition {
     Name("TetraRemote")
 
-    Events("onState", "onControl", "onStats")
+    Events("onState", "onControl", "onStats", "onKey", "onKeyboard")
 
     OnCreate {
       self.session.emit = { [weak self] name, body in
         self?.sendEvent(name, body)
       }
+      HardwareKeyboard.shared.emit = { [weak self] name, body in
+        self?.sendEvent(name, body)
+      }
+    }
+
+    Function("setHardwareKeyboard") { (enabled: Bool) in
+      HardwareKeyboard.shared.setEnabled(enabled)
     }
 
     Function("generateSecretKey") { () -> String in

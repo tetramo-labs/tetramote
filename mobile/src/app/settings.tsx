@@ -61,6 +61,7 @@ export default function SettingsScreen() {
   const [pointerMode, setPointerMode] = useSetting("pointer_mode")
   const [showLocalPointer, setShowLocalPointer] = useSetting("show_local_pointer")
   const [pointerSize, setPointerSize] = useSetting("pointer_size")
+  const [hardwareKeyboard, setHardwareKeyboard] = useSetting("hardware_keyboard")
   const streamRows = useStreamRows()
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
@@ -195,6 +196,19 @@ export default function SettingsScreen() {
           />
         )}
         <ToggleRow labelTx="settings:startFullScreen" value={startFullScreen} onValueChange={setStartFullScreen} />
+        <Row
+          labelTx="settings:hardwareKeyboard"
+          trailing={
+            <Segmented
+              value={hardwareKeyboard}
+              onChange={setHardwareKeyboard}
+              options={[
+                {value: "raw", tx: "settings:hardwareRaw"},
+                {value: "translated", tx: "settings:hardwareTranslated"},
+              ]}
+            />
+          }
+        />
         <ToggleRow
           labelTx="settings:autoHide"
           subtitleTx="settings:autoHideHint"

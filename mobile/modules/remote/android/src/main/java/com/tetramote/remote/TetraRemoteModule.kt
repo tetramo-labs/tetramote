@@ -37,11 +37,16 @@ class TetraRemoteModule : Module() {
     override fun definition() = ModuleDefinition {
         Name("TetraRemote")
 
-        Events("onState", "onControl", "onStats")
+        Events("onState", "onControl", "onStats", "onKey", "onKeyboard")
 
         OnCreate {
             val context = appContext.reactContext?.applicationContext
             if (TetraNative.loaded && context != null) TetraNative.init(context)
+            HardwareKeyboard.emit = { name, body -> sendEvent(name, body) }
+        }
+
+        Function("setHardwareKeyboard") { enabled: Boolean ->
+            HardwareKeyboard.setEnabled(appContext.reactContext?.applicationContext, enabled)
         }
 
         OnDestroy {

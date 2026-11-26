@@ -75,3 +75,11 @@ export interface ConnectRequest {
   deviceName: string
   stream?: StreamPrefs
 }
+
+/** A hardware keyboard key: a HID usage on iOS, or an Android key code with the character the layout makes of it. */
+export interface HardwareKeyEvent {
+  usage?: number
+  code?: number
+  unicode?: number
+  down: boolean
+}

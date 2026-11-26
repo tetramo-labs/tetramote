@@ -1,11 +1,13 @@
 import {NativeModule, requireNativeModule} from "expo-modules-core"
 
-import type {ConnectRequest, StartConfig} from "./types"
+import type {ConnectRequest, HardwareKeyEvent, StartConfig} from "./types"
 
 type Events = {
   onState: (event: {json: string}) => void
   onControl: (event: {json: string}) => void
   onStats: (event: {fps: number; kbps: number; dropped: number}) => void
+  onKey: (event: HardwareKeyEvent) => void
+  onKeyboard: (event: {connected: boolean}) => void
 }
 
 declare class TetraRemoteNative extends NativeModule<Events> {
@@ -18,6 +20,7 @@ declare class TetraRemoteNative extends NativeModule<Events> {
   sendControl(json: string): void
   sendInput(records: Uint8Array): void
   setAudioEnabled(enabled: boolean): void
+  setHardwareKeyboard(enabled: boolean): void
   launchPairingUrl(): string | null
 }
 

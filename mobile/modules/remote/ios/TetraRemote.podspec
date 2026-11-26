@@ -21,7 +21,7 @@ Pod::Spec.new do |s|
   s.source_files = '*.swift'
   s.preserve_paths = 'include/**/*'
   s.vendored_frameworks = 'TetraCore.xcframework'
-  s.frameworks = 'AVFoundation', 'AudioToolbox', 'CoreFoundation', 'CoreMedia', 'Network', 'Security', 'SystemConfiguration', 'VideoToolbox'
+  s.frameworks = 'AVFoundation', 'AudioToolbox', 'CoreFoundation', 'CoreMedia', 'GameController', 'Network', 'Security', 'SystemConfiguration', 'VideoToolbox'
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
     'SWIFT_INCLUDE_PATHS' => '$(PODS_TARGET_SRCROOT)/include'

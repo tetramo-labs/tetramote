@@ -1,6 +1,6 @@
 import {execSync} from "node:child_process"
 
-import {withAndroidManifest, withAppBuildGradle, type ConfigPlugin} from "@expo/config-plugins"
+import {withAndroidManifest, withAppBuildGradle, withMainActivity, type ConfigPlugin} from "@expo/config-plugins"
 import type {ConfigContext, ExpoConfig} from "expo/config"
 
 const SIGNING = `
@@ -59,6 +59,21 @@ const withOptionalFeatures: ConfigPlugin = (config) =>
     return mod
   })
 
+const KEY_DISPATCH = `
+  override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean =
+    com.tetramote.remote.HardwareKeyboard.handle(event) || super.dispatchKeyEvent(event)
+`
+
+/** Hands hardware keyboard keys to the remote module first, so a session can send them to the computer. */
+const withHardwareKeyboard: ConfigPlugin = (config) =>
+  withMainActivity(config, (mod) => {
+    const source = mod.modResults.contents
+    if (!source.includes("HardwareKeyboard.handle")) {
+      mod.modResults.contents = source.replace(/\n}\s*$/, `\n${KEY_DISPATCH}}\n`)
+    }
+    return mod
+  })
+
 const version = require("./package.json").version as string
 
 /**
@@ -78,71 +93,82 @@ function buildNumber(): number {
 const build = buildNumber()
 
 module.exports = ({config}: ConfigContext): ExpoConfig =>
-  withOptionalFeatures(
-    withReleaseSigning({
-      ...config,
-      name: "Tetramote",
-      slug: "tetramote",
-      version,
-      scheme: "tetramote",
-      orientation: "default",
-      userInterfaceStyle: "automatic",
-      icon: "./assets/app-icons/icon.png",
-      ios: {
-        bundleIdentifier: "com.tetramo.tetramote",
-        associatedDomains: ["applinks:remote.tetramote.com"],
-        buildNumber: String(build),
-        appleTeamId: process.env.EXPO_PUBLIC_APPLE_TEAM_ID || "B8446S9493",
-        supportsTablet: false,
-        requireFullScreen: false,
-        infoPlist: {
-          NSCameraUsageDescription: "Tetramote uses the camera to scan the pairing code your computer shows.",
-          NSLocalNetworkUsageDescription:
-            "Tetramote connects straight to your computer when it is on the same network.",
-          UIBackgroundModes: ["audio"],
-          ITSAppUsesNonExemptEncryption: false,
-        },
-      },
-      android: {
-        package: "com.tetramo.tetramote",
-        versionCode: build,
-        adaptiveIcon: {
-          foregroundImage: "./assets/app-icons/icon-foreground.png",
-          backgroundColor: "#004dfc",
-        },
-        permissions: ["CAMERA", "INTERNET", "ACCESS_NETWORK_STATE", "ACCESS_WIFI_STATE", "CHANGE_WIFI_MULTICAST_STATE"],
-        blockedPermissions: [
-          "android.permission.RECORD_AUDIO",
-          "android.permission.SYSTEM_ALERT_WINDOW",
-          "android.permission.USE_BIOMETRIC",
-          "android.permission.USE_FINGERPRINT",
-        ],
-        allowBackup: false,
-      },
-      plugins: [
-        "expo-router",
-        "expo-secure-store",
-        ["expo-camera", {cameraPermission: "Tetramote uses the camera to scan the pairing code your computer shows."}],
-        [
-          "expo-splash-screen",
-          {
-            backgroundColor: "#ffffff",
-            dark: {backgroundColor: "#171717"},
-            image: "./assets/app-icons/splash.png",
-            imageWidth: 120,
+  withHardwareKeyboard(
+    withOptionalFeatures(
+      withReleaseSigning({
+        ...config,
+        name: "Tetramote",
+        slug: "tetramote",
+        version,
+        scheme: "tetramote",
+        orientation: "default",
+        userInterfaceStyle: "automatic",
+        icon: "./assets/app-icons/icon.png",
+        ios: {
+          bundleIdentifier: "com.tetramo.tetramote",
+          associatedDomains: ["applinks:remote.tetramote.com"],
+          buildNumber: String(build),
+          appleTeamId: process.env.EXPO_PUBLIC_APPLE_TEAM_ID || "B8446S9493",
+          supportsTablet: false,
+          requireFullScreen: false,
+          infoPlist: {
+            NSCameraUsageDescription: "Tetramote uses the camera to scan the pairing code your computer shows.",
+            NSLocalNetworkUsageDescription:
+              "Tetramote connects straight to your computer when it is on the same network.",
+            UIBackgroundModes: ["audio"],
+            ITSAppUsesNonExemptEncryption: false,
           },
-        ],
-        [
-          "expo-build-properties",
-          {
-            ios: {deploymentTarget: "17.0"},
-            android: {minSdkVersion: 28, targetSdkVersion: 36, compileSdkVersion: 37},
+        },
+        android: {
+          package: "com.tetramo.tetramote",
+          versionCode: build,
+          adaptiveIcon: {
+            foregroundImage: "./assets/app-icons/icon-foreground.png",
+            backgroundColor: "#004dfc",
           },
+          permissions: [
+            "CAMERA",
+            "INTERNET",
+            "ACCESS_NETWORK_STATE",
+            "ACCESS_WIFI_STATE",
+            "CHANGE_WIFI_MULTICAST_STATE",
+          ],
+          blockedPermissions: [
+            "android.permission.RECORD_AUDIO",
+            "android.permission.SYSTEM_ALERT_WINDOW",
+            "android.permission.USE_BIOMETRIC",
+            "android.permission.USE_FINGERPRINT",
+          ],
+          allowBackup: false,
+        },
+        plugins: [
+          "expo-router",
+          "expo-secure-store",
+          [
+            "expo-camera",
+            {cameraPermission: "Tetramote uses the camera to scan the pairing code your computer shows."},
+          ],
+          [
+            "expo-splash-screen",
+            {
+              backgroundColor: "#ffffff",
+              dark: {backgroundColor: "#171717"},
+              image: "./assets/app-icons/splash.png",
+              imageWidth: 120,
+            },
+          ],
+          [
+            "expo-build-properties",
+            {
+              ios: {deploymentTarget: "17.0"},
+              android: {minSdkVersion: 28, targetSdkVersion: 36, compileSdkVersion: 37},
+            },
+          ],
         ],
-      ],
-      experiments: {
-        tsconfigPaths: true,
-        typedRoutes: true,
-      },
-    } as ExpoConfig),
+        experiments: {
+          tsconfigPaths: true,
+          typedRoutes: true,
+        },
+      } as ExpoConfig),
+    ),
   )

@@ -6,10 +6,12 @@ import {FullWindowOverlay} from "react-native-screens"
 
 import {PressableIcon} from "@/components/ignite/Icon"
 import {Text} from "@/components/ignite/Text"
+import {useHardwareKeyboardStore} from "@/components/session/useHardwareKeyboard"
 import GlassView from "@/components/ui/GlassView"
 import {useAppTheme} from "@/contexts/ThemeContext"
 import {flagsFor, KEY, keyPress, shortcutFor, type Modifier} from "@/services/keys"
 import {sendInput} from "@/services/remote"
+import {useSetting} from "@/stores/settings"
 
 export interface KeyboardHandle {
   toggle: () => void
@@ -39,7 +41,9 @@ function AboveRail({children}: {children: ReactNode}) {
 /**
  * A hidden text field drives the system keyboard: typed text goes to the Mac
  * as text records, and with a modifier held a character becomes a shortcut.
- * Modifiers are one-shot, like sticky keys.
+ * Modifiers are one-shot, like sticky keys. With a hardware keyboard on iOS,
+ * useHardwareKeyboard sends its delete and return keys (and, Raw, every key),
+ * so the field leaves those alone.
  */
 export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null}>(function KeyboardInput(
   {dockTop},
@@ -49,6 +53,8 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   const input = useRef<ComponentRef<typeof TextInput>>(null)
   const [visible, setVisible] = useState(false)
   const [modifiers, setModifiers] = useState<Modifier[]>([])
+  const hardware = useHardwareKeyboardStore((st) => st.connected) && Platform.OS === "ios"
+  const [hardwareMode] = useSetting("hardware_keyboard")
 
   useEffect(() => {
     const hidden = Keyboard.addListener("keyboardDidHide", () => input.current?.blur())
@@ -66,7 +72,7 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   }
 
   const onChangeText = (text: string) => {
-    if (!text) return
+    if (!text || (hardware && hardwareMode === "raw")) return
     if (modifiers.length === 0) {
       sendInput([{kind: "text", text}])
       return
@@ -125,9 +131,11 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
         value=""
         onChangeText={onChangeText}
         onKeyPress={({nativeEvent}) => {
-          if (nativeEvent.key === "Backspace") sendInput(keyPress(KEY.delete, consumeModifiers()))
+          if (nativeEvent.key === "Backspace" && !hardware) sendInput(keyPress(KEY.delete, consumeModifiers()))
         }}
-        onSubmitEditing={() => sendInput(keyPress(KEY.return, consumeModifiers()))}
+        onSubmitEditing={() => {
+          if (!hardware) sendInput(keyPress(KEY.return, consumeModifiers()))
+        }}
         submitBehavior="submit"
         autoCorrect={false}
         autoCapitalize="none"

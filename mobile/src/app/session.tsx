@@ -14,12 +14,14 @@ import {DisplaySheet} from "@/components/session/DisplaySheet"
 import {KeyboardInput, type KeyboardHandle} from "@/components/session/KeyboardInput"
 import {DEFAULT_ASPECT, RemoteSurface, useZoomControls} from "@/components/session/RemoteSurface"
 import {SessionOverlay} from "@/components/session/SessionOverlay"
+import {HardwareTextInput} from "@/components/session/HardwareTextInput"
 import {HingeObserver} from "@/components/session/HingeObserver"
 import {CornerHandle} from "@/components/session/CornerHandle"
 import {BottomRail, ControlsHandle, SessionToolbar, useSessionActions} from "@/components/session/SessionToolbar"
 import {StatusPill} from "@/components/session/StatusPill"
 import {StreamSheet} from "@/components/session/StreamSheet"
 import {TrackpadPanel} from "@/components/session/TrackpadPanel"
+import {useHardwareKeyboard} from "@/components/session/useHardwareKeyboard"
 import GlassView from "@/components/ui/GlassView"
 import {useSaferAreaInsets} from "@/contexts/SaferAreaContext"
 import {useAppTheme} from "@/contexts/ThemeContext"
@@ -127,6 +129,7 @@ function SessionBody() {
   )
 
   useEffect(() => () => disconnect(), [])
+  useHardwareKeyboard()
 
   useEffect(() => {
     applyPointer()
@@ -304,6 +307,7 @@ function SessionBody() {
       <HingeObserver onHalfOpenChange={setHalfOpen} />
       <SessionOverlay onBack={leave} />
       <KeyboardInput ref={keyboard} dockTop={laptop ? plan.panel.y : null} />
+      <HardwareTextInput />
       <DisplaySheet ref={displaySheet} />
       <ClipboardSheet ref={clipboardSheet} />
       <StreamSheet ref={streamSheet} />

@@ -7,6 +7,7 @@ export type InputMode = "trackpad" | "direct"
 export type TrackpadSpeed = "slow" | "normal" | "fast"
 export type PointerMode = "absolute" | "relative"
 export type PointerSize = "100" | "125" | "150" | "200"
+export type HardwareKeyboardMode = "raw" | "translated"
 export type StreamResolution = "auto" | "640" | "854" | "1280" | "1920" | "2560"
 export type StreamFps = "5" | "15" | "30" | "60" | "120"
 export type ControlsCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right"
@@ -19,6 +20,7 @@ export interface Settings {
   pointer_mode: PointerMode
   show_local_pointer: boolean
   pointer_size: PointerSize
+  hardware_keyboard: HardwareKeyboardMode
   stream_bitrate_auto: boolean
   stream_bitrate_mbps: number
   stream_resolution: StreamResolution
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pointer_mode: "absolute",
   show_local_pointer: true,
   pointer_size: "100",
+  hardware_keyboard: "raw",
   stream_bitrate_auto: true,
   stream_bitrate_mbps: 8,
   stream_resolution: "auto",
