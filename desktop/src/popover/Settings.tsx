@@ -91,19 +91,13 @@ export function Settings() {
           </div>
           {relayError && <div className="text-[11px] text-destructive">{relayError}</div>}
         </Row>
-        <Row className="flex-col !items-stretch gap-1">
-          <div className="flex items-center">
-            <div className="flex-1 text-[13px]">Use the other computer's pointer</div>
-            <Toggle
-              label="Use the other computer's pointer"
-              checked={hidePointer}
-              onChange={(v) => void api.setHideLocalPointer(v)}
-            />
-          </div>
-          <div className="text-[11px] text-muted">
-            When you control another computer, hide this computer's pointer and show that computer's pointer in the
-            picture instead. Off, your own pointer stays and clicks land exactly where it is.
-          </div>
+        <Row>
+          <div className="flex-1 text-[13px]">Show local pointer</div>
+          <Toggle
+            label="Show local pointer"
+            checked={!hidePointer}
+            onChange={(v) => void api.setHideLocalPointer(!v)}
+          />
         </Row>
         <Row>
           <div className="flex-1 text-[13px]">Open at login</div>

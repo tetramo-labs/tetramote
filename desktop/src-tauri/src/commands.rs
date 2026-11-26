@@ -4,6 +4,7 @@ use serde::Serialize;
 use serde_json::json;
 use tauri::ipc::{Channel, InvokeResponseBody};
 use tauri::{AppHandle, State};
+use tauri_plugin_dialog::DialogExt;
 
 use crate::client::{ClientService, ClientState, ViewerInput};
 use crate::host::{HostService, HostState};
@@ -101,6 +102,46 @@ pub fn client_connect_link(state: State<AppState>, link: String) -> Result<(), S
 #[tauri::command]
 pub fn client_connect_saved(state: State<AppState>, id: String) -> Result<(), String> {
     state.client.connect_saved(&id)
+}
+
+/// Saves the computers this one can pair again to a links file; None when cancelled, 0 when there was nothing to save.
+#[tauri::command]
+pub async fn client_export_links(app: AppHandle, state: State<'_, AppState>) -> Result<Option<usize>, String> {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_secs());
+    let (json, count) = crate::links::links_json(&state.store.get().hosts, now);
+    if count == 0 {
+        return Ok(Some(0));
+    }
+    let Some(path) = app
+        .dialog()
+        .file()
+        .add_filter("Tetramote links", &["json"])
+        .set_file_name("Tetramote links.json")
+        .blocking_save_file()
+    else {
+        return Ok(None);
+    };
+    let path = path.into_path().map_err(|e| e.to_string())?;
+    std::fs::write(&path, json).map_err(|e| format!("Saving the links failed ({e})."))?;
+    Ok(Some(count))
+}
+
+/// Adds the computers in a links file the user picks; None when cancelled.
+#[tauri::command]
+pub async fn client_import_links(app: AppHandle, state: State<'_, AppState>) -> Result<Option<usize>, String> {
+    let Some(path) = app
+        .dialog()
+        .file()
+        .add_filter("Tetramote links", &["json", "txt"])
+        .blocking_pick_file()
+    else {
+        return Ok(None);
+    };
+    let path = path.into_path().map_err(|e| e.to_string())?;
+    let text = std::fs::read_to_string(&path).map_err(|e| format!("Reading the file failed ({e})."))?;
+    Ok(Some(state.client.import(crate::links::parse_links_json(&text))))
 }
 
 #[tauri::command]

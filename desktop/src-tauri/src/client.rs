@@ -212,9 +212,35 @@ impl ClientService {
             id: Some(host.id),
             name: host.name,
             ticket: host.ticket,
-            secret: None,
+            secret: host.secret,
         });
         Ok(())
+    }
+
+    /// Adds computers from imported links, keeping any already saved and filling in their secrets.
+    pub fn import(&self, links: Vec<tetra_core::link::Link>) -> usize {
+        let own = (self.own_endpoint)();
+        let links: Vec<_> = links
+            .into_iter()
+            .filter(|l| own.as_deref() != Some(l.endpoint_id.as_str()))
+            .collect();
+        let count = links.len();
+        self.store.update(|s| {
+            for link in links {
+                match s.hosts.iter_mut().find(|h| h.id == link.endpoint_id) {
+                    Some(saved) => saved.secret = Some(link.secret),
+                    None => s.hosts.push(SavedHost {
+                        id: link.endpoint_id,
+                        name: link.name,
+                        ticket: String::new(),
+                        last_connected_at: None,
+                        secret: Some(link.secret),
+                    }),
+                }
+            }
+        });
+        self.emit();
+        count
     }
 
     pub fn forget(&self, id: &str) {
@@ -451,10 +477,11 @@ impl ClientService {
                     let host_name = v["hostName"].as_str().unwrap_or(&name).to_string();
                     let id = v["endpointId"].as_str().unwrap_or_default().to_string();
                     if let Some(target) = inner.target.as_mut() {
-                        target.secret = None;
+                        let offered = target.secret.take();
                         target.name = host_name.clone();
                         let ticket = target.ticket.clone();
                         self.store.update(|s| {
+                            let kept = s.hosts.iter().find(|h| h.id == id).and_then(|h| h.secret.clone());
                             s.hosts.retain(|h| h.id != id);
                             s.hosts.insert(
                                 0,
@@ -463,6 +490,7 @@ impl ClientService {
                                     name: host_name.clone(),
                                     ticket,
                                     last_connected_at: Some(now_ms()),
+                                    secret: offered.or(kept),
                                 },
                             );
                         });

@@ -9,12 +9,27 @@ export function OtherComputers() {
   const client = useAppStore((s) => s.client)
   const [link, setLink] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   if (!client) return null
   const status = client.status
   const activeName = status.kind === "idle" ? null : status.name
 
+  const plural = (n: number) => (n === 1 ? "1 computer" : `${n} computers`)
+
+  const transfer = async (run: () => Promise<number | null>, done: (n: number) => string) => {
+    setError(null)
+    setNotice(null)
+    try {
+      const n = await run()
+      if (n !== null) setNotice(done(n))
+    } catch (e) {
+      setError(String(e))
+    }
+  }
+
   const connect = async (run: () => Promise<void>) => {
     setError(null)
+    setNotice(null)
     try {
       await run()
       setLink("")
@@ -70,8 +85,30 @@ export function OtherComputers() {
             Connect
           </Button>
         </Row>
+        <Row>
+          <div className="min-w-0 flex-1 text-[13px]">Pairing links</div>
+          <Button
+            kind="secondary"
+            onClick={() =>
+              void transfer(api.importLinks, (n) =>
+                n === 0 ? "That file has no Tetramote links." : `Added ${plural(n)}.`,
+              )
+            }>
+            Import
+          </Button>
+          <Button
+            kind="secondary"
+            onClick={() =>
+              void transfer(api.exportLinks, (n) =>
+                n === 0 ? "No computers to export yet. Connect with a link first." : `Exported ${plural(n)}.`,
+              )
+            }>
+            Export
+          </Button>
+        </Row>
       </Group>
       {error && <div className="mt-1.5 px-1 text-[12px] text-destructive">{error}</div>}
+      {notice && <div className="mt-1.5 px-1 text-[12px] text-muted">{notice}</div>}
     </div>
   )
 }

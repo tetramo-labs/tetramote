@@ -60,6 +60,7 @@ export default function SettingsScreen() {
   const [speed, setSpeed] = useSetting("trackpad_speed")
   const [pointerMode, setPointerMode] = useSetting("pointer_mode")
   const [showLocalPointer, setShowLocalPointer] = useSetting("show_local_pointer")
+  const [pointerSize, setPointerSize] = useSetting("pointer_size")
   const streamRows = useStreamRows()
   const [playAudio, setPlayAudio] = useSetting("play_audio")
   const [autoHide, setAutoHide] = useSetting("auto_hide_controls")
@@ -120,6 +121,8 @@ export default function SettingsScreen() {
 
   return (
     <Screen preset="scroll" header={<Header titleTx="settings:title" back />}>
+      <Group titleTx="settings:quality">{streamRows}</Group>
+
       <Group titleTx="settings:control">
         <Row
           labelTx="settings:defaultInput"
@@ -174,7 +177,23 @@ export default function SettingsScreen() {
             }}
           />
         )}
-        {streamRows}
+        {pointerMode === "absolute" && showLocalPointer && (
+          <Row
+            labelTx="settings:pointerSize"
+            trailing={
+              <Segmented
+                value={pointerSize}
+                onChange={setPointerSize}
+                options={[
+                  {value: "100", tx: "settings:pointerSize100"},
+                  {value: "125", tx: "settings:pointerSize125"},
+                  {value: "150", tx: "settings:pointerSize150"},
+                  {value: "200", tx: "settings:pointerSize200"},
+                ]}
+              />
+            }
+          />
+        )}
         <ToggleRow labelTx="settings:startFullScreen" value={startFullScreen} onValueChange={setStartFullScreen} />
         <ToggleRow
           labelTx="settings:autoHide"

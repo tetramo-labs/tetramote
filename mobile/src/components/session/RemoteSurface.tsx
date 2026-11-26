@@ -32,6 +32,7 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
   const [speed] = useSetting("trackpad_speed")
   const [pointerMode] = useSetting("pointer_mode")
   const [showLocalPointer] = useSetting("show_local_pointer")
+  const [pointerSize] = useSetting("pointer_size")
   const absolute = pointerMode === "absolute"
   const painted = absolute && showLocalPointer && inputMode === "trackpad" && video !== null
   const [container, setContainer] = useState({width: 0, height: 0})
@@ -71,7 +72,14 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
         collapsable={false}>
         <Animated.View style={[{width: frame.width, height: frame.height}, animated]}>
           <RemoteScreen style={{flex: 1}} />
-          {painted && <LocalPointer pointer={zoomControls.pointer} zoom={zoom} frame={frame} />}
+          {painted && video.pointWidth > 0 && (
+            <LocalPointer
+              pointer={zoomControls.pointer}
+              frame={frame}
+              pointWidth={video.pointWidth}
+              scale={Number(pointerSize) / 100}
+            />
+          )}
         </Animated.View>
       </View>
     </GestureDetector>

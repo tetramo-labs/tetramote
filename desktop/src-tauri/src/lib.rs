@@ -6,6 +6,7 @@ mod client;
 mod clipboard;
 mod commands;
 mod host;
+mod links;
 #[cfg(target_os = "macos")]
 mod login_window;
 mod pairing;
@@ -58,6 +59,7 @@ pub fn run() {
             tray::show(app);
         }))
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -126,6 +128,8 @@ pub fn run() {
             commands::client_connect_link,
             commands::client_connect_saved,
             commands::client_forget,
+            commands::client_export_links,
+            commands::client_import_links,
             commands::client_disconnect,
             commands::viewer_attach,
             commands::viewer_input,

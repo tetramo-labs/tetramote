@@ -39,6 +39,8 @@ pub struct SavedHost {
     pub name: String,
     pub ticket: String,
     pub last_connected_at: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
