@@ -1,9 +1,10 @@
 import Animated, {useAnimatedStyle, type SharedValue} from "react-native-reanimated"
 import Svg, {Path} from "react-native-svg"
 
-const WIDTH = 17
-const HEIGHT = 25
-const TIP = 1.5
+const SCALE = 0.75
+const WIDTH = 17 * SCALE
+const HEIGHT = 25 * SCALE
+const TIP = 1.5 * SCALE
 
 /**
  * The phone's own pointer, a macOS arrow painted over the Mac's screen at
