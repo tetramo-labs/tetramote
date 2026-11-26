@@ -235,6 +235,14 @@ ensure_pmset autorestart 1
 ensure_pmset powernap 0
 ok "Power settings: no sleep, restart after power loss"
 
+defaults -currentHost write com.apple.screensaver idleTime -int 0
+SCREEN_LOCK="$(sysadminctl -screenLock status 2>&1 | sed 's/.*] //')"
+if [[ "$SCREEN_LOCK" == *"delay is"* ]]; then
+  warn "The screen saver is off, but the screen still asks for a password once it locks ($SCREEN_LOCK). Typing it remotely is unreliable, so turn it off once in Terminal on this Mac: sysadminctl -screenLock off -password -"
+else
+  ok "Screen saver off; the screen doesn't ask for a password ($SCREEN_LOCK)"
+fi
+
 MAXFILES_PLIST=/Library/LaunchDaemons/limit.maxfiles.plist
 if [[ -f "$MAXFILES_PLIST" ]]; then
   ok "File descriptor limit daemon already installed ($MAXFILES_PLIST), left as is"
