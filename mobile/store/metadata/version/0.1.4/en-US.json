@@ -4,5 +4,5 @@
   "marketingUrl": "https://tetramote.com",
   "promotionalText": "See your computer's screen and use it with a trackpad and keyboard, from the couch or across the internet. Free and open source.",
   "supportUrl": "https://github.com/tetramo-labs/tetramote/issues",
-  "whatsNew": "• In trackpad mode, the pointer drawn on your phone matches the computer's pointer. It turns into an I-beam over text, arrows on a window's edge and a hand over links. Update Tetramote on your Mac or Windows computer to see it."
+  "whatsNew": "• In trackpad mode, the pointer drawn on your phone matches the computer's pointer. It turns into an I-beam over text, arrows on a window's edge and a hand over links. Update Tetramote on your Mac or Windows computer to see it.\n• A Bluetooth keyboard types through your phone's layout again, while shortcuts and arrows still go by position. To send every key by position, choose Raw in Settings.\n• Zoomed in, the view follows the pointer as you move it, so it stays on screen."
 }
