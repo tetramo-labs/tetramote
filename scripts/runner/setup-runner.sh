@@ -124,7 +124,7 @@ ASC_PROFILE="${RUNNER_ASC_PROFILE:-tetramote-ci}"
 BREW_PREFIX="/opt/homebrew"
 ZPROFILE="$HOME/.zprofile"
 RUST_TARGETS=(aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios x86_64-apple-darwin)
-BREW_FORMULAS=(git gh cocoapods xcbeautify coreutils jq ffmpeg imagemagick webp openjdk@17 asc)
+BREW_FORMULAS=(git gh cmake cocoapods xcbeautify coreutils jq ffmpeg imagemagick webp openjdk@17 asc)
 MIN_XCODE="27.1"
 MIN_IOS_RUNTIME="27.1"
 

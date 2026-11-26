@@ -2,8 +2,9 @@
 
 Tetramote's iOS jobs (the Rust core for iOS, the Expo app built with Xcode 27.1+ for the iPhone Duo, Maestro
 screenshots, App Store Connect uploads) run on a self-hosted Apple Silicon Mac. Workflows target it with
-`runs-on: [self-hosted, macOS, ARM64, tetramote]`. GitHub-hosted runners keep everything else (`desktop.yml`,
-`release-desktop.yml`).
+`runs-on: [self-hosted, macOS, ARM64, tetramote]`. Pushes to `main` also run the macOS leg of `desktop.yml` and the
+`mobile.yml` check there. Pull requests, the Windows and Linux legs, and `release-desktop.yml` stay on GitHub-hosted
+runners.
 
 The runner shares a Mac and its macOS user with the Glassly runners (`bob`, `kevin`). The two setups stay apart:
 
@@ -22,15 +23,23 @@ Glassly's.
 ## Security
 
 This repository is public, so anyone can open a pull request, and a self-hosted runner executes whatever a workflow
-tells it to with the runner user's keys and sessions. Workflows that run on the self-hosted runner trigger only on
-`workflow_dispatch` (and optionally `push` to `main`). Never give them `pull_request`, `pull_request_target` or any
-other trigger a fork can fire. Also set Settings > Actions > General > "Approval for running fork pull request
-workflows from contributors" to **Require approval for all external contributors**.
+tells it to with the runner user's keys and sessions. A job may pick the self-hosted runner only on
+`workflow_dispatch` or a `push` to `main`. `desktop.yml` and `mobile.yml` also run on `pull_request`, so their
+`runs-on` chooses the self-hosted runner only when `github.event_name == 'push'` and `github.ref == 'refs/heads/main'`.
+Never route `pull_request`, `pull_request_target` or any other trigger a fork can fire to it.
+
+A fork's pull request runs the workflow files from its own branch, so it can rewrite `runs-on` to reach this runner.
+The guard against that is Settings > Actions > General > "Approval for running fork pull request workflows from
+contributors" set to **Require approval for all external contributors**. Read a fork's workflow changes before you
+approve its run.
+
+On the self-hosted runner, `desktop.yml` checks out without `git clean`, so `desktop/target` survives between runs,
+and skips `Swatinem/rust-cache`, which would prune the `~/.cargo` this user shares with Glassly.
 
 ## Set up a Mac
 
 Prerequisites: Apple Silicon, Homebrew, and Xcode 27.1 or later in `/Applications` (launched once). bob and kevin
-have these from the Glassly setup. The script installs what is missing: `git gh cocoapods xcbeautify coreutils jq
+have these from the Glassly setup. The script installs what is missing: `git gh cmake cocoapods xcbeautify coreutils jq
 ffmpeg imagemagick webp openjdk@17 asc` (Maestro needs the JDK), bun, rustup (stable with the `aarch64-apple-ios`,
 `aarch64-apple-ios-sim`, `x86_64-apple-ios` and `x86_64-apple-darwin` targets), Maestro, and the iOS simulator
 runtime for that Xcode. It asks for sudo only to accept the Xcode license, finish Xcode's first launch, or change

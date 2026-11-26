@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && fromJSON('["self-hosted", "macOS", "ARM64", "tetramote"]') || 'ubuntu-latest' }}
     defaults:
       run:
         working-directory: mobile

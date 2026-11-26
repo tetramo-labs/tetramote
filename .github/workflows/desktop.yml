@@ -23,12 +23,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os == 'macos-latest' && github.event_name == 'push' && github.ref == 'refs/heads/main' && fromJSON('["self-hosted", "macOS", "ARM64", "tetramote"]') || matrix.os }}
     defaults:
       run:
         working-directory: desktop
     steps:
       - uses: actions/checkout@v5
+        with:
+          clean: ${{ runner.environment != 'self-hosted' }}
 
       - name: Install Linux packages
         if: runner.os == 'Linux'
@@ -43,6 +45,7 @@ jobs:
           components: clippy
 
       - uses: Swatinem/rust-cache@v2
+        if: runner.environment == 'github-hosted'
         with:
           workspaces: desktop
 
