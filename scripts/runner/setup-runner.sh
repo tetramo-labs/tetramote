@@ -278,7 +278,7 @@ for job in runner-cleanup runner-disk-guard; do
 done
 ok "Cleanup scheduled: Sundays 04:00 (full) and every 30 minutes (by free space)"
 
-RUNNER_PATH="$HOME/.cargo/bin:$HOME/.bun/bin:$HOME/.maestro/bin:$BREW_PREFIX/bin:$BREW_PREFIX/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+RUNNER_PATH="$HOME/.cargo/bin:$BREW_PREFIX/opt/rustup/bin:$HOME/.bun/bin:$HOME/.maestro/bin:$BREW_PREFIX/bin:$BREW_PREFIX/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 LABELS="self-hosted,macOS,ARM64,tetramote${RUNNER_LABELS_EXTRA:+,$RUNNER_LABELS_EXTRA}"
 for ((i = 1; i <= RUNNER_COUNT; i++)); do
   name="$RUNNER_NAME_BASE-$i"
