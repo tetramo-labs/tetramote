@@ -20,6 +20,15 @@ export interface VideoInfo {
   displayId: number
 }
 
+/** The Mac pointer's current image as a data URI, with its size and hotspot in Mac display points. */
+export interface PointerShape {
+  uri: string
+  width: number
+  height: number
+  hotX: number
+  hotY: number
+}
+
 interface SessionState {
   phase: SessionPhase
   target: SessionTarget | null
@@ -31,6 +40,7 @@ interface SessionState {
   displays: MacDisplay[]
   activeDisplay: number | null
   video: VideoInfo | null
+  pointerShape: PointerShape | null
   audio: boolean
   macClipboard: string | null
   stats: StreamStats | null
@@ -58,6 +68,7 @@ const empty = {
   displays: [],
   activeDisplay: null,
   video: null,
+  pointerShape: null,
   macClipboard: null,
   stats: null,
 }
@@ -92,6 +103,17 @@ export const useSessionStore = create<SessionState>()((set) => ({
         break
       case "clipboard":
         set({macClipboard: message.text})
+        break
+      case "pointer":
+        set({
+          pointerShape: {
+            uri: `data:image/png;base64,${message.png}`,
+            width: message.width,
+            height: message.height,
+            hotX: message.hotX,
+            hotY: message.hotY,
+          },
+        })
         break
       case "welcome":
       case "audio":

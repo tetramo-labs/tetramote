@@ -18,6 +18,7 @@ use screencapturekit::prelude::{
 use super::audio::{stereo, AudioEncoder};
 use super::display::{display, stream_size};
 use super::permissions;
+use super::pointer;
 use super::video::{FrameSink, VideoEncoder, NV12};
 use crate::{
     EncodedFrame, MediaError, Result, ScreenStream, StreamConfig, StreamInfo, StreamSink,
@@ -25,6 +26,7 @@ use crate::{
 };
 
 const STILL_KEYFRAME_AFTER: Duration = Duration::from_millis(100);
+const POINTER_POLL: Duration = Duration::from_millis(33);
 
 struct Shared {
     sink: Arc<dyn StreamSink>,
@@ -327,6 +329,13 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
                 "The keyframe thread didn't start: {error}. Share again."
             ))
         })?;
+    let watcher = shared.clone();
+    if let Err(error) = std::thread::Builder::new()
+        .name("tetra-pointer".into())
+        .spawn(move || watch_pointer(&watcher))
+    {
+        log::warn!("The pointer thread didn't start ({error}), so viewers keep drawing an arrow. Share again to retry.");
+    }
 
     Ok(Box::new(MacStream {
         info: StreamInfo {
@@ -339,6 +348,19 @@ pub fn start(config: StreamConfig, sink: Arc<dyn StreamSink>) -> Result<Box<dyn 
         capture: Mutex::new(capture),
         shared,
     }))
+}
+
+fn watch_pointer(shared: &Shared) {
+    let mut last = None;
+    while !shared.stopped.load(Ordering::Acquire) {
+        if let Some(now) = pointer::current().filter(|now| last.as_ref() != Some(now)) {
+            if let Some(shape) = now.shape() {
+                shared.sink.on_pointer(shape);
+            }
+            last = Some(now);
+        }
+        std::thread::sleep(POINTER_POLL);
+    }
 }
 
 /// The frame's pixels, borrowed for as long as the sample buffer lives.

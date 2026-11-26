@@ -2,14 +2,15 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use base64::Engine;
 use serde::Serialize;
 use serde_json::{json, Value};
 use tetra_core::host::SEND_DROPPED;
 use tetra_core::protocol::{EVENT_CONTROL, EVENT_INPUT, EVENT_STATE, FLAG_KEYFRAME};
 use tetra_core::{EndpointConfig, Events, Host, HostConfig};
 use tetra_media::{
-    AudioPacket, DisplayInfo, EncodedFrame, InputInjector, InputRecord, MediaError, ScreenStream,
-    StreamConfig, StreamSink,
+    AudioPacket, DisplayInfo, EncodedFrame, InputInjector, InputRecord, MediaError, PointerShape,
+    ScreenStream, StreamConfig, StreamSink,
 };
 
 use crate::bitrate::BitrateController;
@@ -630,6 +631,17 @@ fn status_message(p: tetra_media::Permissions) -> Value {
     json!({"t": "status", "screenRecording": p.screen_recording, "accessibility": p.accessibility})
 }
 
+fn pointer_message(shape: &PointerShape) -> Value {
+    json!({
+        "t": "pointer",
+        "png": base64::engine::general_purpose::STANDARD.encode(&shape.png),
+        "width": shape.width,
+        "height": shape.height,
+        "hotX": shape.hot_x,
+        "hotY": shape.hot_y,
+    })
+}
+
 fn qr_svg(url: &str) -> String {
     match qrcode::QrCode::new(url.as_bytes()) {
         Ok(code) => code
@@ -698,5 +710,29 @@ impl StreamSink for Sink {
         if let Some(service) = self.service.upgrade() {
             service.on_stream_error(error);
         }
+    }
+
+    fn on_pointer(&self, shape: PointerShape) {
+        send(&self.host, &pointer_message(&shape));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pointer_message_carries_the_png_in_base64_and_sizes_in_points() {
+        let shape = PointerShape {
+            png: vec![0x89, b'P', b'N', b'G'],
+            width: 28.0,
+            height: 40.0,
+            hot_x: 5.0,
+            hot_y: 5.5,
+        };
+        assert_eq!(
+            pointer_message(&shape),
+            json!({"t": "pointer", "png": "iVBORw==", "width": 28.0, "height": 40.0, "hotX": 5.0, "hotY": 5.5})
+        );
     }
 }

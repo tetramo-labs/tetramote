@@ -54,6 +54,7 @@ device's connection replaces it, 3 when the device is removed, and 4 when the li
 | `displays` | Mac → phone | `displays` (`[{id, name, width, height, main}]`), `active` (display id) |
 | `video` | Mac → phone | `codec` (`h264`), `width`, `height` (stream pixels), `pointWidth`, `pointHeight` (display size in Mac points), `displayId`; sent whenever the stream changes |
 | `audio` | Mac → phone | `codec` (`opus`), `sampleRate` (48000), `channels` (2), `frameMs` (20) |
+| `pointer` | Mac → phone | `png` (the pointer's image: standard base64 of a PNG with straight alpha), `width`, `height` (its size in display points, the points of `video`'s `pointWidth`), `hotX`, `hotY` (the hotspot in points from its top left); numbers may be fractional. Sent once per stream when capture first reads the pointer, then whenever its image changes. A Mac that can't read its pointer's image (Linux) sends none, and the phone draws an arrow |
 | `clipboard` | both | `text` |
 | `getClipboard` | phone → Mac | (none); the Mac answers with `clipboard` |
 | `selectDisplay` | phone → Mac | `id` |

@@ -6,6 +6,7 @@ mod capture;
 mod display;
 mod input;
 mod permissions;
+mod pointer;
 mod video;
 
 use std::sync::Arc;

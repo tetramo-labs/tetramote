@@ -6780,6 +6780,7 @@ dependencies = [
  "objc2-video-toolbox",
  "openh264",
  "pipewire",
+ "png",
  "screencapturekit",
  "tetra_core",
  "thiserror 2.0.21",
@@ -6792,6 +6793,7 @@ name = "tetramote-desktop"
 version = "0.4.9"
 dependencies = [
  "arboard",
+ "base64 0.22.1",
  "getrandom 0.3.4",
  "keyring",
  "log",

@@ -36,8 +36,8 @@ use super::{audio, display, failed, input, Com};
 use crate::host::{now_us, scale_bgra, stream_size};
 use crate::software::{bgra_to_yuv420, SoftwareEncoder};
 use crate::{
-    DisplayInfo, EncodedFrame, MediaError, Result, ScreenStream, StreamConfig, StreamInfo,
-    StreamSink,
+    DisplayInfo, EncodedFrame, MediaError, PointerShape, Result, ScreenStream, StreamConfig,
+    StreamInfo, StreamSink,
 };
 
 const IDLE_WAIT_MS: u32 = 50;
@@ -219,6 +219,7 @@ fn capture(
     let mut last_encode: Option<Instant> = None;
     let mut have_frame = false;
     let mut dirty = false;
+    let mut sent_pointer: Option<PointerShape> = None;
     let mut composed = Vec::new();
     let mut scaled = Vec::new();
     let mut yuv = Vec::new();
@@ -242,6 +243,12 @@ fn capture(
         if duplicator.next(wait_ms)? {
             have_frame = true;
             dirty = true;
+        }
+        if let Some(shape) = duplicator.pointer.arrived.take() {
+            if sent_pointer.as_ref() != Some(&shape) {
+                sink.on_pointer(shape.clone());
+                sent_pointer = Some(shape);
+            }
         }
         let keyframe_wanted = control.keyframe.load(Ordering::Relaxed);
         if !have_frame || !(dirty || keyframe_wanted) || !encoder.accepts_input() {
@@ -394,10 +401,11 @@ struct Pointer {
     visible: bool,
     x: i32,
     y: i32,
-    shape: Option<PointerShape>,
+    shape: Option<DuplicatedShape>,
+    arrived: Option<PointerShape>,
 }
 
-struct PointerShape {
+struct DuplicatedShape {
     kind: i32,
     width: usize,
     height: usize,
@@ -416,6 +424,7 @@ struct Duplicator {
     desktop: Vec<u8>,
     width: usize,
     height: usize,
+    pixels_per_point: f32,
     pointer: Pointer,
 }
 
@@ -466,11 +475,13 @@ impl Duplicator {
             desktop: Vec::new(),
             width: display.width as usize,
             height: display.height as usize,
+            pixels_per_point: display.width as f32 / display.point_width.max(1) as f32,
             pointer: Pointer {
                 visible: false,
                 x: 0,
                 y: 0,
                 shape: None,
+                arrived: None,
             },
         };
         duplicator.duplicate().map_err(|e| {
@@ -562,13 +573,23 @@ impl Duplicator {
                 )
             };
             if read.is_ok() {
-                self.pointer.shape = Some(PointerShape {
+                let duplicated = DuplicatedShape {
                     kind: shape.Type as i32,
                     width: shape.Width as usize,
                     height: shape.Height as usize,
                     pitch: shape.Pitch as usize,
                     data,
-                });
+                };
+                let (width, height, rgba) = straight_rgba(&duplicated);
+                self.pointer.arrived = PointerShape::from_rgba(
+                    width as u32,
+                    height as u32,
+                    &rgba,
+                    shape.HotSpot.x as f32,
+                    shape.HotSpot.y as f32,
+                    self.pixels_per_point,
+                );
+                self.pointer.shape = Some(duplicated);
             }
         }
         Ok(())
@@ -693,7 +714,7 @@ fn draw_pointer(
     frame: &mut [u8],
     width: usize,
     height: usize,
-    shape: &PointerShape,
+    shape: &DuplicatedShape,
     left: i32,
     top: i32,
 ) {
@@ -737,6 +758,48 @@ fn draw_pointer(
             }
         }
     }
+}
+
+/// The pointer as straight RGBA for a viewer to draw. A pixel that inverts
+/// the screen has no colour of its own, so it comes out opaque black.
+fn straight_rgba(shape: &DuplicatedShape) -> (usize, usize, Vec<u8>) {
+    let monochrome = shape.kind == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME.0;
+    let masked = shape.kind == DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR.0;
+    let rows = if monochrome {
+        shape.height / 2
+    } else {
+        shape.height
+    };
+    let mut rgba = Vec::with_capacity(shape.width * rows * 4);
+    for row in 0..rows {
+        for col in 0..shape.width {
+            let pixel = if monochrome {
+                let bit =
+                    |r: usize| shape.data[r * shape.pitch + col / 8] & (0x80 >> (col % 8)) != 0;
+                match (bit(row), bit(row + rows)) {
+                    (true, false) => [0, 0, 0, 0],
+                    (false, true) => [0xff, 0xff, 0xff, 0xff],
+                    _ => [0, 0, 0, 0xff],
+                }
+            } else {
+                let at = row * shape.pitch + col * 4;
+                let (b, g, r, a) = (
+                    shape.data[at],
+                    shape.data[at + 1],
+                    shape.data[at + 2],
+                    shape.data[at + 3],
+                );
+                match (masked, a, [r, g, b]) {
+                    (false, _, _) => [r, g, b, a],
+                    (true, 0, _) => [r, g, b, 0xff],
+                    (true, _, [0, 0, 0]) => [0, 0, 0, 0],
+                    (true, _, _) => [0, 0, 0, 0xff],
+                }
+            };
+            rgba.extend_from_slice(&pixel);
+        }
+    }
+    (shape.width, rows, rgba)
 }
 
 #[cfg(test)]
@@ -835,7 +898,7 @@ mod tests {
     #[test]
     fn blends_colour_pointers_and_clips_them() {
         let mut frame = pixels(&[100; 4]);
-        let shape = PointerShape {
+        let shape = DuplicatedShape {
             kind: DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR.0,
             width: 2,
             height: 1,
@@ -851,7 +914,7 @@ mod tests {
     #[test]
     fn applies_monochrome_and_and_xor_masks() {
         let mut frame = pixels(&[100, 100]);
-        let shape = PointerShape {
+        let shape = DuplicatedShape {
             kind: DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME.0,
             width: 2,
             height: 2,
@@ -865,7 +928,7 @@ mod tests {
     #[test]
     fn masked_colour_pointers_replace_or_invert() {
         let mut frame = pixels(&[100, 100]);
-        let shape = PointerShape {
+        let shape = DuplicatedShape {
             kind: DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR.0,
             width: 2,
             height: 1,
@@ -874,5 +937,61 @@ mod tests {
         };
         draw_pointer(&mut frame, 2, 1, &shape, 0, 0);
         assert_eq!(frame, pixels(&[10, 155]));
+    }
+
+    #[test]
+    fn monochrome_pointers_become_transparent_black_or_white() {
+        let shape = DuplicatedShape {
+            kind: DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME.0,
+            width: 4,
+            height: 2,
+            pitch: 1,
+            data: vec![0b1001_0000, 0b0011_0000],
+        };
+        assert_eq!(
+            straight_rgba(&shape),
+            (
+                4,
+                1,
+                vec![0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0xff, 0xff, 0xff, 0, 0, 0, 0xff]
+            )
+        );
+    }
+
+    #[test]
+    fn masked_colour_pointers_keep_their_colour_and_blacken_inversions() {
+        let shape = DuplicatedShape {
+            kind: DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR.0,
+            width: 3,
+            height: 1,
+            pitch: 12,
+            data: vec![10, 20, 30, 0, 0, 0, 0, 0xff, 5, 6, 7, 0xff],
+        };
+        assert_eq!(
+            straight_rgba(&shape),
+            (3, 1, vec![30, 20, 10, 0xff, 0, 0, 0, 0, 0, 0, 0, 0xff])
+        );
+    }
+
+    #[test]
+    fn colour_pointers_swap_bgra_to_rgba_and_skip_row_padding() {
+        let shape = DuplicatedShape {
+            kind: DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR.0,
+            width: 2,
+            height: 2,
+            pitch: 12,
+            data: vec![
+                1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, //
+                9, 10, 11, 12, 13, 14, 15, 16, 0, 0, 0, 0,
+            ],
+        };
+        assert_eq!(
+            straight_rgba(&shape),
+            (
+                2,
+                2,
+                vec![3, 2, 1, 4, 7, 6, 5, 8, 11, 10, 9, 12, 15, 14, 13, 16]
+            )
+        );
     }
 }

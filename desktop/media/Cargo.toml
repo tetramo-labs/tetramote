@@ -11,6 +11,7 @@ tetra_core = { path = "../../core" }
 audiopus = "0.3.0-rc.0"
 cpal = "0.18"
 openh264 = "0.9"
+png = "0.18"
 thiserror = "2"
 log = "0.4"
 

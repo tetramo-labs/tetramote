@@ -29,6 +29,7 @@ interface RemoteSurfaceProps {
 export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfaceProps) {
   const video = useSessionStore((s) => s.video)
   const inputMode = useSessionStore((s) => s.inputMode)
+  const pointerShape = useSessionStore((s) => s.pointerShape)
   const [speed] = useSetting("trackpad_speed")
   const [pointerMode] = useSetting("pointer_mode")
   const [showLocalPointer] = useSetting("show_local_pointer")
@@ -75,6 +76,7 @@ export function RemoteSurface({zoomControls, onThreeFingerTap}: RemoteSurfacePro
           {painted && video.pointWidth > 0 && (
             <LocalPointer
               pointer={zoomControls.pointer}
+              shape={pointerShape}
               frame={frame}
               pointWidth={video.pointWidth}
               scale={Number(pointerSize) / 100}

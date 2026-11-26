@@ -11,6 +11,7 @@ pub use tetra_core::input::InputRecord;
 mod host;
 mod opus;
 pub mod playback;
+mod pointer;
 
 #[cfg(target_os = "linux")]
 mod linux;
@@ -29,6 +30,7 @@ use macos as platform;
 use windows as platform;
 
 pub use opus::{OpusDecoder, OpusEncoder, OPUS_CHANNELS, OPUS_FRAME_SAMPLES, OPUS_SAMPLE_RATE};
+pub use pointer::PointerShape;
 
 #[derive(Debug, thiserror::Error)]
 pub enum MediaError {
@@ -107,6 +109,9 @@ pub trait StreamSink: Send + Sync {
     fn on_video(&self, frame: EncodedFrame);
     fn on_audio(&self, packet: AudioPacket);
     fn on_error(&self, error: MediaError);
+    /// Called with the pointer's first image and then on each change; never
+    /// on a platform that can't read the pointer's image.
+    fn on_pointer(&self, _shape: PointerShape) {}
 }
 
 /// A running capture. Dropping it stops capture and encoding.

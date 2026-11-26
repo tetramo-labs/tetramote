@@ -39,6 +39,7 @@ export type HostMessage =
     }
   | {t: "audio"; codec: "opus"; sampleRate: number; channels: number; frameMs: number}
   | {t: "clipboard"; text: string}
+  | {t: "pointer"; png: string; width: number; height: number; hotX: number; hotY: number}
 
 export type PhoneMessage =
   | ({t: "stream"} & StreamPrefs)
