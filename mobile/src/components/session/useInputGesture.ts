@@ -15,8 +15,11 @@ import type {SharedValue} from "react-native-reanimated"
 import {sendInput} from "@/services/remote"
 import {
   acceleration,
+  clampOffset,
   ClickCounter,
   DIRECT_RIGHT_CLICK_MS,
+  FOLLOW_MARGIN,
+  followOffset,
   HOLD_DRAG_MS,
   momentumSteps,
   normalize,
@@ -51,11 +54,6 @@ interface InputGestureOptions {
   absolute: boolean
   zoomControls: ZoomControls
   onThreeFingerTap: () => void
-}
-
-function clampOffset(offset: number, content: number, container: number, zoom: number) {
-  const max = Math.max(0, (content * zoom - container) / 2)
-  return Math.min(max, Math.max(-max, offset))
 }
 
 /**
@@ -119,12 +117,15 @@ export function useInputGesture({
         sendInput([{kind: "move", dx: e.changeX * k, dy: e.changeY * k}])
         return
       }
-      const shown = view.value.frame
+      const {frame: shown, container: box} = view.value
       if (pointWidth <= 0 || shown.width <= 0) return
       const pointHeight = (pointWidth * shown.height) / shown.width
       const x = Math.min(1, Math.max(0, pointer.value.x + (e.changeX * k) / pointWidth))
       const y = Math.min(1, Math.max(0, pointer.value.y + (e.changeY * k) / pointHeight))
       pointer.value = {x, y}
+      const follow = followOffset({x, y}, shown, box, zoom.value, {x: offsetX.value, y: offsetY.value}, FOLLOW_MARGIN)
+      offsetX.value = follow.x
+      offsetY.value = follow.y
       sendInput([{kind: "moveTo", x, y}])
     }
     const putPointer = (p: {x: number; y: number}) => {

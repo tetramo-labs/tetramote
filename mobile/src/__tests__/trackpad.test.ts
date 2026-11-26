@@ -1,4 +1,4 @@
-import {acceleration, ClickCounter, momentumSteps, normalize, pointerGain} from "@/services/trackpad"
+import {acceleration, ClickCounter, followOffset, momentumSteps, normalize, pointerGain} from "@/services/trackpad"
 
 describe("pointerGain", () => {
   it("maps the visible stream width to the Mac's width in points", () => {
@@ -46,5 +46,37 @@ describe("momentumSteps", () => {
     expect(steps[1].dy).toBeCloseTo(14.72)
     expect(Math.abs(steps[steps.length - 1].dy)).toBeGreaterThanOrEqual(0.5)
     expect(momentumSteps(0, 10)).toEqual([])
+  })
+})
+
+describe("followOffset", () => {
+  const frame = {width: 400, height: 250}
+  const container = {width: 400, height: 250}
+
+  it("leaves the view alone while the pointer is inside the margin", () => {
+    expect(followOffset({x: 0.5, y: 0.5}, frame, container, 2, {x: 0, y: 0}, 32)).toEqual({x: 0, y: 0})
+    expect(followOffset({x: 0.55, y: 0.45}, frame, container, 2, {x: 50, y: -20}, 32)).toEqual({x: 50, y: -20})
+  })
+
+  it("shifts the view by exactly how far the pointer passes each edge's margin", () => {
+    expect(followOffset({x: 0.75, y: 0.5}, frame, container, 2, {x: 0, y: 0}, 32)).toEqual({x: -32, y: 0})
+    expect(followOffset({x: 0.25, y: 0.5}, frame, container, 2, {x: 0, y: 0}, 32)).toEqual({x: 32, y: 0})
+    expect(followOffset({x: 0.5, y: 0.875}, frame, container, 2, {x: 0, y: 0}, 32)).toEqual({x: 0, y: -94.5})
+    expect(followOffset({x: 0.5, y: 0.125}, frame, container, 2, {x: 0, y: 0}, 32)).toEqual({x: 0, y: 94.5})
+  })
+
+  it("never pans past the edge of the zoomed screen", () => {
+    expect(followOffset({x: 1, y: 0}, frame, container, 2, {x: 0, y: 0}, 32)).toEqual({x: -200, y: 125})
+  })
+
+  it("keeps an axis centered while the zoomed screen still fits it", () => {
+    const tall = followOffset({x: 0.5, y: 1}, frame, {width: 400, height: 400}, 1.5, {x: 0, y: 0}, 32)
+    expect(tall.x).toBe(0)
+    expect(tall.y).toBeCloseTo(0)
+  })
+
+  it("never moves the view at zoom 1", () => {
+    expect(followOffset({x: 1, y: 1}, frame, container, 1, {x: 0, y: 0}, 32)).toEqual({x: 0, y: 0})
+    expect(followOffset({x: 0, y: 0}, frame, container, 1, {x: 5, y: -3}, 32)).toEqual({x: 5, y: -3})
   })
 })
