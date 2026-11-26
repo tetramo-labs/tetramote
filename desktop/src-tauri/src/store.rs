@@ -137,6 +137,9 @@ impl Store {
         };
         let json = serde_json::to_vec(&secrets).map_err(|e| e.to_string())?;
         let path = self.login_window_path();
+        if let Some(dir) = path.parent() {
+            let _ = fs::create_dir_all(dir);
+        }
         let _ = fs::remove_file(&path);
         let mut options = fs::OpenOptions::new();
         options.write(true).create_new(true);
