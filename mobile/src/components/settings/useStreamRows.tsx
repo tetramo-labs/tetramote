@@ -1,7 +1,7 @@
 import {useState, type ReactElement} from "react"
 
 import {Row, ToggleRow} from "@/components/ui/Rows"
-import {Segmented} from "@/components/ui/Segmented"
+import {Dropdown} from "@/components/ui/Dropdown"
 import {Slider} from "@/components/ui/Slider"
 import {applyStreamSettings} from "@/services/remote"
 import {useSetting} from "@/stores/settings"
@@ -18,8 +18,8 @@ export function useStreamRows(): ReactElement[] {
     <Row
       key="resolution"
       labelTx="settings:resolution"
-      below={
-        <Segmented
+      trailing={
+        <Dropdown
           value={resolution}
           onChange={(value) => {
             setResolution(value)
@@ -39,8 +39,8 @@ export function useStreamRows(): ReactElement[] {
     <Row
       key="fps"
       labelTx="settings:maxFps"
-      below={
-        <Segmented
+      trailing={
+        <Dropdown
           value={fps}
           onChange={(value) => {
             setFps(value)

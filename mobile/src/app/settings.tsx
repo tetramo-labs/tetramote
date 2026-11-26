@@ -8,6 +8,7 @@ import {Header} from "@/components/ignite/Header"
 import {Screen} from "@/components/ignite/Screen"
 import {Text} from "@/components/ignite/Text"
 import {useStreamRows} from "@/components/settings/useStreamRows"
+import {Dropdown} from "@/components/ui/Dropdown"
 import {Group} from "@/components/ui/Group"
 import {Row, ToggleRow} from "@/components/ui/Rows"
 import {Segmented} from "@/components/ui/Segmented"
@@ -152,6 +153,35 @@ export default function SettingsScreen() {
             />
           }
         />
+        <ToggleRow labelTx="settings:startFullScreen" value={startFullScreen} onValueChange={setStartFullScreen} />
+        <Row
+          labelTx="settings:hardwareKeyboard"
+          trailing={
+            <Segmented
+              value={hardwareKeyboard}
+              onChange={setHardwareKeyboard}
+              options={[
+                {value: "raw", tx: "settings:hardwareRaw"},
+                {value: "translated", tx: "settings:hardwareTranslated"},
+              ]}
+            />
+          }
+        />
+        <ToggleRow
+          labelTx="settings:autoHide"
+          subtitleTx="settings:autoHideHint"
+          value={autoHide}
+          onValueChange={setAutoHide}
+        />
+        <ToggleRow
+          labelTx="settings:connectionDetails"
+          value={connectionDetails}
+          onValueChange={setConnectionDetails}
+        />
+        <ToggleRow labelTx="settings:playAudio" value={playAudio} onValueChange={setPlayAudio} />
+      </Group>
+
+      <Group titleTx="settings:pointer">
         <Row
           labelTx="settings:pointerMode"
           trailing={
@@ -182,7 +212,7 @@ export default function SettingsScreen() {
           <Row
             labelTx="settings:pointerSize"
             trailing={
-              <Segmented
+              <Dropdown
                 value={pointerSize}
                 onChange={setPointerSize}
                 options={[
@@ -195,32 +225,6 @@ export default function SettingsScreen() {
             }
           />
         )}
-        <ToggleRow labelTx="settings:startFullScreen" value={startFullScreen} onValueChange={setStartFullScreen} />
-        <Row
-          labelTx="settings:hardwareKeyboard"
-          trailing={
-            <Segmented
-              value={hardwareKeyboard}
-              onChange={setHardwareKeyboard}
-              options={[
-                {value: "raw", tx: "settings:hardwareRaw"},
-                {value: "translated", tx: "settings:hardwareTranslated"},
-              ]}
-            />
-          }
-        />
-        <ToggleRow
-          labelTx="settings:autoHide"
-          subtitleTx="settings:autoHideHint"
-          value={autoHide}
-          onValueChange={setAutoHide}
-        />
-        <ToggleRow
-          labelTx="settings:connectionDetails"
-          value={connectionDetails}
-          onValueChange={setConnectionDetails}
-        />
-        <ToggleRow labelTx="settings:playAudio" value={playAudio} onValueChange={setPlayAudio} />
       </Group>
 
       <Group titleTx="settings:appearance">
