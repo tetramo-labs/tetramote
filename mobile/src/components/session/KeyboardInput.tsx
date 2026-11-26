@@ -43,7 +43,8 @@ function AboveRail({children}: {children: ReactNode}) {
  * as text records, and with a modifier held a character becomes a shortcut.
  * Modifiers are one-shot, like sticky keys. With a hardware keyboard on iOS,
  * useHardwareKeyboard sends its delete and return keys (and, Raw, every key),
- * so the field leaves those alone.
+ * so the field leaves those alone. Only Android blurs the field when its keyboard
+ * hides: iOS hides it the moment the field focuses with a hardware keyboard attached.
  */
 export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null}>(function KeyboardInput(
   {dockTop},
@@ -57,6 +58,7 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   const [hardwareMode] = useSetting("hardware_keyboard")
 
   useEffect(() => {
+    if (Platform.OS !== "android") return
     const hidden = Keyboard.addListener("keyboardDidHide", () => input.current?.blur())
     return () => hidden.remove()
   }, [])

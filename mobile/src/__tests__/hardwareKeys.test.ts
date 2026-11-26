@@ -37,4 +37,28 @@ describe("HardwareKeys", () => {
     keys.handle({usage: 0xe0, down: true}, "translated")
     expect(keys.handle({usage: 0x04, down: true}, "translated")).toMatchObject({send: [{keyCode: 0x00}]})
   })
+
+  it("leaves shifted characters to the phone's text field on iOS when translated", () => {
+    const keys = new HardwareKeys()
+    keys.handle({usage: 0xe1, down: true}, "translated")
+    expect(keys.handle({usage: 0x04, down: true}, "translated")).toEqual({ignore: true})
+    expect(keys.handle({usage: 0x1e, down: true}, "translated")).toEqual({ignore: true})
+  })
+
+  it("sends Return, Delete and Command shortcuts by position when translated", () => {
+    const keys = new HardwareKeys()
+    expect(keys.handle({usage: 0x28, down: true}, "translated")).toEqual({
+      send: [{kind: "key", keyCode: 0x24, down: true, flags: 0}],
+      repeat: true,
+    })
+    expect(keys.handle({usage: 0x2a, down: true}, "translated")).toEqual({
+      send: [{kind: "key", keyCode: 0x33, down: true, flags: 0}],
+      repeat: true,
+    })
+    keys.handle({usage: 0xe3, down: true}, "translated")
+    expect(keys.handle({usage: 0x06, down: true}, "translated")).toEqual({
+      send: [{kind: "key", keyCode: 0x08, down: true, flags: FLAG_COMMAND}],
+      repeat: true,
+    })
+  })
 })

@@ -42,7 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pointer_mode: "absolute",
   show_local_pointer: true,
   pointer_size: "100",
-  hardware_keyboard: "raw",
+  hardware_keyboard: "translated",
   stream_bitrate_auto: true,
   stream_bitrate_mbps: 8,
   stream_resolution: "auto",
@@ -57,6 +57,22 @@ export const DEFAULT_SETTINGS: Settings = {
 }
 
 const STORAGE_KEY = "settings"
+const VERSION = 1
+
+type StoredSettings = Partial<Settings> & {version?: number}
+
+/**
+ * Settings as saved, brought up to VERSION. Saves before version 1 wrote Raw, the hardware keyboard's old
+ * default, whether or not anyone picked it, so a Raw from then becomes Translated.
+ */
+function migrate({version = 0, ...settings}: StoredSettings): Partial<Settings> {
+  if (version < 1 && settings.hardware_keyboard === "raw") return {...settings, hardware_keyboard: "translated"}
+  return settings
+}
+
+function persist(settings: Settings) {
+  save(STORAGE_KEY, {...settings, version: VERSION})
+}
 
 interface SettingsState {
   settings: Settings
@@ -65,15 +81,15 @@ interface SettingsState {
 }
 
 export const useSettingsStore = create<SettingsState>()((set, get) => ({
-  settings: {...DEFAULT_SETTINGS, ...load<Partial<Settings>>(STORAGE_KEY).value_or({})},
+  settings: {...DEFAULT_SETTINGS, ...migrate(load<StoredSettings>(STORAGE_KEY).value_or({}))},
   setSetting: (key, value) => {
     const settings = {...get().settings, [key]: value}
     set({settings})
-    save(STORAGE_KEY, settings)
+    persist(settings)
   },
   reset: () => {
     set({settings: DEFAULT_SETTINGS})
-    save(STORAGE_KEY, DEFAULT_SETTINGS)
+    persist(DEFAULT_SETTINGS)
   },
 }))
 
