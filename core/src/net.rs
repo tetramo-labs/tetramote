@@ -3,6 +3,7 @@ use std::sync::mpsc;
 use std::sync::OnceLock;
 use std::time::Duration;
 
+use iroh::dns::{DnsResolver, FallbackMode};
 use iroh::endpoint::{presets, Connection};
 use iroh::{Endpoint, EndpointAddr, EndpointId, RelayMode, RelayUrl, SecretKey};
 use iroh_tickets::endpoint::EndpointTicket;
@@ -42,13 +43,13 @@ pub async fn bind(config: &EndpointConfig) -> Result<Endpoint, String> {
             .bind_addr("127.0.0.1:0")
             .map_err(|e| format!("bad bind address: {e}"))?
     } else {
-        let mut b = Endpoint::builder(presets::N0);
-        if let Some(url) = config
+        let custom_relay = config
             .relay_url
             .as_deref()
             .map(str::trim)
-            .filter(|u| !u.is_empty())
-        {
+            .filter(|u| !u.is_empty());
+        let mut b = Endpoint::builder(presets::N0).dns_resolver(resolver(custom_relay.is_some()));
+        if let Some(url) = custom_relay {
             let url = RelayUrl::from_str(url)
                 .map_err(|e| format!("relay URL {url:?} is invalid: {e}"))?;
             b = b.relay_mode(RelayMode::custom([url]));
@@ -61,6 +62,18 @@ pub async fn bind(config: &EndpointConfig) -> Result<Endpoint, String> {
         .bind()
         .await
         .map_err(|e| format!("iroh endpoint bind failed: {e}"))
+}
+
+/// Public resolvers (plain DNS and DNS over HTTPS) raced together, rather than the system's nameservers, which
+/// can be stale or unreachable (a network's servers kept after moving to another) and then stall every lookup.
+/// Tetramote only looks up public names; a custom relay keeps the system's nameservers in case its name is private.
+fn resolver(custom_relay: bool) -> DnsResolver {
+    let builder = DnsResolver::builder().with_fallback_mode(FallbackMode::Eager);
+    if custom_relay {
+        builder.with_system_defaults().build()
+    } else {
+        builder.build()
+    }
 }
 
 pub fn parse_addr(ticket: Option<&str>, endpoint_id: &str) -> Result<EndpointAddr, String> {
