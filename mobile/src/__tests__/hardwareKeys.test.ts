@@ -61,4 +61,19 @@ describe("HardwareKeys", () => {
       repeat: true,
     })
   })
+  it("releases a shortcut's key by position when Command is let go first, translated", () => {
+    const keys = new HardwareKeys()
+    keys.handle({usage: 0xe3, down: true}, "translated")
+    expect(keys.handle({usage: 0x06, down: true}, "translated")).toEqual({
+      send: [{kind: "key", keyCode: 0x08, down: true, flags: FLAG_COMMAND}],
+      repeat: true,
+    })
+    keys.handle({usage: 0xe3, down: false}, "translated")
+    expect(keys.handle({usage: 0x06, down: false}, "translated")).toEqual({
+      send: [{kind: "key", keyCode: 0x08, down: false, flags: 0}],
+      repeat: false,
+    })
+    expect(keys.handle({usage: 0x06, down: true}, "translated")).toEqual({ignore: true})
+    expect(keys.handle({usage: 0x06, down: false}, "translated")).toEqual({ignore: true})
+  })
 })

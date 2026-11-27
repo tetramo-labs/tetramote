@@ -211,6 +211,7 @@ export type KeyAction = {send: InputEvent[]; repeat: boolean} | {type: string} |
  */
 export class HardwareKeys {
   private held = new Set<number>()
+  private byPosition = new Set<number>()
 
   flags(): number {
     let flags = 0
@@ -220,6 +221,7 @@ export class HardwareKeys {
 
   release() {
     this.held.clear()
+    this.byPosition.clear()
   }
 
   handle(event: HardwareKeyEvent, mode: HardwareKeyboardMode, sticky = 0): KeyAction {
@@ -234,11 +236,13 @@ export class HardwareKeys {
     }
     const flags = this.flags()
     const shortcut = (flags & (FLAG_COMMAND | FLAG_CONTROL)) !== 0
-    if (mode === "translated" && !modifier && typesText(usage) && !shortcut) {
+    const releasesByPosition = !event.down && this.byPosition.delete(usage)
+    if (mode === "translated" && !modifier && typesText(usage) && !shortcut && !releasesByPosition) {
       if (event.usage !== undefined) return {ignore: true}
       if (!event.down || !event.unicode) return {ignore: true}
       return {type: String.fromCodePoint(event.unicode)}
     }
+    if (event.down && !modifier) this.byPosition.add(usage)
     return {
       send: [{kind: "key", keyCode: mac, down: event.down, flags: modifier ? flags : flags | sticky}],
       repeat: event.down && !modifier,
