@@ -1,39 +1,159 @@
 name: Release desktop
 
-# Started by scripts/release-desktop.sh after it has created the draft release
-# and uploaded the macOS build; this adds Windows and Linux to the same release
-# and merges their entries into its latest.json.
+# Publishes the desktop app at the commit it runs on, as the release v<version>: a draft release, the signed
+# universal macOS build on the self-hosted Mac, Windows and Linux on GitHub's runners, then publishes once
+# latest.json lists every platform installed copies update from. scripts/release-desktop.sh stamps the version
+# and starts it. Manual only: the repo is public, so nothing a pull request controls may reach the Mac.
 on:
   workflow_dispatch:
     inputs:
-      commit:
-        description: Commit the draft release targets (its tag only exists once it's published)
+      version:
+        description: Version to publish; must match desktop/src-tauri/tauri.conf.json at this commit
         required: true
-      release_id:
-        description: Id of the draft release to upload to
-        required: true
-      platforms:
-        description: Which builds to run (one, to redo just that one)
-        type: choice
-        default: all
-        options: [all, windows-latest, ubuntu-24.04]
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-desktop
+  cancel-in-progress: false
+
+env:
+  VERSION: ${{ inputs.version }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
-  build:
+  draft:
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.release.outputs.id }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the version
+        run: |
+          stamped="$(jq -r .version desktop/src-tauri/tauri.conf.json)"
+          if [[ "$stamped" != "$VERSION" ]]; then
+            echo "::error::This commit is desktop $stamped, not $VERSION. Run scripts/release-desktop.sh $VERSION, which stamps the version first."
+            exit 1
+          fi
+
+      - name: Create the draft release
+        id: release
+        run: |
+          set -euo pipefail
+          existing="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq ".[] | select(.tag_name == \"v$VERSION\") | [.id, .draft] | @tsv" | head -1)"
+          if [[ -n "$existing" && "$(cut -f2 <<<"$existing")" != "true" ]]; then
+            echo "::error::v$VERSION is already published. Pick a higher version."
+            exit 1
+          fi
+          if [[ -z "$existing" ]]; then
+            gh release create "v$VERSION" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
+              --title "Tetramote $VERSION" --generate-notes
+            existing="$(gh api "repos/$GITHUB_REPOSITORY/releases" --jq ".[] | select(.tag_name == \"v$VERSION\") | [.id, .draft] | @tsv" | head -1)"
+          fi
+          echo "id=$(cut -f1 <<<"$existing")" >> "$GITHUB_OUTPUT"
+
+  macos:
+    needs: draft
+    runs-on: [self-hosted, macOS, ARM64, tetramote]
+    timeout-minutes: 90
+    concurrency:
+      group: tetramote-mac-signing
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          clean: false
+
+      - name: Add runner tools to PATH
+        run: |
+          {
+            echo "/opt/homebrew/bin"
+            echo "/opt/homebrew/opt/rustup/bin"
+            echo "$HOME/.cargo/bin"
+            echo "$HOME/.bun/bin"
+          } >> "$GITHUB_PATH"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Rust targets
+        run: rustup target add --toolchain stable aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Frontend dependencies
+        working-directory: desktop
+        run: bun install --frozen-lockfile
+
+      - name: Stage the Apple Development identity in a job keychain
+        id: keychain
+        env:
+          APPLE_DEV_P12_B64: ${{ secrets.APPLE_DEV_P12_B64 }}
+          APPLE_DEV_P12_PASSWORD: ${{ secrets.APPLE_DEV_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$APPLE_DEV_P12_B64" || { echo "::error::Set the APPLE_DEV_P12_B64 secret to the base64 Apple Development .p12 (team B8446S9493)."; exit 1; }
+          p12="$RUNNER_TEMP/tetramote-desktop.p12"
+          printf '%s' "$APPLE_DEV_P12_B64" | tr -d '\r\n \t' | base64 -d > "$p12"
+          keychain="tetramote-desktop-${GITHUB_RUN_ID}.keychain-db"
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$password"
+          security delete-keychain "$keychain" 2>/dev/null || true
+          security create-keychain -p "$password" "$keychain"
+          echo "name=$keychain" >> "$GITHUB_OUTPUT"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$p12" -k "$keychain" -P "$APPLE_DEV_P12_PASSWORD" -T /usr/bin/codesign
+          rm -f "$p12"
+          for wwdr in G3 G6; do
+            certificate="$RUNNER_TEMP/AppleWWDRCA$wwdr.cer"
+            curl --fail --silent --show-error --location "https://www.apple.com/certificateauthority/AppleWWDRCA$wwdr.cer" -o "$certificate"
+            security import "$certificate" -k "$keychain" 2>&1 | grep -v "already exists" || true
+          done
+          security set-key-partition-list -S "apple-tool:,apple:,codesign:" -s -k "$password" "$keychain" >/dev/null
+          keychains=("$keychain")
+          while IFS= read -r existing; do
+            existing="${existing#*\"}"
+            existing="${existing%\"*}"
+            [[ -n "$existing" && "$existing" != *"$keychain"* ]] && keychains+=("$existing")
+          done < <(security list-keychains -d user)
+          security list-keychains -d user -s "${keychains[@]}"
+          identity="$(security find-identity -v -p codesigning "$keychain" | awk '/"Apple Development: .*"/ { print $2; exit }')"
+          test -n "$identity" || { echo "::error::APPLE_DEV_P12_B64 holds no valid Apple Development identity. Export it again on the Mac that has it."; exit 1; }
+          echo "APPLE_SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        with:
+          projectPath: desktop
+          tauriScript: bunx tauri
+          args: --target universal-apple-darwin
+          releaseId: ${{ needs.draft.outputs.release_id }}
+          includeUpdaterJson: true
+
+      - name: Remove the job keychain
+        if: always()
+        env:
+          SIGNING_KEYCHAIN: ${{ steps.keychain.outputs.name }}
+        run: |
+          if [[ -n "${SIGNING_KEYCHAIN:-}" ]]; then
+            security delete-keychain "$SIGNING_KEYCHAIN" 2>/dev/null || true
+          fi
+
+  others:
+    needs: [draft, macos]
     strategy:
       fail-fast: false
       matrix:
         # 24.04 because the PipeWire crate needs newer headers than 22.04 ships
         # (so the Linux builds need glibc 2.39+).
-        platform: ${{ inputs.platforms == 'all' && fromJSON('["windows-latest", "ubuntu-24.04"]') || fromJSON(format('["{0}"]', inputs.platforms)) }}
+        platform: [windows-latest, ubuntu-24.04]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.commit }}
+      - uses: actions/checkout@v5
       - name: Linux packages
         if: runner.os == 'Linux'
         run: |
@@ -52,11 +172,33 @@ jobs:
         run: bun install --frozen-lockfile
       - uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           projectPath: desktop
           tauriScript: bunx tauri
-          releaseId: ${{ inputs.release_id }}
+          releaseId: ${{ needs.draft.outputs.release_id }}
           includeUpdaterJson: true
           updaterJsonPreferNsis: true
+
+  publish:
+    needs: [draft, macos, others]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check latest.json covers every platform
+        env:
+          RELEASE_ID: ${{ needs.draft.outputs.release_id }}
+        run: |
+          set -euo pipefail
+          asset="$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" --jq '.assets[] | select(.name == "latest.json") | .id')"
+          test -n "$asset" || { echo "::error::The draft has no latest.json. Rerun the failed build job."; exit 1; }
+          gh api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$asset" > latest.json
+          jq -e --arg v "$VERSION" '.version == $v' latest.json >/dev/null || { echo "::error::latest.json is for $(jq -r .version latest.json), not $VERSION."; exit 1; }
+          for platform in darwin-aarch64 darwin-x86_64 windows-x86_64 linux-x86_64; do
+            jq -e --arg p "$platform" '.platforms[$p].url and .platforms[$p].signature' latest.json >/dev/null \
+              || { echo "::error::latest.json has no $platform entry, so those copies wouldn't update. Rerun its build job."; exit 1; }
+          done
+          jq '.platforms | map_values(.url | split("/") | last)' latest.json
+
+      - name: Publish
+        run: gh release edit "v$VERSION" --repo "$GITHUB_REPOSITORY" --draft=false --latest

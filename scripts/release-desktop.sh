@@ -4,30 +4,26 @@
 #   scripts/release-desktop.sh 0.3.0
 #
 # 1. Stamps the version into the desktop app, commits and pushes it.
-# 2. Builds the universal macOS app here, signed with an Apple Development
-#    certificate of team B8446S9493 (always the same one, so macOS keeps the
-#    screen recording and accessibility grants across updates), and its
-#    updater bundle.
-# 3. Creates a draft GitHub release with the macOS build and latest.json (the
-#    updater feed).
-# 4. Runs .github/workflows/release-desktop.yml to add Windows and Linux,
-#    then publishes the release.
+# 2. Runs .github/workflows/release-desktop.yml on that commit and waits for it:
+#    a draft release, the universal macOS app signed on the self-hosted Mac with
+#    the Apple Development certificate in the APPLE_DEV_P12_B64 secret (always
+#    the same one, so macOS keeps the screen recording and accessibility grants
+#    across updates), Windows and Linux on GitHub's runners, and the updater feed
+#    (latest.json, signed with the TAURI_SIGNING_PRIVATE_KEY secret). It
+#    publishes once latest.json lists every platform.
 #
-# Needs a clean, pushed main, gh signed in, and the updater key at
-# ~/.tauri/tetramote.key.
+# Needs a clean, pushed main and gh signed in with the workflow scope. Runs on
+# any machine; the keys live in GitHub secrets.
 set -euo pipefail
 
 VERSION="${1:?usage: scripts/release-desktop.sh <version, e.g. 0.3.0>}"
 REPO="tetramo-labs/tetramote"
 TAG="v$VERSION"
-TEAM="B8446S9493"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DESKTOP="$ROOT/desktop"
-OUT="$DESKTOP/target/release-upload/$VERSION"
-export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-2}"
 
 if [[ -n "$(git -C "$ROOT" status --porcelain -- desktop core scripts .github)" ]]; then
-  echo "desktop/, core/, scripts/ or .github/ has uncommitted changes. Commit them first; a release is built from HEAD." >&2
+  echo "desktop/, core/, scripts/ or .github/ has uncommitted changes. Commit them first; a release is built from main." >&2
   exit 1
 fi
 git -C "$ROOT" fetch -q origin main
@@ -35,28 +31,10 @@ if [[ "$(git -C "$ROOT" rev-parse HEAD)" != "$(git -C "$ROOT" rev-parse origin/m
   echo "HEAD is not origin/main. Push (or pull) first." >&2
   exit 1
 fi
-if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-  echo "Release $TAG already exists. Pick a higher version." >&2
+if [[ "$(gh release view "$TAG" --repo "$REPO" --json isDraft --jq .isDraft 2>/dev/null || true)" == "false" ]]; then
+  echo "Release $TAG is already published. Pick a higher version." >&2
   exit 1
 fi
-
-IDENTITY="$(python3 - "$TEAM" <<'PY'
-import re, subprocess, sys
-team = sys.argv[1]
-ids = subprocess.run(["security", "find-identity", "-v", "-p", "codesigning"], capture_output=True, text=True).stdout
-for sha, name in re.findall(r'\)\s+([0-9A-F]{40})\s+"(Apple Development: [^"]+)"', ids):
-    pem = subprocess.run(["security", "find-certificate", "-c", name, "-p", "-Z"], capture_output=True, text=True).stdout
-    for block in pem.split("SHA-1 hash: ")[1:]:
-        if not block.startswith(sha):
-            continue
-        cert = block[block.index("-----BEGIN"):]
-        subject = subprocess.run(["openssl", "x509", "-noout", "-subject"], input=cert, capture_output=True, text=True).stdout
-        if f"OU={team}" in subject.replace(" ", "") or f"OU = {team}" in subject:
-            print(sha)
-            sys.exit(0)
-sys.exit(1)
-PY
-)" || { echo "No valid Apple Development certificate for team $TEAM in the keychain. Add one in Xcode > Settings > Accounts." >&2; exit 1; }
 
 python3 - "$DESKTOP" "$VERSION" <<'PY'
 import json, re, sys
@@ -80,56 +58,20 @@ if ! git -C "$ROOT" diff --cached --quiet; then
   git -C "$ROOT" push -q origin HEAD:main
 fi
 
-rustup target add aarch64-apple-darwin x86_64-apple-darwin >/dev/null
-export APPLE_SIGNING_IDENTITY="$IDENTITY"
-export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/tetramote.key)"
-export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
-(cd "$DESKTOP" && bun install --frozen-lockfile >/dev/null && CI=true bunx tauri build --target universal-apple-darwin)
-
-BUNDLE="$DESKTOP/target/universal-apple-darwin/release/bundle"
-APP="$BUNDLE/macos/Tetramote.app"
-codesign --verify --deep --strict "$APP"
-rm -rf "$OUT" && mkdir -p "$OUT"
-cp "$BUNDLE/macos/Tetramote.app.tar.gz" "$OUT/Tetramote_universal.app.tar.gz"
-cp "$BUNDLE/macos/Tetramote.app.tar.gz.sig" "$OUT/Tetramote_universal.app.tar.gz.sig"
-cp "$BUNDLE"/dmg/*.dmg "$OUT/Tetramote_${VERSION}_universal.dmg"
-
-URL="https://github.com/$REPO/releases/download/$TAG/Tetramote_universal.app.tar.gz"
-python3 - "$OUT" "$VERSION" "$URL" <<'PY'
-import datetime, json, sys
-out, version, url = sys.argv[1:]
-sig = open(f"{out}/Tetramote_universal.app.tar.gz.sig").read().strip()
-entry = {"signature": sig, "url": url}
-manifest = {
-    "version": version,
-    "notes": f"Tetramote {version}",
-    "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    "platforms": {"darwin-aarch64": entry, "darwin-x86_64": entry},
-}
-open(f"{out}/latest.json", "w").write(json.dumps(manifest, indent=2) + "\n")
-PY
-
 COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
-gh release create "$TAG" --repo "$REPO" --draft --target "$COMMIT" \
-  --title "Tetramote $VERSION" --generate-notes \
-  "$OUT/Tetramote_universal.app.tar.gz" "$OUT/Tetramote_universal.app.tar.gz.sig" \
-  "$OUT/Tetramote_${VERSION}_universal.dmg" "$OUT/latest.json"
-RELEASE_ID="$(gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\") | .id" | head -1)"
-
 DISPATCHED="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-gh workflow run release-desktop.yml --repo "$REPO" --ref main -f commit="$COMMIT" -f release_id="$RELEASE_ID"
+gh workflow run release-desktop.yml --repo "$REPO" --ref main -f version="$VERSION"
 RUN=""
 for _ in $(seq 1 30); do
-  RUN="$(gh run list --repo "$REPO" --workflow release-desktop.yml --limit 5 --json databaseId,createdAt \
-    --jq "[.[] | select(.createdAt >= \"$DISPATCHED\")][0].databaseId // empty")"
+  RUN="$(gh run list --repo "$REPO" --workflow release-desktop.yml --limit 5 --json databaseId,createdAt,headSha \
+    --jq "[.[] | select(.createdAt >= \"$DISPATCHED\" and .headSha == \"$COMMIT\")][0].databaseId // empty")"
   [[ -n "$RUN" ]] && break
   sleep 2
 done
-[[ -n "$RUN" ]] || { echo "The Windows/Linux build didn't start. Run release-desktop.yml by hand with commit=$COMMIT release_id=$RELEASE_ID." >&2; exit 1; }
+[[ -n "$RUN" ]] || { echo "The release workflow didn't start. Run release-desktop.yml by hand with version=$VERSION." >&2; exit 1; }
+echo "Releasing $TAG from $COMMIT: https://github.com/$REPO/actions/runs/$RUN"
 gh run watch "$RUN" --repo "$REPO" --exit-status || {
-  echo "The Windows/Linux build failed; the draft release stays. Fix it, run release-desktop.yml with commit=$COMMIT release_id=$RELEASE_ID (platforms=<the failed one> redoes just that build), then: gh release edit $TAG --repo $REPO --draft=false --latest" >&2
+  echo "The release failed; the draft release $TAG stays. Fix it, then run release-desktop.yml again with version=$VERSION (it reuses the draft)." >&2
   exit 1
 }
-
-gh release edit "$TAG" --repo "$REPO" --draft=false --latest
 echo "Published $TAG. Updater feed: https://github.com/$REPO/releases/latest/download/latest.json"

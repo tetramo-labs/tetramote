@@ -3,8 +3,8 @@
 Tetramote's iOS jobs (the Rust core for iOS, the Expo app built with Xcode 27.1+ for the iPhone Duo, Maestro
 screenshots, App Store Connect uploads) run on a self-hosted Apple Silicon Mac. Workflows target it with
 `runs-on: [self-hosted, macOS, ARM64, tetramote]`. Pushes to `main` also run the macOS leg of `desktop.yml` and the
-`mobile.yml` check there. Pull requests, the Windows and Linux legs, and `release-desktop.yml` stay on GitHub-hosted
-runners.
+`mobile.yml` check there, and `release-desktop.yml` builds and signs the macOS desktop app there. Pull requests and
+the Windows and Linux builds stay on GitHub-hosted runners.
 
 The runner shares a Mac and its macOS user with the Glassly runners (`bob`, `kevin`). The two setups stay apart:
 

@@ -64,13 +64,16 @@ cd web && bunx vitest run && bun run build && bunx eslint .
 
 ## Releases and updates
 
-`scripts/release-desktop.sh <version>` publishes the desktop app as the GitHub release `v<version>`: it
-builds and signs the universal macOS app on this Mac, then `.github/workflows/release-desktop.yml` adds the
-Windows and Linux builds. With "Check for and install updates automatically" on (the default), installed
-copies check `latest.json` on the newest release every few hours and install while nothing is connected. Updates are signed with
-the updater key (`~/.tauri/tetramote.key`, also the `TAURI_SIGNING_PRIVATE_KEY` Actions secret); back it up,
-since installed copies only accept updates signed with it. The macOS app is signed with an Apple Development
-certificate and not notarized for now.
+`scripts/release-desktop.sh <version>` publishes the desktop app as the GitHub release `v<version>` from any
+machine: it stamps the version, pushes, and runs `.github/workflows/release-desktop.yml`, which builds and signs
+the universal macOS app on the self-hosted Mac, adds the Windows and Linux builds, and publishes once
+`latest.json` lists every platform. With "Check for and install updates automatically" on (the default),
+installed copies check `latest.json` on the newest release every few hours and install while nothing is
+connected. Updates are signed with the updater key (`~/.tauri/tetramote.key`, also the
+`TAURI_SIGNING_PRIVATE_KEY` Actions secret); back it up, since installed copies only accept updates signed with
+it. The macOS app is signed with an Apple Development certificate (the `APPLE_DEV_P12_B64` and
+`APPLE_DEV_P12_PASSWORD` secrets; keep it the same certificate, or macOS drops the app's Screen Recording and
+Accessibility grants on update) and not notarized for now.
 
 ## iPhone Duo
 
