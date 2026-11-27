@@ -127,6 +127,7 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          TAURI_BUNDLER_DMG_IGNORE_CI: "false"
         with:
           projectPath: desktop
           tauriScript: bunx tauri
