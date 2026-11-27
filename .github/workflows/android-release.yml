@@ -1,0 +1,96 @@
+name: Android release
+
+# Builds the Google Play bundle signed with the upload key and uploads it to Play's internal testing track.
+# Started by hand or by mobile-release.yml on a version bump pushed to main. It runs on a GitHub-hosted
+# runner so the upload key never touches a machine that outlives the job.
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload the bundle to Play's internal testing track
+        type: boolean
+        default: true
+      build_number:
+        description: versionCode (defaults to the commit count; must exceed every uploaded build)
+        required: false
+  workflow_call:
+    inputs:
+      upload:
+        type: boolean
+        default: true
+      build_number:
+        type: string
+        required: false
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,x86_64-linux-android
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: core -> target
+
+      - name: cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - name: Install
+        working-directory: mobile
+        run: bun install --frozen-lockfile
+
+      - name: Stage the upload key
+        env:
+          ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_B64 }}
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_UPLOAD_KEYSTORE_B64" || { echo "::error::Set the ANDROID_UPLOAD_KEYSTORE_B64 secret to the base64 upload keystore (upload-keystore.jks)."; exit 1; }
+          printf '%s' "$ANDROID_UPLOAD_KEYSTORE_B64" | tr -d '\r\n \t' | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+          echo "TETRAMOTE_UPLOAD_STORE_FILE=$RUNNER_TEMP/upload-keystore.jks" >> "$GITHUB_ENV"
+
+      - name: Build the bundle
+        working-directory: mobile
+        env:
+          TETRAMOTE_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_STORE_PASSWORD }}
+          TETRAMOTE_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: bun android-release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tetramote.aab
+          path: mobile/build/android/Tetramote.aab
+          if-no-files-found: error
+
+      - name: Upload to Play's internal testing track
+        if: inputs.upload
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.tetramo.tetramote
+          releaseFiles: mobile/build/android/Tetramote.aab
+          track: internal
+          status: completed
+
+      - name: Remove the upload key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload-keystore.jks"

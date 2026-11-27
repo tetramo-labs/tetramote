@@ -5,7 +5,8 @@ import type {ConfigContext, ExpoConfig} from "expo/config"
 
 const SIGNING = `
         release {
-            def keystore = new File(System.getProperty("user.home"), ".tetramote/credentials/upload-keystore.jks")
+            def keystorePath = project.findProperty("TETRAMOTE_UPLOAD_STORE_FILE")
+            def keystore = keystorePath ? new File(keystorePath) : new File(System.getProperty("user.home"), ".tetramote/credentials/upload-keystore.jks")
             def password = project.findProperty("TETRAMOTE_UPLOAD_STORE_PASSWORD") ?: ""
             if (keystore.exists() && password) {
                 storeFile keystore
@@ -21,8 +22,8 @@ const SIGNING = `
         }`
 
 /**
- * Signs release builds with the Play upload key in ~/.tetramote/credentials when
- * TETRAMOTE_UPLOAD_STORE_PASSWORD is set (bun android-release does), else with the debug key.
+ * Signs release builds with the Play upload key (~/.tetramote/credentials, or TETRAMOTE_UPLOAD_STORE_FILE in CI)
+ * when TETRAMOTE_UPLOAD_STORE_PASSWORD is set (bun android-release does), else with the debug key.
  */
 const withReleaseSigning: ConfigPlugin = (config) =>
   withAppBuildGradle(config, (mod) => {

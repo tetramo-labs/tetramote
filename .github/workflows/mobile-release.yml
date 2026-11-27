@@ -1,0 +1,56 @@
+name: Mobile release
+
+# A push to main that changes the phone app's version (mobile/package.json) uploads that version to
+# TestFlight and to Play's internal testing track. Other pushes only run mobile.yml's checks.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/package.json"
+
+concurrency:
+  group: mobile-release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      bumped: ${{ steps.compare.outputs.bumped }}
+      version: ${{ steps.compare.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Compare with the previous push
+        id: compare
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          now="$(jq -r .version mobile/package.json)"
+          before="$(git show "$BEFORE:mobile/package.json" 2>/dev/null | jq -r .version || true)"
+          echo "version=$now" >> "$GITHUB_OUTPUT"
+          if [[ "$now" != "$before" ]]; then
+            echo "Phone app ${before:-?} -> $now: releasing."
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Phone app still $now: nothing to release."
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  ios:
+    needs: version
+    if: needs.version.outputs.bumped == 'true'
+    uses: ./.github/workflows/ios-release.yml
+    with:
+      upload: true
+    secrets: inherit
+
+  android:
+    needs: version
+    if: needs.version.outputs.bumped == 'true'
+    uses: ./.github/workflows/android-release.yml
+    with:
+      upload: true
+    secrets: inherit

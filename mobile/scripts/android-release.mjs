@@ -2,11 +2,13 @@
 // bun android-release [--skip-core]
 // Builds the Google Play bundle at build/android/Tetramote.aab, signed with the upload key in
 // ~/.tetramote/credentials/upload-keystore.jks whose password the macOS keychain holds; Play re-signs it.
+// CI passes the key and its password as TETRAMOTE_UPLOAD_STORE_FILE and TETRAMOTE_UPLOAD_STORE_PASSWORD.
 import {existsSync} from "node:fs"
 
 import {$, argv, cd, fs, path} from "zx"
 
-const KEYSTORE = path.join(process.env.HOME, ".tetramote/credentials/upload-keystore.jks")
+const KEYSTORE =
+  process.env.TETRAMOTE_UPLOAD_STORE_FILE || path.join(process.env.HOME, ".tetramote/credentials/upload-keystore.jks")
 const KEYCHAIN_SERVICE = "tetramote-android-upload"
 
 $.verbose = true
@@ -21,9 +23,11 @@ function fail(message) {
 if (!existsSync(KEYSTORE)) {
   fail(`No upload keystore at ${KEYSTORE}. Restore it from your backup; Play only accepts bundles signed with it.`)
 }
-const password = (
-  await $({quiet: true, nothrow: true})`security find-generic-password -s ${KEYCHAIN_SERVICE} -a upload-keystore -w`
-).stdout.trim()
+const password =
+  process.env.TETRAMOTE_UPLOAD_STORE_PASSWORD ||
+  (
+    await $({quiet: true, nothrow: true})`security find-generic-password -s ${KEYCHAIN_SERVICE} -a upload-keystore -w`
+  ).stdout.trim()
 if (!password) {
   fail(
     `The keychain has no ${KEYCHAIN_SERVICE} password. Add it with: security add-generic-password -s ${KEYCHAIN_SERVICE} -a upload-keystore -w`,
@@ -36,7 +40,11 @@ if (!argv["skip-core"] || !existsSync("modules/remote/android/src/main/jniLibs/a
 await $`bunx expo prebuild --platform android --clean --no-install`
 await $({
   cwd: "android",
-  env: {...process.env, ORG_GRADLE_PROJECT_TETRAMOTE_UPLOAD_STORE_PASSWORD: password},
+  env: {
+    ...process.env,
+    ORG_GRADLE_PROJECT_TETRAMOTE_UPLOAD_STORE_FILE: KEYSTORE,
+    ORG_GRADLE_PROJECT_TETRAMOTE_UPLOAD_STORE_PASSWORD: password,
+  },
 })`./gradlew bundleRelease`
 
 const built = path.resolve("android/app/build/outputs/bundle/release/app-release.aab")
