@@ -55,7 +55,10 @@ export interface ClientState {
   remoteStatus: {screenRecording: boolean; accessibility: boolean} | null
   playAudio: boolean
   hideLocalPointer: boolean
+  keyboardMode: KeyboardMode
 }
+
+export type KeyboardMode = "raw" | "translated"
 
 export interface SettingsView {
   relayUrl: string
@@ -68,6 +71,7 @@ export type ViewerInput =
   | {kind: "button"; button: number; down: boolean; clicks: number}
   | {kind: "scroll"; dx: number; dy: number}
   | {kind: "key"; code: string; down: boolean; flags: number}
+  | {kind: "text"; text: string}
 
 export const api = {
   hostState: () => invoke<HostState>("host_state"),
@@ -91,6 +95,7 @@ export const api = {
   selectDisplay: (id: number) => invoke<void>("viewer_select_display", {id}),
   setAudio: (enabled: boolean) => invoke<void>("viewer_set_audio", {enabled}),
   setHideLocalPointer: (hide: boolean) => invoke<void>("viewer_set_hide_local_pointer", {hide}),
+  setKeyboardMode: (mode: KeyboardMode) => invoke<void>("viewer_set_keyboard_mode", {mode}),
   keyframe: () => invoke<void>("viewer_keyframe"),
   quit: () => invoke<void>("app_quit"),
 }

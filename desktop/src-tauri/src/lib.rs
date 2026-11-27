@@ -136,6 +136,7 @@ pub fn run() {
             commands::viewer_select_display,
             commands::viewer_set_audio,
             commands::viewer_set_hide_local_pointer,
+            commands::viewer_set_keyboard_mode,
             commands::viewer_keyframe,
             commands::app_quit,
             commands::login_window_get,

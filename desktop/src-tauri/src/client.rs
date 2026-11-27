@@ -10,7 +10,7 @@ use tetra_core::{Client, ConnectRequest, EndpointConfig, Events};
 use tetra_media::playback::AudioPlayer;
 use tetra_media::InputRecord;
 
-use crate::store::{now_ms, SavedHost, Store};
+use crate::store::{now_ms, KeyboardMode, SavedHost, Store};
 use crate::{clipboard, system};
 
 pub const VIEWER: &str = "viewer";
@@ -46,6 +46,7 @@ pub struct ClientState {
     pub remote_status: Option<Value>,
     pub play_audio: bool,
     pub hide_local_pointer: bool,
+    pub keyboard_mode: KeyboardMode,
 }
 
 /// One input event from the viewer, in the viewer's terms.
@@ -69,6 +70,9 @@ pub enum ViewerInput {
         code: String,
         down: bool,
         flags: u32,
+    },
+    Text {
+        text: String,
     },
 }
 
@@ -98,6 +102,8 @@ impl ViewerInput {
                 down: *down,
                 flags: *flags,
             },
+            Self::Text { text } if !text.is_empty() => InputRecord::Text(text.clone()),
+            Self::Text { .. } => return None,
         })
     }
 }
@@ -176,6 +182,7 @@ impl ClientService {
             remote_status: inner.remote_status.clone(),
             play_audio: settings.play_audio,
             hide_local_pointer: settings.hide_local_pointer,
+            keyboard_mode: settings.keyboard_mode,
         }
     }
 
@@ -318,6 +325,11 @@ impl ClientService {
     pub fn set_hide_local_pointer(&self, hide: bool) {
         self.store.update(|s| s.hide_local_pointer = hide);
         self.send_cursor();
+        self.emit();
+    }
+
+    pub fn set_keyboard_mode(&self, mode: KeyboardMode) {
+        self.store.update(|s| s.keyboard_mode = mode);
         self.emit();
     }
 
@@ -481,7 +493,11 @@ impl ClientService {
                         target.name = host_name.clone();
                         let ticket = target.ticket.clone();
                         self.store.update(|s| {
-                            let kept = s.hosts.iter().find(|h| h.id == id).and_then(|h| h.secret.clone());
+                            let kept = s
+                                .hosts
+                                .iter()
+                                .find(|h| h.id == id)
+                                .and_then(|h| h.secret.clone());
                             s.hosts.retain(|h| h.id != id);
                             s.hosts.insert(
                                 0,
@@ -621,6 +637,11 @@ mod tests {
             .record(),
             None
         );
+        assert_eq!(
+            ViewerInput::Text { text: "é".into() }.record(),
+            Some(InputRecord::Text("é".into()))
+        );
+        assert_eq!(ViewerInput::Text { text: "".into() }.record(), None);
         assert_eq!(
             ViewerInput::MoveTo { x: 1.4, y: -0.2 }.record(),
             Some(InputRecord::MoveTo { x: 1.0, y: 0.0 })

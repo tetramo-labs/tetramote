@@ -43,6 +43,14 @@ pub struct SavedHost {
     pub secret: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum KeyboardMode {
+    Raw,
+    #[default]
+    Translated,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
@@ -51,6 +59,7 @@ pub struct Settings {
     pub hosts: Vec<SavedHost>,
     pub play_audio: bool,
     pub hide_local_pointer: bool,
+    pub keyboard_mode: KeyboardMode,
 }
 
 impl Default for Settings {
@@ -61,6 +70,7 @@ impl Default for Settings {
             hosts: Vec::new(),
             play_audio: true,
             hide_local_pointer: false,
+            keyboard_mode: KeyboardMode::Translated,
         }
     }
 }
@@ -257,4 +267,22 @@ pub fn now_ms() -> u64 {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_millis() as u64)
         .unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keyboard_mode_defaults_to_translated() {
+        let old: Settings =
+            serde_json::from_str(r#"{"playAudio":false,"hideLocalPointer":true}"#).unwrap();
+        assert_eq!(old.keyboard_mode, KeyboardMode::Translated);
+        let raw: Settings = serde_json::from_str(r#"{"keyboardMode":"raw"}"#).unwrap();
+        assert_eq!(raw.keyboard_mode, KeyboardMode::Raw);
+        assert_eq!(
+            serde_json::to_value(Settings::default()).unwrap()["keyboardMode"],
+            "translated"
+        );
+    }
 }

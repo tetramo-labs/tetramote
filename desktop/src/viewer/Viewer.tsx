@@ -2,12 +2,12 @@ import {Channel} from "@tauri-apps/api/core"
 import {getCurrentWindow} from "@tauri-apps/api/window"
 import {useEffect, useRef, useState} from "react"
 
-import {api, type ViewerInput} from "@/ipc"
+import {api, type KeyboardMode, type ViewerInput} from "@/ipc"
 import {useAppStore} from "@/store"
 import {Button, Dot} from "@/ui/Kit"
 import {RemoteDecoder} from "@/viewer/decoder"
 import {parseFrame} from "@/viewer/frames"
-import {contentRect, modifierFlags, normalized, protocolButton, scrollFromWheel} from "@/viewer/input"
+import {contentRect, keyAction, normalized, protocolButton, scrollFromWheel} from "@/viewer/input"
 
 const BAR = "bg-[#1f1f1f] text-[#fafafa]"
 
@@ -28,10 +28,15 @@ export function Viewer() {
       : "This system's web view can't decode video. Update it (WebKitGTK 2.46 or later on Linux).",
   )
   const [hasPicture, setHasPicture] = useState(false)
+  const keyboardMode = useRef<KeyboardMode>("translated")
 
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    keyboardMode.current = client?.keyboardMode ?? "translated"
+  }, [client?.keyboardMode])
 
   useEffect(() => {
     if (!RemoteDecoder.supported()) return
@@ -103,31 +108,33 @@ export function Viewer() {
       e.preventDefault()
       send(scrollFromWheel(e))
     }
-    const key = (down: boolean) => (e: KeyboardEvent) => {
+    const byPosition = new Set<string>()
+    const key = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement | null)?.tagName === "SELECT") return
       e.preventDefault()
-      send({kind: "key", code: e.code, down, flags: modifierFlags(e)})
+      const input = keyAction(e, keyboardMode.current, byPosition)
+      if (input?.kind === "key" && input.down) byPosition.add(input.code)
+      if (input?.kind === "key" && !input.down) byPosition.delete(input.code)
+      if (input) send(input)
     }
     const onDown = button(true)
     const onUp = button(false)
-    const onKeyDown = key(true)
-    const onKeyUp = key(false)
     const noMenu = (e: Event) => e.preventDefault()
     c.addEventListener("mousemove", move)
     c.addEventListener("mousedown", onDown)
     c.addEventListener("mouseup", onUp)
     c.addEventListener("wheel", wheel, {passive: false})
     c.addEventListener("contextmenu", noMenu)
-    window.addEventListener("keydown", onKeyDown)
-    window.addEventListener("keyup", onKeyUp)
+    window.addEventListener("keydown", key)
+    window.addEventListener("keyup", key)
     return () => {
       c.removeEventListener("mousemove", move)
       c.removeEventListener("mousedown", onDown)
       c.removeEventListener("mouseup", onUp)
       c.removeEventListener("wheel", wheel)
       c.removeEventListener("contextmenu", noMenu)
-      window.removeEventListener("keydown", onKeyDown)
-      window.removeEventListener("keyup", onKeyUp)
+      window.removeEventListener("keydown", key)
+      window.removeEventListener("keyup", key)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [])

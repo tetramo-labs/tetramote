@@ -1,4 +1,4 @@
-import type {ViewerInput} from "@/ipc"
+import type {KeyboardMode, ViewerInput} from "@/ipc"
 
 export const FLAG_SHIFT = 0x20000
 export const FLAG_CONTROL = 0x40000
@@ -38,6 +38,22 @@ export function modifierFlags(e: {shiftKey: boolean; ctrlKey: boolean; altKey: b
     (e.altKey ? FLAG_OPTION : 0) |
     (e.metaKey ? FLAG_COMMAND : 0)
   )
+}
+
+export type KeyEvent = Pick<KeyboardEvent, "type" | "key" | "code" | "shiftKey" | "ctrlKey" | "altKey" | "metaKey">
+
+/**
+ * Translated types the character this computer's layout made, and sends shortcuts and keys without one by position.
+ * A keyup goes the way its keydown did (`byPosition`), so a key let go after its ⌘ is still released remotely.
+ */
+export function keyAction(e: KeyEvent, mode: KeyboardMode, byPosition: ReadonlySet<string>): ViewerInput | null {
+  const down = e.type === "keydown"
+  const position: ViewerInput = {kind: "key", code: e.code, down, flags: modifierFlags(e)}
+  if (mode === "raw") return position
+  if (!down) return byPosition.has(e.code) ? position : null
+  if (e.metaKey || e.ctrlKey) return position
+  if (e.key === "Dead") return null
+  return [...e.key].length === 1 ? {kind: "text", text: e.key} : position
 }
 
 const LINE_PIXELS = 16

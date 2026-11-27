@@ -8,7 +8,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use crate::client::{ClientService, ClientState, ViewerInput};
 use crate::host::{HostService, HostState};
-use crate::store::Store;
+use crate::store::{KeyboardMode, Store};
 
 pub struct AppState {
     pub host: Arc<HostService>,
@@ -179,6 +179,11 @@ pub fn viewer_set_audio(state: State<AppState>, enabled: bool) {
 #[tauri::command]
 pub fn viewer_set_hide_local_pointer(state: State<AppState>, hide: bool) {
     state.client.set_hide_local_pointer(hide);
+}
+
+#[tauri::command]
+pub fn viewer_set_keyboard_mode(state: State<AppState>, mode: KeyboardMode) {
+    state.client.set_keyboard_mode(mode);
 }
 
 #[tauri::command]

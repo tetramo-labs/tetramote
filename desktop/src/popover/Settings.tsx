@@ -1,14 +1,20 @@
 import {disable, enable, isEnabled} from "@tauri-apps/plugin-autostart"
 import {useEffect, useState} from "react"
 
-import {api} from "@/ipc"
+import {api, type KeyboardMode} from "@/ipc"
 import {useAppStore} from "@/store"
 import {Button, Group, GroupTitle, Row, Toggle} from "@/ui/Kit"
 import {useUpdates} from "@/updates"
 
+const KEYBOARD_MODES: {mode: KeyboardMode; label: string}[] = [
+  {mode: "raw", label: "Raw"},
+  {mode: "translated", label: "Translated"},
+]
+
 export function Settings() {
   const settings = useAppStore((s) => s.settings)
   const hidePointer = useAppStore((s) => s.client?.hideLocalPointer ?? false)
+  const keyboardMode = useAppStore((s) => s.client?.keyboardMode ?? "translated")
   const [draft, setRelay] = useState<string | null>(null)
   const relay = draft ?? settings?.relayUrl ?? ""
   const [relayError, setRelayError] = useState<string | null>(null)
@@ -98,6 +104,24 @@ export function Settings() {
             checked={!hidePointer}
             onChange={(v) => void api.setHideLocalPointer(!v)}
           />
+        </Row>
+        <Row className="flex-col !items-stretch gap-1">
+          <div className="flex items-center gap-1.5">
+            <div className="flex-1 text-[13px]">Keyboard</div>
+            {KEYBOARD_MODES.map(({mode, label}) => (
+              <Button
+                key={mode}
+                kind={keyboardMode === mode ? "default" : "secondary"}
+                aria-pressed={keyboardMode === mode}
+                onClick={() => void api.setKeyboardMode(mode)}>
+                {label}
+              </Button>
+            ))}
+          </div>
+          <div className="text-[11px] text-muted">
+            Translated types the characters this computer's layout makes. Raw sends keys by position, so the other
+            computer's layout makes them.
+          </div>
         </Row>
         <Row>
           <div className="flex-1 text-[13px]">Open at login</div>
