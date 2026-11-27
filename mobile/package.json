@@ -1,6 +1,6 @@
 {
   "name": "tetramote",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "private": true,
   "main": "expo-router/entry",
