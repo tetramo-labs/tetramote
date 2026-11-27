@@ -230,10 +230,11 @@ fi
 ok "iOS simulator runtimes: $(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform == "iOS" and .isAvailable) | .version] | join(", ")')"
 
 ensure_pmset sleep 0
+ensure_pmset displaysleep 0
 ensure_pmset disksleep 0
 ensure_pmset autorestart 1
 ensure_pmset powernap 0
-ok "Power settings: no sleep, restart after power loss"
+ok "Power settings: no system or display sleep, restart after power loss"
 
 defaults -currentHost write com.apple.screensaver idleTime -int 0
 SCREEN_LOCK="$(sysadminctl -screenLock status 2>&1 | sed 's/.*] //')"
