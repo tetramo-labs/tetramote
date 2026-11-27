@@ -6,10 +6,10 @@ import {FullWindowOverlay} from "react-native-screens"
 
 import {PressableIcon} from "@/components/ignite/Icon"
 import {Text} from "@/components/ignite/Text"
-import {useHardwareKeyboardStore} from "@/components/session/useHardwareKeyboard"
+import {useHardwareKeyboardStore, useStickyModifiers} from "@/components/session/useHardwareKeyboard"
 import GlassView from "@/components/ui/GlassView"
 import {useAppTheme} from "@/contexts/ThemeContext"
-import {flagsFor, KEY, keyPress, shortcutFor, type Modifier} from "@/services/keys"
+import {KEY, keyPress, shortcutFor, type Modifier} from "@/services/keys"
 import {sendInput} from "@/services/remote"
 import {useSetting} from "@/stores/settings"
 
@@ -41,7 +41,8 @@ function AboveRail({children}: {children: ReactNode}) {
 /**
  * A hidden text field drives the system keyboard: typed text goes to the Mac
  * as text records, and with a modifier held a character becomes a shortcut.
- * Modifiers are one-shot, like sticky keys. With a hardware keyboard on iOS,
+ * Modifiers are one-shot, like sticky keys, and also apply to the next hardware
+ * key that goes by position; hiding the row drops them. With a hardware keyboard on iOS,
  * useHardwareKeyboard sends its delete and return keys (and, Raw, every key),
  * so the field leaves those alone. Only Android blurs the field when its keyboard
  * hides: iOS hides it the moment the field focuses with a hardware keyboard attached.
@@ -53,7 +54,7 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
   const {theme, themeContext} = useAppTheme()
   const input = useRef<ComponentRef<typeof TextInput>>(null)
   const [visible, setVisible] = useState(false)
-  const [modifiers, setModifiers] = useState<Modifier[]>([])
+  const modifiers = useStickyModifiers((st) => st.modifiers)
   const hardware = useHardwareKeyboardStore((st) => st.connected) && Platform.OS === "ios"
   const [hardwareMode] = useSetting("hardware_keyboard")
 
@@ -67,26 +68,23 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
     toggle: () => (input.current?.isFocused() ? input.current.blur() : input.current?.focus()),
   }))
 
-  const consumeModifiers = () => {
-    const flags = flagsFor(modifiers)
-    setModifiers([])
-    return flags
-  }
+  const consumeModifiers = () => useStickyModifiers.getState().consume()
 
   const onChangeText = (text: string) => {
     if (!text || (hardware && hardwareMode === "raw")) return
+    const {modifiers} = useStickyModifiers.getState()
     if (modifiers.length === 0) {
       sendInput([{kind: "text", text}])
       return
     }
     const events = [...text].flatMap((c) => shortcutFor(c, modifiers) ?? [])
-    setModifiers([])
+    consumeModifiers()
     sendInput(events.length > 0 ? events : [{kind: "text", text}])
   }
 
   const pressBarKey = (key: BarKey) => {
     if ("modifier" in key) {
-      setModifiers((m) => (m.includes(key.modifier) ? m.filter((x) => x !== key.modifier) : [...m, key.modifier]))
+      useStickyModifiers.getState().toggle(key.modifier)
       return
     }
     sendInput(keyPress(key.keyCode, consumeModifiers()))
@@ -145,7 +143,10 @@ export const KeyboardInput = forwardRef<KeyboardHandle, {dockTop?: number | null
         spellCheck={false}
         keyboardAppearance={themeContext}
         onFocus={() => setVisible(true)}
-        onBlur={() => setVisible(false)}
+        onBlur={() => {
+          setVisible(false)
+          consumeModifiers()
+        }}
         style={{position: "absolute", width: 1, height: 1, opacity: 0, left: -10}}
       />
       {visible && (

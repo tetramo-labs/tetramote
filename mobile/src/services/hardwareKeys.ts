@@ -206,7 +206,8 @@ export type KeyAction = {send: InputEvent[]; repeat: boolean} | {type: string} |
  * Turns a hardware keyboard's keys into what goes to the computer. Raw sends every key by position, modifiers
  * included, so the computer's own layout makes the characters. Translated lets the phone's layout make them:
  * keys that type go as text (on iOS the phone's text field types them, so they are ignored here), and the rest,
- * or anything held with ⌘ or ⌃, still go by position.
+ * or anything held with ⌘ or ⌃, still go by position. `sticky` flags (the key row's) join any key that goes by
+ * position, but never turn a Translated text key into a shortcut: the text field applies them to those.
  */
 export class HardwareKeys {
   private held = new Set<number>()
@@ -221,7 +222,7 @@ export class HardwareKeys {
     this.held.clear()
   }
 
-  handle(event: HardwareKeyEvent, mode: HardwareKeyboardMode): KeyAction {
+  handle(event: HardwareKeyEvent, mode: HardwareKeyboardMode, sticky = 0): KeyAction {
     const usage = event.usage ?? (event.code !== undefined ? ANDROID_TO_HID[event.code] : undefined)
     if (usage === undefined) return {ignore: true}
     const mac = HID_TO_MAC[usage]
@@ -238,6 +239,9 @@ export class HardwareKeys {
       if (!event.down || !event.unicode) return {ignore: true}
       return {type: String.fromCodePoint(event.unicode)}
     }
-    return {send: [{kind: "key", keyCode: mac, down: event.down, flags}], repeat: event.down && !modifier}
+    return {
+      send: [{kind: "key", keyCode: mac, down: event.down, flags: modifier ? flags : flags | sticky}],
+      repeat: event.down && !modifier,
+    }
   }
 }
