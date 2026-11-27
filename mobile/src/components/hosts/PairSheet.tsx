@@ -29,7 +29,7 @@ export function PairSheet({sheet}: {sheet: RefObject<BottomSheetModal | null>}) 
   }
 
   return (
-    <Sheet ref={sheet} fullWidth onDismiss={() => setNoLink(false)}>
+    <Sheet ref={sheet} onDismiss={() => setNoLink(false)}>
       <Text tx="pair:title" preset="subheading" className="text-foreground" />
       <SheetChoice icon={QrCode} labelTx="pair:scan" subtitleTx="pair:scanHint" onPress={scan} />
       <SheetChoice icon={ClipboardPaste} labelTx="pair:paste" subtitleTx="pair:pasteHint" onPress={paste} />

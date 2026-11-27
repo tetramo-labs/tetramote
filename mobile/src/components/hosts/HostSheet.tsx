@@ -35,7 +35,7 @@ export function HostSheet({
   }
 
   return (
-    <Sheet ref={sheet} fullWidth>
+    <Sheet ref={sheet}>
       <Text text={host?.name ?? ""} preset="subheading" className="text-foreground" numberOfLines={1} />
       {host?.secret ? (
         <SheetChoice icon={Link} labelTx="host:copyLink" subtitleTx="host:copyLinkHint" onPress={copyLink} />

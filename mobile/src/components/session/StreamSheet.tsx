@@ -9,7 +9,7 @@ import {Sheet} from "@/components/session/Sheet"
 export const StreamSheet = forwardRef<BottomSheetModal>(function StreamSheet(_props, ref) {
   const rows = useStreamRows()
   return (
-    <Sheet ref={ref} fullWidth>
+    <Sheet ref={ref}>
       <Text tx="session:streamTitle" preset="subheading" className="text-foreground" />
       <Group>{rows}</Group>
     </Sheet>
